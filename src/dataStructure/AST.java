@@ -1,4 +1,3 @@
 package dataStructure;
-public abstract class AST {
-
+public abstract class AST{
 }
