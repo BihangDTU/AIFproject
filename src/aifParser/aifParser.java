@@ -1,5 +1,5 @@
 package aifParser;
-// Generated from aif.g4 by ANTLR 4.7.1
+// Generated from .\aif.g4 by ANTLR 4.7.1
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -20,8 +20,7 @@ public class aifParser extends Parser {
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, T__8=9, 
 		T__9=10, T__10=11, T__11=12, T__12=13, T__13=14, T__14=15, T__15=16, T__16=17, 
 		T__17=18, T__18=19, T__19=20, T__20=21, T__21=22, T__22=23, T__23=24, 
-		T__24=25, T__25=26, T__26=27, T__27=28, T__28=29, NUM=30, ID=31, WHITESPACE=32, 
-		COMMENT=33;
+		T__24=25, T__25=26, T__26=27, NUM=28, ID=29, WHITESPACE=30, COMMENT=31;
 	public static final int
 		RULE_aif = 0, RULE_typedec = 1, RULE_type = 2, RULE_terms = 3, RULE_term = 4, 
 		RULE_symdecs = 5, RULE_symdec = 6, RULE_aifrule = 7, RULE_facts = 8, RULE_fact = 9, 
@@ -34,13 +33,13 @@ public class aifParser extends Parser {
 	private static final String[] _LITERAL_NAMES = {
 		null, "'Problem:'", "';'", "'Types:'", "'Sets:'", "'Functions:'", "'Facts:'", 
 		"'Rules:'", "'='", "'{...}'", "'{'", "','", "'}'", "'++'", "'_'", "'('", 
-		"')'", "'val'", "'['", "']'", "'/'", "'.'", "'in'", "'notin'", "'=>'", 
-		"'=['", "']=>'", "':'", "'value'", "'untyped'"
+		"')'", "'val'", "'/'", "'.'", "'in'", "'notin'", "'=>'", "'=['", "']=>'", 
+		"':'", "'value'", "'untyped'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, null, null, null, null, null, null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
-		null, null, null, null, null, null, "NUM", "ID", "WHITESPACE", "COMMENT"
+		null, null, null, null, "NUM", "ID", "WHITESPACE", "COMMENT"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -606,11 +605,11 @@ public class aifParser extends Parser {
 				setState(97);
 				match(T__16);
 				setState(98);
-				match(T__17);
+				match(T__14);
 				setState(99);
 				terms();
 				setState(100);
-				match(T__18);
+				match(T__15);
 				}
 				break;
 			}
@@ -721,7 +720,7 @@ public class aifParser extends Parser {
 			setState(112);
 			match(ID);
 			setState(113);
-			match(T__19);
+			match(T__17);
 			setState(114);
 			match(NUM);
 			}
@@ -854,11 +853,11 @@ public class aifParser extends Parser {
 			setState(132);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==T__20) {
+			while (_la==T__18) {
 				{
 				{
 				setState(128);
-				match(T__20);
+				match(T__18);
 				setState(129);
 				fact();
 				}
@@ -989,7 +988,7 @@ public class aifParser extends Parser {
 				setState(142);
 				match(ID);
 				setState(143);
-				match(T__21);
+				match(T__19);
 				setState(144);
 				term();
 				}
@@ -1001,7 +1000,7 @@ public class aifParser extends Parser {
 				setState(145);
 				match(ID);
 				setState(146);
-				match(T__22);
+				match(T__20);
 				setState(147);
 				term();
 				}
@@ -1075,20 +1074,20 @@ public class aifParser extends Parser {
 			setState(161);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
-			case T__23:
+			case T__21:
 				_localctx = new NoFreshContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(150);
-				match(T__23);
+				match(T__21);
 				}
 				break;
-			case T__24:
+			case T__22:
 				_localctx = new FreshContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(151);
-				match(T__24);
+				match(T__22);
 				setState(152);
 				match(ID);
 				setState(157);
@@ -1108,7 +1107,7 @@ public class aifParser extends Parser {
 					_la = _input.LA(1);
 				}
 				setState(160);
-				match(T__25);
+				match(T__23);
 				}
 				break;
 			default:
@@ -1223,7 +1222,7 @@ public class aifParser extends Parser {
 			setState(171);
 			match(ID);
 			setState(172);
-			match(T__26);
+			match(T__24);
 			setState(173);
 			vartype();
 			}
@@ -1315,20 +1314,20 @@ public class aifParser extends Parser {
 				match(ID);
 				}
 				break;
-			case T__27:
+			case T__25:
 				_localctx = new ValueContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(176);
-				match(T__27);
+				match(T__25);
 				}
 				break;
-			case T__28:
+			case T__26:
 				_localctx = new UntypedContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(177);
-				match(T__28);
+				match(T__26);
 				}
 				break;
 			default:
@@ -1347,7 +1346,7 @@ public class aifParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3#\u00b7\4\2\t\2\4"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3!\u00b7\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\3\2\3\2\3\2\3\2\3\2\7\2$\n\2\f"+
 		"\2\16\2\'\13\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\7\2\64\n\2"+
@@ -1363,43 +1362,43 @@ public class aifParser extends Parser {
 		"\3\17\2\2\20\2\4\6\b\n\f\16\20\22\24\26\30\32\34\2\2\2\u00bd\2\36\3\2"+
 		"\2\2\4:\3\2\2\2\6R\3\2\2\2\bT\3\2\2\2\nh\3\2\2\2\fj\3\2\2\2\16r\3\2\2"+
 		"\2\20v\3\2\2\2\22\u0081\3\2\2\2\24\u0096\3\2\2\2\26\u00a3\3\2\2\2\30\u00a5"+
-		"\3\2\2\2\32\u00ad\3\2\2\2\34\u00b4\3\2\2\2\36\37\7\3\2\2\37 \7!\2\2 !"+
-		"\7\4\2\2!%\7\5\2\2\"$\5\4\3\2#\"\3\2\2\2$\'\3\2\2\2%#\3\2\2\2%&\3\2\2"+
-		"\2&(\3\2\2\2\'%\3\2\2\2()\7\6\2\2)*\5\b\5\2*+\7\4\2\2+,\7\7\2\2,-\5\f"+
-		"\7\2-.\7\4\2\2./\7\b\2\2/\60\5\f\7\2\60\61\7\4\2\2\61\65\7\t\2\2\62\64"+
-		"\5\20\t\2\63\62\3\2\2\2\64\67\3\2\2\2\65\63\3\2\2\2\65\66\3\2\2\2\668"+
-		"\3\2\2\2\67\65\3\2\2\289\7\2\2\39\3\3\2\2\2:;\7!\2\2;<\7\n\2\2<=\5\6\4"+
-		"\2=>\7\4\2\2>\5\3\2\2\2?S\7\13\2\2@A\7\f\2\2AF\7!\2\2BC\7\r\2\2CE\7!\2"+
-		"\2DB\3\2\2\2EH\3\2\2\2FD\3\2\2\2FG\3\2\2\2GI\3\2\2\2HF\3\2\2\2IS\7\16"+
-		"\2\2JO\7!\2\2KL\7\17\2\2LN\7!\2\2MK\3\2\2\2NQ\3\2\2\2OM\3\2\2\2OP\3\2"+
-		"\2\2PS\3\2\2\2QO\3\2\2\2R?\3\2\2\2R@\3\2\2\2RJ\3\2\2\2S\7\3\2\2\2TY\5"+
-		"\n\6\2UV\7\r\2\2VX\5\n\6\2WU\3\2\2\2X[\3\2\2\2YW\3\2\2\2YZ\3\2\2\2Z\t"+
-		"\3\2\2\2[Y\3\2\2\2\\i\7!\2\2]i\7\20\2\2^_\7!\2\2_`\7\21\2\2`a\5\b\5\2"+
-		"ab\7\22\2\2bi\3\2\2\2cd\7\23\2\2de\7\24\2\2ef\5\b\5\2fg\7\25\2\2gi\3\2"+
-		"\2\2h\\\3\2\2\2h]\3\2\2\2h^\3\2\2\2hc\3\2\2\2i\13\3\2\2\2jo\5\16\b\2k"+
-		"l\7\r\2\2ln\5\16\b\2mk\3\2\2\2nq\3\2\2\2om\3\2\2\2op\3\2\2\2p\r\3\2\2"+
-		"\2qo\3\2\2\2rs\7!\2\2st\7\26\2\2tu\7 \2\2u\17\3\2\2\2vw\7!\2\2wx\7\21"+
-		"\2\2xy\5\30\r\2y{\7\22\2\2z|\5\22\n\2{z\3\2\2\2{|\3\2\2\2|}\3\2\2\2}~"+
-		"\5\26\f\2~\177\5\22\n\2\177\u0080\7\4\2\2\u0080\21\3\2\2\2\u0081\u0086"+
-		"\5\24\13\2\u0082\u0083\7\27\2\2\u0083\u0085\5\24\13\2\u0084\u0082\3\2"+
-		"\2\2\u0085\u0088\3\2\2\2\u0086\u0084\3\2\2\2\u0086\u0087\3\2\2\2\u0087"+
-		"\23\3\2\2\2\u0088\u0086\3\2\2\2\u0089\u008e\7!\2\2\u008a\u008b\7\21\2"+
-		"\2\u008b\u008c\5\b\5\2\u008c\u008d\7\22\2\2\u008d\u008f\3\2\2\2\u008e"+
-		"\u008a\3\2\2\2\u008e\u008f\3\2\2\2\u008f\u0097\3\2\2\2\u0090\u0091\7!"+
-		"\2\2\u0091\u0092\7\30\2\2\u0092\u0097\5\n\6\2\u0093\u0094\7!\2\2\u0094"+
-		"\u0095\7\31\2\2\u0095\u0097\5\n\6\2\u0096\u0089\3\2\2\2\u0096\u0090\3"+
-		"\2\2\2\u0096\u0093\3\2\2\2\u0097\25\3\2\2\2\u0098\u00a4\7\32\2\2\u0099"+
-		"\u009a\7\33\2\2\u009a\u009f\7!\2\2\u009b\u009c\7\r\2\2\u009c\u009e\7!"+
-		"\2\2\u009d\u009b\3\2\2\2\u009e\u00a1\3\2\2\2\u009f\u009d\3\2\2\2\u009f"+
-		"\u00a0\3\2\2\2\u00a0\u00a2\3\2\2\2\u00a1\u009f\3\2\2\2\u00a2\u00a4\7\34"+
-		"\2\2\u00a3\u0098\3\2\2\2\u00a3\u0099\3\2\2\2\u00a4\27\3\2\2\2\u00a5\u00aa"+
-		"\5\32\16\2\u00a6\u00a7\7\r\2\2\u00a7\u00a9\5\32\16\2\u00a8\u00a6\3\2\2"+
-		"\2\u00a9\u00ac\3\2\2\2\u00aa\u00a8\3\2\2\2\u00aa\u00ab\3\2\2\2\u00ab\31"+
-		"\3\2\2\2\u00ac\u00aa\3\2\2\2\u00ad\u00ae\7!\2\2\u00ae\u00af\7\35\2\2\u00af"+
-		"\u00b0\5\34\17\2\u00b0\33\3\2\2\2\u00b1\u00b5\7!\2\2\u00b2\u00b5\7\36"+
-		"\2\2\u00b3\u00b5\7\37\2\2\u00b4\u00b1\3\2\2\2\u00b4\u00b2\3\2\2\2\u00b4"+
-		"\u00b3\3\2\2\2\u00b5\35\3\2\2\2\22%\65FORYho{\u0086\u008e\u0096\u009f"+
-		"\u00a3\u00aa\u00b4";
+		"\3\2\2\2\32\u00ad\3\2\2\2\34\u00b4\3\2\2\2\36\37\7\3\2\2\37 \7\37\2\2"+
+		" !\7\4\2\2!%\7\5\2\2\"$\5\4\3\2#\"\3\2\2\2$\'\3\2\2\2%#\3\2\2\2%&\3\2"+
+		"\2\2&(\3\2\2\2\'%\3\2\2\2()\7\6\2\2)*\5\b\5\2*+\7\4\2\2+,\7\7\2\2,-\5"+
+		"\f\7\2-.\7\4\2\2./\7\b\2\2/\60\5\f\7\2\60\61\7\4\2\2\61\65\7\t\2\2\62"+
+		"\64\5\20\t\2\63\62\3\2\2\2\64\67\3\2\2\2\65\63\3\2\2\2\65\66\3\2\2\2\66"+
+		"8\3\2\2\2\67\65\3\2\2\289\7\2\2\39\3\3\2\2\2:;\7\37\2\2;<\7\n\2\2<=\5"+
+		"\6\4\2=>\7\4\2\2>\5\3\2\2\2?S\7\13\2\2@A\7\f\2\2AF\7\37\2\2BC\7\r\2\2"+
+		"CE\7\37\2\2DB\3\2\2\2EH\3\2\2\2FD\3\2\2\2FG\3\2\2\2GI\3\2\2\2HF\3\2\2"+
+		"\2IS\7\16\2\2JO\7\37\2\2KL\7\17\2\2LN\7\37\2\2MK\3\2\2\2NQ\3\2\2\2OM\3"+
+		"\2\2\2OP\3\2\2\2PS\3\2\2\2QO\3\2\2\2R?\3\2\2\2R@\3\2\2\2RJ\3\2\2\2S\7"+
+		"\3\2\2\2TY\5\n\6\2UV\7\r\2\2VX\5\n\6\2WU\3\2\2\2X[\3\2\2\2YW\3\2\2\2Y"+
+		"Z\3\2\2\2Z\t\3\2\2\2[Y\3\2\2\2\\i\7\37\2\2]i\7\20\2\2^_\7\37\2\2_`\7\21"+
+		"\2\2`a\5\b\5\2ab\7\22\2\2bi\3\2\2\2cd\7\23\2\2de\7\21\2\2ef\5\b\5\2fg"+
+		"\7\22\2\2gi\3\2\2\2h\\\3\2\2\2h]\3\2\2\2h^\3\2\2\2hc\3\2\2\2i\13\3\2\2"+
+		"\2jo\5\16\b\2kl\7\r\2\2ln\5\16\b\2mk\3\2\2\2nq\3\2\2\2om\3\2\2\2op\3\2"+
+		"\2\2p\r\3\2\2\2qo\3\2\2\2rs\7\37\2\2st\7\24\2\2tu\7\36\2\2u\17\3\2\2\2"+
+		"vw\7\37\2\2wx\7\21\2\2xy\5\30\r\2y{\7\22\2\2z|\5\22\n\2{z\3\2\2\2{|\3"+
+		"\2\2\2|}\3\2\2\2}~\5\26\f\2~\177\5\22\n\2\177\u0080\7\4\2\2\u0080\21\3"+
+		"\2\2\2\u0081\u0086\5\24\13\2\u0082\u0083\7\25\2\2\u0083\u0085\5\24\13"+
+		"\2\u0084\u0082\3\2\2\2\u0085\u0088\3\2\2\2\u0086\u0084\3\2\2\2\u0086\u0087"+
+		"\3\2\2\2\u0087\23\3\2\2\2\u0088\u0086\3\2\2\2\u0089\u008e\7\37\2\2\u008a"+
+		"\u008b\7\21\2\2\u008b\u008c\5\b\5\2\u008c\u008d\7\22\2\2\u008d\u008f\3"+
+		"\2\2\2\u008e\u008a\3\2\2\2\u008e\u008f\3\2\2\2\u008f\u0097\3\2\2\2\u0090"+
+		"\u0091\7\37\2\2\u0091\u0092\7\26\2\2\u0092\u0097\5\n\6\2\u0093\u0094\7"+
+		"\37\2\2\u0094\u0095\7\27\2\2\u0095\u0097\5\n\6\2\u0096\u0089\3\2\2\2\u0096"+
+		"\u0090\3\2\2\2\u0096\u0093\3\2\2\2\u0097\25\3\2\2\2\u0098\u00a4\7\30\2"+
+		"\2\u0099\u009a\7\31\2\2\u009a\u009f\7\37\2\2\u009b\u009c\7\r\2\2\u009c"+
+		"\u009e\7\37\2\2\u009d\u009b\3\2\2\2\u009e\u00a1\3\2\2\2\u009f\u009d\3"+
+		"\2\2\2\u009f\u00a0\3\2\2\2\u00a0\u00a2\3\2\2\2\u00a1\u009f\3\2\2\2\u00a2"+
+		"\u00a4\7\32\2\2\u00a3\u0098\3\2\2\2\u00a3\u0099\3\2\2\2\u00a4\27\3\2\2"+
+		"\2\u00a5\u00aa\5\32\16\2\u00a6\u00a7\7\r\2\2\u00a7\u00a9\5\32\16\2\u00a8"+
+		"\u00a6\3\2\2\2\u00a9\u00ac\3\2\2\2\u00aa\u00a8\3\2\2\2\u00aa\u00ab\3\2"+
+		"\2\2\u00ab\31\3\2\2\2\u00ac\u00aa\3\2\2\2\u00ad\u00ae\7\37\2\2\u00ae\u00af"+
+		"\7\33\2\2\u00af\u00b0\5\34\17\2\u00b0\33\3\2\2\2\u00b1\u00b5\7\37\2\2"+
+		"\u00b2\u00b5\7\34\2\2\u00b3\u00b5\7\35\2\2\u00b4\u00b1\3\2\2\2\u00b4\u00b2"+
+		"\3\2\2\2\u00b4\u00b3\3\2\2\2\u00b5\35\3\2\2\2\22%\65FORYho{\u0086\u008e"+
+		"\u0096\u009f\u00a3\u00aa\u00b4";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

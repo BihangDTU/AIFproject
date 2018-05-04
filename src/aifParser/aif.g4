@@ -23,7 +23,7 @@ terms : term (',' term)* ;
 term : ID                   # Atom 
      | '_'                  # Wildcard
      | ID '(' terms ')'     # Composed
-     | 'val' '['  terms ']' # Abstraction
+     | 'val' '('  terms ')' # Abstraction
      ;
 
 symdecs : symdec (',' symdec)* ;
