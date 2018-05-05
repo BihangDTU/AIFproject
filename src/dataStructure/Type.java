@@ -43,5 +43,4 @@ public class Type extends AST {
 		}	
 		return s;
 	}
-	
 }

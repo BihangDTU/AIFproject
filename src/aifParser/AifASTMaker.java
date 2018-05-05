@@ -18,8 +18,11 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   		types.add((Type)visit(t));
   	Functions functions = new Functions((Functions)visit(ctx.symdecs(0)));
   	Functions facts = new Functions((Functions)visit(ctx.symdecs(1))); 
-  	//List<Term> sets = new ArrayList<Term>();
-  	Terms sets = (Terms)visit(ctx.terms());
+  	List<Term> sets = new ArrayList<Term>();
+  	for(aifParser.TermContext set : ctx.terms().term()){
+  		sets.add((Term)visit(set));
+  	}
+  	//Terms sets = (Terms)visit(ctx.terms());
   	List<ConcreteRules> rules = new ArrayList<ConcreteRules>();
   	for(aifParser.AifruleContext r : ctx.aifrule())
   		rules.add((ConcreteRules)visit(r));
@@ -64,12 +67,7 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   // Terms: the outermost should not be called
   @Override
   public AST visitTerms(aifParser.TermsContext ctx){
-  	//faux.error("This should not be called.\n"); return null;
-  	List<Term> terms = new ArrayList<>();
-  	for(aifParser.TermContext t : ctx.term()){
-  		terms.add((Composed)visit(t));
-  	}
-  	return new Terms(terms);
+  	faux.error("This should not be called.\n"); return null;
   };
   @Override
   public AST visitAtom(aifParser.AtomContext ctx){
@@ -124,7 +122,8 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   	ArrayList<Term> LF=new ArrayList<Term>();
   	ArrayList<Condition> Splus=new ArrayList<Condition>();
   	ArrayList<Condition> Snega=new ArrayList<Condition>();
-  	Variable newVariable=(Variable) visit(ctx.arrow());
+  	//Variable newVariable=(Variable) visit(ctx.arrow());
+  	Freshs freshs = (Freshs)visit(ctx.arrow());
   	ArrayList<Term> RF=new ArrayList<Term>();
   	ArrayList<Condition> RS=new ArrayList<Condition>();
 
@@ -164,7 +163,7 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   		}
   	}
 
-  	return new ConcreteRules(rulesName,varsTypes,LF,Splus,Snega,newVariable,RF,RS);
+  	return new ConcreteRules(rulesName,varsTypes,LF,Splus,Snega,freshs,RF,RS);
   };
   @Override
   public AST visitFacts(aifParser.FactsContext ctx){
@@ -189,27 +188,39 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   };
   @Override
   public AST visitNoFresh(aifParser.NoFreshContext ctx){
-  	return null;
+  	return new Freshs();
   };
   @Override
   public AST visitFresh(aifParser.FreshContext ctx){
-  	return new Variable(ctx.ID(0).getText());
   	// TODO: handle more than one variable!
+  	List<Variable> vars = new ArrayList<Variable>();
+  	for(TerminalNode var : ctx.ID()){
+  		vars.add(new Variable(var.getText()));
+  	}
+  	return new Freshs(vars);
   };
   @Override
   public AST visitVardecs(aifParser.VardecsContext ctx){
   	faux.error("This should not be called.\n"); return null;
   };
   @Override
-  public AST visitVardec(aifParser.VardecContext ctx){return null;};
+  public AST visitVardec(aifParser.VardecContext ctx){
+  	return new Vardec(ctx.ID().getText(),ctx.getText());
+  };
 
   // Following have nothing in the AST to store
   @Override
-  public AST visitUserDef(aifParser.UserDefContext ctx){return null;};
+  public AST visitUserDef(aifParser.UserDefContext ctx){
+  	return new Value(ctx.ID().getText());
+  };
   @Override
-  public AST visitValue(aifParser.ValueContext ctx){return null;};
+  public AST visitValue(aifParser.ValueContext ctx){
+  	return new Value(ctx.getText());
+  };
   @Override
-  public AST visitUntyped(aifParser.UntypedContext ctx){return null;};
+  public AST visitUntyped(aifParser.UntypedContext ctx){
+  	return new Value(ctx.getText());
+  };
  
 }
 

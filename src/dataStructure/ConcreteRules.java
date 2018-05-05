@@ -22,19 +22,19 @@ public class ConcreteRules extends AST implements Serializable{
   private ArrayList<Term> LF = new ArrayList<>();
   private ArrayList<Condition> Splus = new ArrayList<>();
   private ArrayList<Condition> Snega = new ArrayList<>();
-  private Variable newVariable;
+  private Freshs freshVars;
   private ArrayList<Term> RF = new ArrayList<>();
   private ArrayList<Condition> RS = new ArrayList<>();
   
   public ConcreteRules(){}
   public ConcreteRules(String rulesName, HashMap<String, String> varsTypes, ArrayList<Term> LF, ArrayList<Condition> Splus,
-                       ArrayList<Condition> Snega, Variable newVariable, ArrayList<Term> RF, ArrayList<Condition> RS) {
+                       ArrayList<Condition> Snega, Freshs freshVars, ArrayList<Term> RF, ArrayList<Condition> RS) {
     this.rulesName = rulesName;
     this.varsTypes = varsTypes;
     this.LF = LF;
     this.Splus = Splus;
     this.Snega = Snega;
-    this.newVariable = newVariable;
+    this.freshVars = freshVars;
     this.RF = RF;
     this.RS = RS;
   }
@@ -95,12 +95,12 @@ public class ConcreteRules extends AST implements Serializable{
     this.Snega.add(cond);
   }
 
-  public Variable getNewVariable() {
-    return newVariable;
+  public Freshs getNewFreshVars() {
+    return freshVars;
   }
 
-  public void setNewVariable(Variable newVariable) {
-    this.newVariable = newVariable;
+  public void setNewFreshVars(Freshs freshVars) {
+    this.freshVars = freshVars;
   }
   
   public ArrayList<Term> getRF() {
@@ -154,10 +154,18 @@ public class ConcreteRules extends AST implements Serializable{
     for (int i=0;i<Snega.size();i++){
       concreteRules = concreteRules + "." + Snega.get(i).getVar().toString() + " notin " + Snega.get(i).getTerm().toString();
     }
-    if(newVariable == null){
+    if(freshVars.getFreshs().isEmpty()){
       concreteRules = concreteRules + " => ";
     }else{
-      concreteRules = concreteRules + " =[" + newVariable.toString() + "]=> ";
+      //concreteRules = concreteRules + " =[" + newVariable.toString() + "]=> ";
+    	concreteRules += " =[";
+      for(int i=0;i<freshVars.getFreshs().size();i++){
+      	if(i<freshVars.getFreshs().size()-1){
+      		concreteRules += freshVars.getFreshs().get(i) + ",";
+      	}else{
+      		concreteRules += freshVars.getFreshs().get(i) + "]=> ";
+      	}
+      }
     }
     for (int i=0;i<RS.size();i++){
       if(i == 0){
@@ -188,7 +196,7 @@ public class ConcreteRules extends AST implements Serializable{
             Objects.equals(LF, concreteRules.LF) &&
             Objects.equals(Splus, concreteRules.Splus) &&
             Objects.equals(Snega, concreteRules.Snega) &&
-            Objects.equals(newVariable, concreteRules.newVariable) &&
+            Objects.equals(freshVars, concreteRules.freshVars) &&
             Objects.equals(RF, concreteRules.RF) &&
             Objects.equals(RS, concreteRules.RS);
   }
@@ -201,7 +209,7 @@ public class ConcreteRules extends AST implements Serializable{
     hash = 19 * hash + Objects.hashCode(this.LF);
     hash = 19 * hash + Objects.hashCode(this.Splus);
     hash = 19 * hash + Objects.hashCode(this.Snega);
-    hash = 19 * hash + Objects.hashCode(this.newVariable);
+    hash = 19 * hash + Objects.hashCode(this.freshVars);
     hash = 19 * hash + Objects.hashCode(this.RF);
     hash = 19 * hash + Objects.hashCode(this.RS);
     return hash;

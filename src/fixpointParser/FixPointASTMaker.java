@@ -1,23 +1,9 @@
 package fixpointParser;
-
+import dataStructure.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
-
-import dataStructure.AST;
-import dataStructure.Composed;
-import dataStructure.Fixpoint;
-import dataStructure.FixpointData;
-import dataStructure.Num;
-import dataStructure.NumList;
-import dataStructure.Term;
-import dataStructure.Terms;
-import dataStructure.Value;
-import dataStructure.Vardec;
-import dataStructure.Vardecs;
-import dataStructure.Variable;
 
 public class FixPointASTMaker extends AbstractParseTreeVisitor<AST> implements fixpointsVisitor<AST> {
 	
@@ -32,12 +18,12 @@ public class FixPointASTMaker extends AbstractParseTreeVisitor<AST> implements f
 	}
 	@Override
 	public AST visitTerms(fixpointsParser.TermsContext ctx){
-		//faux.error("This should not be called.\n"); return null;
-  	List<Term> terms = new ArrayList<>();
+		faux.error("This should not be called.\n"); return null;
+  	/*List<Term> terms = new ArrayList<>();
   	for(fixpointsParser.TermContext t : ctx.term()){
   		terms.add((Composed)visit(t));
   	}
-  	return new Terms(terms);
+  	return new Terms(terms);*/
 	}
 	@Override
 	public AST visitAtom(fixpointsParser.AtomContext ctx){
