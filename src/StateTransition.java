@@ -3,23 +3,24 @@ import myException.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class StateTransition {
   private static int new_var_counter = 0;
   private static int new_timplies_counter = 0;
-  private ArrayList<String> buildInTypes;
+  private HashSet<String> buildInTypes;
   private static boolean isAttackFound = false; 
   
   DeepClone dClone = new DeepClone();
   Mgu mgu = new Mgu();
 
-  public ArrayList<String> getBuildInTypes() {
+  public HashSet<String> getBuildInTypes() {
     return buildInTypes;
   }
 
-  public void setBuildInTypes(ArrayList<String> buildInTypes) {
+  public void setBuildInTypes(HashSet<String> buildInTypes) {
     this.buildInTypes = buildInTypes;
   }
   
@@ -28,7 +29,7 @@ public class StateTransition {
    * @param  typeInfo e.g. {A=[a, i], S=[s]}
    * @return e.g. [{A=i, S=s}, {A=a, S=s}]
    */
-  public Set<HashMap<String,Term>> userTypeSubstitution(HashMap<String, ArrayList<Term>> typeInfo){
+  public Set<HashMap<String,Term>> userTypeSubstitution(HashMap<String, List<Term>> typeInfo){
     Set<HashMap<String,Term>> combinations = new HashSet<>();
     if(!typeInfo.isEmpty()){
       Set<HashMap<String,Term>> newCombinations;
@@ -42,7 +43,7 @@ public class StateTransition {
       }
       index++;
       while(index < keyList.size()) {
-        ArrayList<Term> nextList = typeInfo.get(keyList.get(index));
+        List<Term> nextList = typeInfo.get(keyList.get(index));
         newCombinations = new HashSet<>();
         for(HashMap<String,Term> first: combinations) {
           for(Term second: nextList) {
@@ -243,12 +244,12 @@ public class StateTransition {
    * @param dbSet             e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return  [(PK,db_valid(a,s)), (PK,db_valid(i,s)), (PK,db_revoked(a,s)),(PK,db_revoked(i,s))]
    */
-  public ArrayList<Condition> expandConditions(Condition condition,HashMap<String,ArrayList<Term>> concreteTypeInfo, ArrayList<Term> dbSet){
+  public ArrayList<Condition> expandConditions(Condition condition,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
     ArrayList<Condition> conditions = new ArrayList<>();
     Condition cond = new Condition();
     cond = (Condition)dClone.deepClone(condition);
-    HashMap<Variable,ArrayList<Term>> types = new HashMap<>();
-    for (Map.Entry<String,ArrayList<Term>> entry : concreteTypeInfo.entrySet()) {
+    HashMap<Variable,List<Term>> types = new HashMap<>();
+    for (Map.Entry<String,List<Term>> entry : concreteTypeInfo.entrySet()) {
       Variable var = new Variable(entry.getKey());
       types.put(var, entry.getValue());
     }
@@ -265,7 +266,7 @@ public class StateTransition {
     }
     if(needExpandCondition(condition)){
       //Set<HashMap<Variable,Term>> expandTypes = new HashSet<>();
-      HashMap<String,ArrayList<Term>> subTypes = new HashMap<>();
+      HashMap<String,List<Term>> subTypes = new HashMap<>();
       for(Map.Entry<String,ArrayList<Term>> entry : dbMap.entrySet()){
         if(condition.getTerm().getFactName().equals(entry.getKey())){
           for(int i=0; i<entry.getValue().size();i++){
@@ -303,10 +304,10 @@ public class StateTransition {
    * @param  dbSet  e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return list of possible states
    */
-  public ArrayList<State> ruleApply(State state, ConcreteRules rule,HashMap<String,ArrayList<Term>> concreteTypeInfo, ArrayList<Term> dbSet){
+  public ArrayList<State> ruleApply(State state, ConcreteRules rule,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
     ArrayList<State> newStates = new ArrayList<>();
     HashMap<String, String> varsTypes = new HashMap<>();
-    HashMap<String, ArrayList<Term>> cTypeInfo = new HashMap<>();
+    HashMap<String, List<Term>> cTypeInfo = new HashMap<>();
     varsTypes = getUserDefineType(rule.getVarsTypes()); //only keep user define types
     for (Map.Entry<String, String> e : varsTypes.entrySet()) {
       cTypeInfo.put(e.getKey(), concreteTypeInfo.get(e.getValue()));
@@ -447,7 +448,7 @@ public class StateTransition {
    * @return  all states that can be explore by the current state according to the attack traces
    */
   public Node stateTransition(Node state, HashMap<String, ConcreteRules> rules,ArrayList<String> attackTraces,
-                                     HashMap<String,ArrayList<Term>> concreteTypeInfo,ArrayList<Term> dbSet){
+                                     HashMap<String,List<Term>> concreteTypeInfo,List<Term> dbSet){
    // Node<State> newState = new Node<>(state.getState());
     //ArrayList<String> concreteAttackTreces = new ArrayList<>(); 
     String applyRuleName;

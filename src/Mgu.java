@@ -82,9 +82,9 @@ public class Mgu {
       }
     }
     /*substitued Variables in Subtitution map if applicable*/
-    for(Map.Entry sub : subs.getSubstitution().entrySet()){
+    for(Map.Entry<String, Term> sub : subs.getSubstitution().entrySet()){
       Term term = termSubstituted((Term)(sub.getValue()),subs);
-      subs.addSubstitution(((Variable)(sub.getKey())).getVarName(), term);    
+      subs.addSubstitution(sub.getKey(), term);    
     }
     return subs;
   }

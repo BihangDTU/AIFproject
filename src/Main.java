@@ -8,8 +8,10 @@ import org.antlr.v4.runtime.tree.*;
 import org.antlr.v4.runtime.CharStreams;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -50,9 +52,42 @@ public class Main {
   	FixPointASTMaker fpASTmaker = new FixPointASTMaker();
   	AST fpAST=fpASTmaker.visit(parseTree2);
 
-  	HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();  
-  	 	
-  	//System.out.println(buildInTypes);
+  	//get aif build in types e.g. {value, untyped}
+  	HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes(); 
+  	//get user define types
+  	HashMap<String,List<Term>> UserType = new HashMap<>();
+  	for(Type ty : ((AIFdata)aifAST).getTypes()){
+  		List<Term> agents = new ArrayList<Term>();
+  		if(!ty.getAgents().isEmpty()){
+  			for(String agent : ty.getAgents()){
+  				if(Character.isLowerCase(agent.charAt(0))){
+  					agents.add(new Composed(agent));
+    			}else if(!Character.isUpperCase(agent.charAt(0))){
+    				agents.add(new Composed(ty.getUserType().toLowerCase()));
+    			}else{
+    				agents.addAll(UserType.get(agent));
+    			}
+  			}
+  		}
+  		//remove duplicate agents in agent List 
+  		UserType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(agents)));
+  	}
+  	//System.out.println(UserType);
+  	
+  	StateTransition ST = new StateTransition();
+    ST.setBuildInTypes(buildInTypes);
+    State state = new State();
+    Node stateNode = new Node(state);
+  	
+    AttackTrace concreteAttackTrace = new AttackTrace();
+		HashMap<String, ConcreteRules> rules = new HashMap<>(); 
+		for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
+			rules.put(cr.getRulesName(), cr);
+		}
+		AttackInfo AttInfo = concreteAttackTrace.concreteAttackTrace(((FixpointData)fpAST).getFixpoints(),rules);
+  	Node node1 = ST.stateTransition(stateNode,rules,AttInfo.getAttackTraces(),UserType,((AIFdata)aifAST).getSets());
+    //node1.printAttack(node1);
+    node1.printTree(node1, " ");
   	
   	Scanner scanner = new Scanner(System.in);
   	displayMenu();
@@ -76,7 +111,7 @@ public class Main {
 			//Scanner scanner = new Scanner(System.in);
 			String functionIdStr = scanner.nextLine();
 			//scanner.close();
-			int functionId = Integer.parseInt(functionIdStr);
+			int functionId = Integer.parseInt(functionIdStr); // it only allow to input number, need to fix
 			switch(functionId) {
 				case 0:
 					runing = false;
