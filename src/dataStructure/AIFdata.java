@@ -1,23 +1,66 @@
 package dataStructure;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class AIFdata extends AST {
-	public List<Type> types;
-	public List<Term> sets = new ArrayList<Term>();;
-	public Functions functions;
-	public Functions facts;
-	public List<ConcreteRules> rules;
-	public AIFdata(List<Type> types, List<Term> sets, Functions function, Functions facts, List<ConcreteRules> rules){
+	private List<Type> types;
+	private List<Term> sets = new ArrayList<Term>();;
+	private Functions functions;
+	private Functions facts;
+	private List<ConcreteRules> rules;
+	private HashSet<String> buildInTypes = new HashSet<String>();
+	public AIFdata(List<Type> types, List<Term> sets, Functions function, 
+									Functions facts, List<ConcreteRules> rules,HashSet<String> buildInTypes){
 		this.types = types;
 		this.sets = sets;
 		this.functions = function;
 		this.facts = facts;
 		this.rules = rules;
+		this.buildInTypes = buildInTypes;
 	}
-	AIFdata(List<ConcreteRules> rules){
+	public AIFdata(List<ConcreteRules> rules){
 		//this.types=types;
 		this.rules=rules;
+	}
+	
+	public List<Type> getTypes() {
+		return types;
+	}
+	public void setTypes(List<Type> types) {
+		this.types = types;
+	}
+	public List<Term> getSets() {
+		return sets;
+	}
+	public void setSets(List<Term> sets) {
+		this.sets = sets;
+	}
+	public Functions getFunctions() {
+		return functions;
+	}
+	public void setFunctions(Functions functions) {
+		this.functions = functions;
+	}
+	public Functions getFacts() {
+		return facts;
+	}
+	public void setFacts(Functions facts) {
+		this.facts = facts;
+	}
+	public List<ConcreteRules> getRules() {
+		return rules;
+	}
+	public void setRules(List<ConcreteRules> rules) {
+		this.rules = rules;
+	}
+	
+	public HashSet<String> getBuildInTypes() {
+		return buildInTypes;
+	}
+	
+	public void setBuildInTypes(HashSet<String> buildInTypes) {
+		this.buildInTypes = buildInTypes;
 	}
 	
 	@Override

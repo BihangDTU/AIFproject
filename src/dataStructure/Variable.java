@@ -20,22 +20,22 @@ public class Variable extends Term implements Serializable{
   }
 
   @Override
-  String getFactName() {
+  public String getFactName() {
     return null;
   }
 
   @Override
-  void setArguments(Term arguments) {
+  public void setArguments(Term arguments) {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
-  String getCons() {
+  public String getCons() {
     return null;
   }
 
   @Override
-  ArrayList<Term> getArguments() {
+  public ArrayList<Term> getArguments() {
     return null;
   }
 

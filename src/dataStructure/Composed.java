@@ -62,12 +62,12 @@ public class Composed extends Term implements Serializable{
   }
 
   @Override
-  String getVarName() {
+  public String getVarName() {
     return null;
   }
 
   @Override
-  String getCons() {
+  public String getCons() {
     return null;
   }
 

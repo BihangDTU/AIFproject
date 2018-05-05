@@ -24,31 +24,31 @@ public class Value extends Term {
 	}
 
 	@Override
-	String getFactName() {
+	public String getFactName() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	void setArguments(Term arguments) {
+	public void setArguments(Term arguments) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	ArrayList<Term> getArguments() {
+	public ArrayList<Term> getArguments() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	String getVarName() {
+	public String getVarName() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	String getCons() {
+	public String getCons() {
 		// TODO Auto-generated method stub
 		return null;
 	}

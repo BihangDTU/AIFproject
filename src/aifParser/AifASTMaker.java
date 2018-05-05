@@ -3,7 +3,9 @@ import dataStructure.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -14,8 +16,10 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   	// TODO: extract and store the other information from a
   	// specification (sets, types, functions)
   	List<Type> types = new ArrayList<Type>();
-  	for(aifParser.TypedecContext t : ctx.typedec())
+  	HashSet<String> buildInTypes=new HashSet<String>();
+  	for(aifParser.TypedecContext t : ctx.typedec()){
   		types.add((Type)visit(t));
+  	}
   	Functions functions = new Functions((Functions)visit(ctx.symdecs(0)));
   	Functions facts = new Functions((Functions)visit(ctx.symdecs(1))); 
   	List<Term> sets = new ArrayList<Term>();
@@ -24,9 +28,16 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   	}
   	//Terms sets = (Terms)visit(ctx.terms());
   	List<ConcreteRules> rules = new ArrayList<ConcreteRules>();
-  	for(aifParser.AifruleContext r : ctx.aifrule())
-  		rules.add((ConcreteRules)visit(r));
-  	return new AIFdata(types,sets,functions,facts,rules);
+  	for(aifParser.AifruleContext r : ctx.aifrule()){
+  		ConcreteRules cr = (ConcreteRules)visit(r); 
+  		rules.add(cr);
+  		for (Map.Entry<String, String> varsType : cr.getVarsTypes().entrySet()) {
+  			if(Character.isLowerCase(varsType.getValue().charAt(0))){
+  				buildInTypes.add(varsType.getValue());
+  			}
+  		}
+  	}
+  	return new AIFdata(types,sets,functions,facts,rules,buildInTypes);
   };
 
   // TODO: implement (when AST has a way to store the information)
