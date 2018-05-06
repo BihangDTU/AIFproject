@@ -128,7 +128,7 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   @Override
   public AST visitAifrule(aifParser.AifruleContext ctx){
   	String rulesName=ctx.ID().getText();
-  	HashMap<String, String> varsTypes=new HashMap<String,String>();
+  	HashMap<String, String> varsTypes=new HashMap<String,String>(); 
 
   	ArrayList<Term> LF=new ArrayList<Term>();
   	ArrayList<Condition> Splus=new ArrayList<Condition>();
@@ -195,7 +195,7 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   };
   @Override
   public AST visitNegCond(aifParser.NegCondContext ctx){
-  	return new Condition(new Variable(ctx.ID().getText()),(Term)visit(ctx.term()),true);
+  	return new Condition(new Variable(ctx.ID().getText()),(Term)visit(ctx.term()),false);
   };
   @Override
   public AST visitNoFresh(aifParser.NoFreshContext ctx){

@@ -52,8 +52,6 @@ public class Main {
   	FixPointASTMaker fpASTmaker = new FixPointASTMaker();
   	AST fpAST=fpASTmaker.visit(parseTree2);
 
-  	//get aif build in types e.g. {value, untyped}
-  	HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes(); 
   	//get user define types
   	HashMap<String,List<Term>> UserType = new HashMap<>();
   	for(Type ty : ((AIFdata)aifAST).getTypes()){
@@ -72,26 +70,22 @@ public class Main {
   		//remove duplicate agents in agent List 
   		UserType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(agents)));
   	}
-  	//System.out.println(UserType);
-  	
-  	StateTransition ST = new StateTransition();
-    ST.setBuildInTypes(buildInTypes);
-    State state = new State();
-    Node stateNode = new Node(state);
-  	
-    AttackTrace concreteAttackTrace = new AttackTrace();
-		HashMap<String, ConcreteRules> rules = new HashMap<>(); 
-		for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
-			rules.put(cr.getRulesName(), cr);
-		}
-		AttackInfo AttInfo = concreteAttackTrace.concreteAttackTrace(((FixpointData)fpAST).getFixpoints(),rules);
-  	Node node1 = ST.stateTransition(stateNode,rules,AttInfo.getAttackTraces(),UserType,((AIFdata)aifAST).getSets());
-    //node1.printAttack(node1);
-    node1.printTree(node1, " ");
+  	System.out.println(UserType);
+		/*ArrayList<Term> vars = new ArrayList<>();
+		Variable var = new Variable("_");
+		vars.add(var);
+		vars.add(var);
+		vars.add(var);
+		Composed db = new Composed("db",vars);
+		Condition condition = new Condition(new Variable("PK"),db);
+		ST.expandConditions(condition, UserType, ((AIFdata)aifAST).getSets());
+		System.out.println(UserType);
+		System.out.println(((AIFdata)aifAST).getSets());
+		System.out.println(ST.expandConditions(condition, UserType, ((AIFdata)aifAST).getSets()));*/
   	
   	Scanner scanner = new Scanner(System.in);
   	displayMenu();
-  	invokeFunctions(scanner,aifAST,fpAST);
+  	invokeFunctions(scanner,aifAST,fpAST,UserType);
   }
   public static void displayMenu(){
   	System.out.println("--------------------------------------------------------");
@@ -100,11 +94,12 @@ public class Main {
 		System.out.println("->2.  Print .HC file on Console                       <-");
 		System.out.println("->3.  Generate abstract attack trace in LaTex Command <-");
 		System.out.println("->4.  Genrate concrete attack in LaTex command        <-");
-		System.out.println("->5.  Display Menue                                   <-");
+		System.out.println("->5.  Genrate concrete attack with state transition   <-");
+		System.out.println("->6.  Display Menue                                   <-");
 		System.out.println("--------------------------------------------------------");
   }
   
-	public static void invokeFunctions(Scanner scanner,AST aifAST,AST fpAST){
+	public static void invokeFunctions(Scanner scanner,AST aifAST,AST fpAST,HashMap<String,List<Term>> UserType){
 		boolean runing = true;
 		while(runing) {
 			System.out.println("Enter operation ID: ");
@@ -143,10 +138,24 @@ public class Main {
 			    System.out.println();
 					break;
 				case 5:
-					displayMenu();
+				  //get aif build in types e.g. {value, untyped}
+					HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();
+					StateTransition ST = new StateTransition();
+			    ST.setBuildInTypes(buildInTypes);
+			    State state = new State();
+			    Node stateNode = new Node(state);
+			  	
+			    AttackTrace cAttackTrace = new AttackTrace();
+					HashMap<String, ConcreteRules> concreteRules = new HashMap<>(); 
+					for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
+						concreteRules.put(cr.getRulesName(), cr);
+					}
+					AttackInfo attackInfo = cAttackTrace.concreteAttackTrace(((FixpointData)fpAST).getFixpoints(),concreteRules);
+			  	Node node1 = ST.stateTransition(stateNode,concreteRules,attackInfo.getAttackTraces(),UserType,((AIFdata)aifAST).getSets());
+			    node1.printAttack(node1);
 					break;
 				case 6:
-
+					displayMenu();
 					break;
 				case 7:
 

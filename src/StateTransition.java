@@ -36,10 +36,12 @@ public class StateTransition {
       Set<String> keySet = typeInfo.keySet();
       ArrayList<String> keyList = new ArrayList<>(keySet);
       int index = 0; 
-      for(Term i: typeInfo.get(keyList.get(0))) {
-        HashMap<String,Term> newMap = new HashMap<>();
-        newMap.put(keyList.get(0), i);
-        combinations.add(newMap);
+      if(!keyList.isEmpty() && typeInfo.containsKey(keyList.get(0))){
+      	for(Term i: typeInfo.get(keyList.get(0))) {
+          HashMap<String,Term> newMap = new HashMap<>();
+          newMap.put(keyList.get(0), i);
+          combinations.add(newMap);
+        }
       }
       index++;
       while(index < keyList.size()) {
@@ -94,7 +96,7 @@ public class StateTransition {
     Term t_copy = (Term)dClone.deepClone(t);
     if(!getVars(t).isEmpty()){
       if(t instanceof Variable){
-        if(subs.containsKey((Variable)t)){
+        if(subs.containsKey(((Variable)t).getVarName())){
           return subs.get(((Variable)t).getVarName());		
         }
       }else{
@@ -209,7 +211,7 @@ public class StateTransition {
    * @return boolean
    */
   public boolean needExpandCondition(Condition condition){
-    Composed c = new Composed("_");
+    Variable c = new Variable("_");
     for(int i=0;i<condition.getTerm().getArguments().size();i++){
       if(condition.getTerm().getArguments().get(i).equals(c)){
         return true;
@@ -228,8 +230,8 @@ public class StateTransition {
     Condition cond = new Condition();
     cond = (Condition)dClone.deepClone(condition);
     for(int i=0;i<condition.getTerm().getArguments().size();i++){
-      if(subs.containsKey(condition.getTerm().getArguments().get(i))){
-        cond.getTerm().getArguments().set(i, subs.get(condition.getTerm().getArguments().get(i)));
+      if(subs.containsKey(condition.getTerm().getArguments().get(i).getVarName())){
+        cond.getTerm().getArguments().set(i, subs.get(condition.getTerm().getArguments().get(i).getVarName()));
       }
     }
     return cond;
@@ -242,16 +244,16 @@ public class StateTransition {
    * @param condition         e.g. (PK,db_valid(_,_))
    * @param concreteTypeInfo  e.g. {Agent=[a, i, s], Honest=[a], User=[a, i], Server=[s], Dishon=[i]}
    * @param dbSet             e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
-   * @return  [(PK,db_valid(a,s)), (PK,db_valid(i,s)), (PK,db_revoked(a,s)),(PK,db_revoked(i,s))]
+   * @return  [(PK,db_valid(a,s)), (PK,db_valid(i,s))]
    */
   public ArrayList<Condition> expandConditions(Condition condition,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
     ArrayList<Condition> conditions = new ArrayList<>();
     Condition cond = new Condition();
     cond = (Condition)dClone.deepClone(condition);
-    HashMap<Variable,List<Term>> types = new HashMap<>();
+    HashMap<String,List<Term>> types = new HashMap<>();
     for (Map.Entry<String,List<Term>> entry : concreteTypeInfo.entrySet()) {
-      Variable var = new Variable(entry.getKey());
-      types.put(var, entry.getValue());
+      //Variable var = new Variable(entry.getKey());
+      types.put(entry.getKey(), entry.getValue());
     }
     //System.out.println("concreteTypeInfo:" + concreteTypeInfo);
     //System.out.println("types:" + types);
@@ -270,7 +272,8 @@ public class StateTransition {
       for(Map.Entry<String,ArrayList<Term>> entry : dbMap.entrySet()){
         if(condition.getTerm().getFactName().equals(entry.getKey())){
           for(int i=0; i<entry.getValue().size();i++){
-            if(condition.getTerm().getArguments().get(i).getFactName().equals("_")){
+            //if(condition.getTerm().getArguments().get(i).getFactName().equals("_")){
+          	if(condition.getTerm().getArguments().get(i).getVarName().equals("_")){
               cond.getTerm().getArguments().set(i, entry.getValue().get(i));
               //Variable var = new Variable(entry.getValue().get(i).getVarName());
               String var = entry.getValue().get(i).getVarName();
@@ -413,7 +416,7 @@ public class StateTransition {
         /*for(ConcreteRules r_c : contreteR_satisfy){
           System.out.println("rc: "+r_c.toString());
         }*/ 
-        /* if the left hand side rule satisfy the state transform ocndition then we add RF
+        /* if the left hand side rule satisfy the state transform condition then we add RF
            and RS to the state, and remove positive condition from the state.
         */
         for(ConcreteRules r_satisfy : contreteR_satisfy){

@@ -8,7 +8,7 @@ public class Condition extends AST implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public Boolean positive;
+	public Boolean positive = true;
   // Sebastian: I added this, because I would like to distinguish
   // positive and negative conditions in the parser, I added also a corresponding constructor
     
@@ -45,6 +45,14 @@ public class Condition extends AST implements Serializable{
   }
   
   @Override
+	public String toString() {
+  	if(positive){
+  		return var + " in " + term;
+  	}else{
+  		return var + " notin " + term;
+  	}	
+	}
+	@Override
   public boolean equals(Object o){
     if (o == this) return true;
       if (!(o instanceof Condition)) {
