@@ -1,6 +1,5 @@
 import aifParser.*;
 import fixpointParser.*;
-
 import dataStructure.*;
 
 import org.antlr.v4.runtime.*;
@@ -52,7 +51,10 @@ public class Main {
   	FixPointASTMaker fpASTmaker = new FixPointASTMaker();
   	AST fpAST=fpASTmaker.visit(parseTree2);
 
-  	//get user define types
+  	/*get user define types. for infinite agents {...}, 
+  	  only use lower case of it's type as agent e.g. Honest = {...} to Honest = {honest} 
+  	  e.g. {Agent=[server, dishon, honest], Honest=[honest], User=[dishon, honest], 
+  	  Sts=[valid, revoked], Server=[server], Dishon=[dishon]}*/
   	HashMap<String,List<Term>> UserType = new HashMap<>();
   	for(Type ty : ((AIFdata)aifAST).getTypes()){
   		List<Term> agents = new ArrayList<Term>();
@@ -70,18 +72,10 @@ public class Main {
   		//remove duplicate agents in agent List 
   		UserType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(agents)));
   	}
-  	System.out.println(UserType);
-		/*ArrayList<Term> vars = new ArrayList<>();
-		Variable var = new Variable("_");
-		vars.add(var);
-		vars.add(var);
-		vars.add(var);
-		Composed db = new Composed("db",vars);
-		Condition condition = new Condition(new Variable("PK"),db);
-		ST.expandConditions(condition, UserType, ((AIFdata)aifAST).getSets());
-		System.out.println(UserType);
-		System.out.println(((AIFdata)aifAST).getSets());
-		System.out.println(ST.expandConditions(condition, UserType, ((AIFdata)aifAST).getSets()));*/
+  	
+  	KeyLifeCycle klc = new KeyLifeCycle(fpAST);
+  	klc.printKeyLifeCycle();
+  	//System.out.println(klc.toString());
   	
   	Scanner scanner = new Scanner(System.in);
   	displayMenu();

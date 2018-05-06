@@ -2,6 +2,7 @@ package dataStructure;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -16,19 +17,17 @@ public class ConcreteRules extends AST implements Serializable{
     // are not a good key for a map (parsing the same variable
     // different types would yield different objects), rather the
     // variable name should be the key! Also String for the type may
-    // be optimal (but let's discuss)
-
-    
-  private ArrayList<Term> LF = new ArrayList<>();
-  private ArrayList<Condition> Splus = new ArrayList<>();
-  private ArrayList<Condition> Snega = new ArrayList<>();
+    // be optimal (but let's discuss) 
+  private List<Term> LF = new ArrayList<>();
+  private List<Condition> Splus = new ArrayList<>();
+  private List<Condition> Snega = new ArrayList<>();
   private Freshs freshVars;
-  private ArrayList<Term> RF = new ArrayList<>();
-  private ArrayList<Condition> RS = new ArrayList<>();
+  private List<Term> RF = new ArrayList<>();
+  private List<Condition> RS = new ArrayList<>();
   
   public ConcreteRules(){}
-  public ConcreteRules(String rulesName, HashMap<String, String> varsTypes, ArrayList<Term> LF, ArrayList<Condition> Splus,
-                       ArrayList<Condition> Snega, Freshs freshVars, ArrayList<Term> RF, ArrayList<Condition> RS) {
+  public ConcreteRules(String rulesName, HashMap<String, String> varsTypes, List<Term> LF, List<Condition> Splus,
+                       List<Condition> Snega, Freshs freshVars, List<Term> RF, List<Condition> RS) {
     this.rulesName = rulesName;
     this.varsTypes = varsTypes;
     this.LF = LF;
@@ -59,11 +58,11 @@ public class ConcreteRules extends AST implements Serializable{
     this.varsTypes.put(var, type);
   }
 
-  public ArrayList<Term> getLF() {
+  public List<Term> getLF() {
     return LF;
   }
 
-  public void setLF(ArrayList<Term> LF) {
+  public void setLF(List<Term> LF) {
     this.LF = LF;
   }
   
@@ -71,11 +70,11 @@ public class ConcreteRules extends AST implements Serializable{
     this.LF.add(term);
   }
 
-  public ArrayList<Condition> getSplus() {
+  public List<Condition> getSplus() {
     return Splus;
   }
 
-  public void setSplus(ArrayList<Condition> Splus) {
+  public void setSplus(List<Condition> Splus) {
     this.Splus = Splus;
   }
   
@@ -83,7 +82,7 @@ public class ConcreteRules extends AST implements Serializable{
     this.Splus.add(cond);
   }
 
-  public ArrayList<Condition> getSnega() {
+  public List<Condition> getSnega() {
     return Snega;
   }
 
@@ -103,11 +102,11 @@ public class ConcreteRules extends AST implements Serializable{
     this.freshVars = freshVars;
   }
   
-  public ArrayList<Term> getRF() {
+  public List<Term> getRF() {
     return RF;
   }
 
-  public void setRF(ArrayList<Term> RF) {
+  public void setRF(List<Term> RF) {
     this.RF = RF;
   }
   
@@ -115,11 +114,11 @@ public class ConcreteRules extends AST implements Serializable{
     this.RF.add(term);
   }
 
-  public ArrayList<Condition> getRS() {
+  public List<Condition> getRS() {
     return RS;
   }
 
-  public void setRS(ArrayList<Condition> RS) {
+  public void setRS(List<Condition> RS) {
     this.RS = RS;
   }
   
@@ -157,7 +156,6 @@ public class ConcreteRules extends AST implements Serializable{
     if(freshVars.getFreshs().isEmpty()){
       concreteRules = concreteRules + " => ";
     }else{
-      //concreteRules = concreteRules + " =[" + newVariable.toString() + "]=> ";
     	concreteRules += " =[";
       for(int i=0;i<freshVars.getFreshs().size();i++){
       	if(i<freshVars.getFreshs().size()-1){

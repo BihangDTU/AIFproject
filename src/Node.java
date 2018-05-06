@@ -77,7 +77,8 @@ public class Node {
       if(!node.getRuleName().equals("")){
         System.out.println("   |");
         System.out.println(node.getRuleName());
-        System.out.println("   ↓");
+        System.out.println("   |");
+        System.out.println("   v");
       } 
       System.out.println(node.getState());
     }
@@ -85,7 +86,8 @@ public class Node {
       if(!node.getRuleName().equals("")){
         System.out.println("   |");
         System.out.println(node.getRuleName());
-        System.out.println("   ↓");
+        System.out.println("   |");
+        System.out.println("   v");
       }     
       System.out.println(node.getState());
       if(!node.getState().getFacts().contains(new Composed("attack"))){

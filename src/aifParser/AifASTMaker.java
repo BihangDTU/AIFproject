@@ -232,6 +232,5 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   public AST visitUntyped(aifParser.UntypedContext ctx){
   	return new Value(ctx.getText());
   };
- 
 }
 

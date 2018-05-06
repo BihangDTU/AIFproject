@@ -9,9 +9,9 @@ import java.util.Set;
 
 public class StateTransition {
   private static int new_var_counter = 0;
-  private static int new_timplies_counter = 0;
+  //private static int new_timplies_counter = 0;
   private HashSet<String> buildInTypes;
-  private static boolean isAttackFound = false; 
+  //private static boolean isAttackFound = false; 
   
   DeepClone dClone = new DeepClone();
   Mgu mgu = new Mgu();
@@ -34,7 +34,7 @@ public class StateTransition {
     if(!typeInfo.isEmpty()){
       Set<HashMap<String,Term>> newCombinations;
       Set<String> keySet = typeInfo.keySet();
-      ArrayList<String> keyList = new ArrayList<>(keySet);
+      List<String> keyList = new ArrayList<>(keySet);
       int index = 0; 
       if(!keyList.isEmpty() && typeInfo.containsKey(keyList.get(0))){
       	for(Term i: typeInfo.get(keyList.get(0))) {
@@ -67,8 +67,8 @@ public class StateTransition {
    * @param  term e.g. iknows(sign(inv(PK),pair(A,NPK)))
    * @return e.g. [PK, A, NPK]
    */
-  public ArrayList<Variable> getVars(Term term){    
-    ArrayList<Variable> var = new ArrayList<>();
+  public List<Variable> getVars(Term term){    
+    List<Variable> var = new ArrayList<>();
     if(term instanceof Variable){
       var.add(((Variable)term));
       return var;
@@ -182,11 +182,16 @@ public class StateTransition {
    * @param  state
    * @return boolean  
    */
-  public boolean isSnegaInState(ArrayList<Condition> sn, State state){
+  public boolean isSnegaInState(List<Condition> sn, State state){
     if(sn.isEmpty()){
       return false;
     }
-    return state.getPositiveConditins().containsAll(sn);
+    for(Condition c : sn){
+    	if(state.getPositiveConditins().contains(c)){
+    		return true;
+    	}
+    }
+    return false;
   }
   
   /**
@@ -246,8 +251,8 @@ public class StateTransition {
    * @param dbSet             e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return  [(PK,db_valid(a,s)), (PK,db_valid(i,s))]
    */
-  public ArrayList<Condition> expandConditions(Condition condition,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
-    ArrayList<Condition> conditions = new ArrayList<>();
+  public List<Condition> expandConditions(Condition condition,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
+    List<Condition> conditions = new ArrayList<>();
     Condition cond = new Condition();
     cond = (Condition)dClone.deepClone(condition);
     HashMap<String,List<Term>> types = new HashMap<>();
@@ -258,9 +263,9 @@ public class StateTransition {
     //System.out.println("concreteTypeInfo:" + concreteTypeInfo);
     //System.out.println("types:" + types);
     //Set<HashMap<Variable,Term>> expandTypes = userTypeSubstitution(types);
-    HashMap<String,ArrayList<Term>> dbMap = new HashMap<>();
+    HashMap<String,List<Term>> dbMap = new HashMap<>();
     for(Term db : dbSet){
-      ArrayList<Term> users = new ArrayList<>();
+      List<Term> users = new ArrayList<>();
       for(Term user : db.getArguments()){
         users.add(user);
       }
@@ -269,7 +274,7 @@ public class StateTransition {
     if(needExpandCondition(condition)){
       //Set<HashMap<Variable,Term>> expandTypes = new HashSet<>();
       HashMap<String,List<Term>> subTypes = new HashMap<>();
-      for(Map.Entry<String,ArrayList<Term>> entry : dbMap.entrySet()){
+      for(Map.Entry<String,List<Term>> entry : dbMap.entrySet()){
         if(condition.getTerm().getFactName().equals(entry.getKey())){
           for(int i=0; i<entry.getValue().size();i++){
             //if(condition.getTerm().getArguments().get(i).getFactName().equals("_")){
@@ -307,8 +312,8 @@ public class StateTransition {
    * @param  dbSet  e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return list of possible states
    */
-  public ArrayList<State> ruleApply(State state, ConcreteRules rule,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
-    ArrayList<State> newStates = new ArrayList<>();
+  public List<State> ruleApply(State state, ConcreteRules rule,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
+    List<State> newStates = new ArrayList<>();
     HashMap<String, String> varsTypes = new HashMap<>();
     HashMap<String, List<Term>> cTypeInfo = new HashMap<>();
     varsTypes = getUserDefineType(rule.getVarsTypes()); //only keep user define types
@@ -337,8 +342,8 @@ public class StateTransition {
       }   
       // System.out.println("contreteRules: " + contreteRules.size());
     }
-    ArrayList<ConcreteRules> contreteRulesList = new ArrayList<>(contreteRules);
-    ArrayList<ConcreteRules> contreteRulesList_copy = (ArrayList<ConcreteRules>)dClone.deepClone(contreteRulesList);
+    List<ConcreteRules> contreteRulesList = new ArrayList<>(contreteRules);
+    List<ConcreteRules> contreteRulesList_copy = (List<ConcreteRules>)dClone.deepClone(contreteRulesList);
     for(int i=0;i<contreteRulesList_copy.size();i++){
       /*if the database b set in position condition contains any types with "_"*/
       /* then remove that database and add all expanded database */
@@ -372,8 +377,8 @@ public class StateTransition {
         newStates.add(newState);
       }else{
         /* left hand side is not empty */
-        ArrayList<ConcreteRules> contreteR_satisfy = new ArrayList<>();
-        ArrayList<ConcreteRules> contreteR_satisfy_copy = new ArrayList<>();
+        List<ConcreteRules> contreteR_satisfy = new ArrayList<>();
+        List<ConcreteRules> contreteR_satisfy_copy = new ArrayList<>();
         boolean isFirstFact = true;
         for(int j=0;j<cr.getLF().size();j++){
           for(Term fact : state.getFacts()){
@@ -450,18 +455,18 @@ public class StateTransition {
    * @param dbSet             e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return  all states that can be explore by the current state according to the attack traces
    */
-  public Node stateTransition(Node state, HashMap<String, ConcreteRules> rules,ArrayList<String> attackTraces,
+  public Node stateTransition(Node state, HashMap<String, ConcreteRules> rules,List<String> attackTraces,
                                      HashMap<String,List<Term>> concreteTypeInfo,List<Term> dbSet){
    // Node<State> newState = new Node<>(state.getState());
     //ArrayList<String> concreteAttackTreces = new ArrayList<>(); 
     String applyRuleName;
-    ArrayList<String> attackTracesCopy = new ArrayList<>();
+    List<String> attackTracesCopy = new ArrayList<>();
     attackTracesCopy.addAll(attackTraces);
     if(!attackTraces.isEmpty()){
       applyRuleName = attackTraces.get(0);
       attackTracesCopy.remove(0);
       //System.out.println(attackTracesCopy);
-      ArrayList<State> childrenState = ruleApply(state.getState(), rules.get(applyRuleName), concreteTypeInfo, dbSet);
+      List<State> childrenState = ruleApply(state.getState(), rules.get(applyRuleName), concreteTypeInfo, dbSet);
       //System.out.println(applyRuleName + ":");
       for(State child : childrenState){
         //System.out.println("  " + child);
@@ -510,9 +515,9 @@ public class StateTransition {
    * @param concreteTypeInfo  e.g. {Agent=[a, i, s], Honest=[a], User=[a, i], Server=[s], Dishon=[i]}
    * @return  the set of concrete users e.g. [a,i,s]
    */
-  public Set<Term> getConcreteTypeValue(HashMap<String,ArrayList<Term>> concreteTypeInfo){
+  public Set<Term> getConcreteTypeValue(HashMap<String,List<Term>> concreteTypeInfo){
     Set<Term> concreteValues = new HashSet<>();
-    for (Map.Entry<String,ArrayList<Term>> entry : concreteTypeInfo.entrySet()) {
+    for (Map.Entry<String,List<Term>> entry : concreteTypeInfo.entrySet()) {
       concreteValues.addAll(entry.getValue());
     }
     return concreteValues;
@@ -565,7 +570,7 @@ public class StateTransition {
    * @param position  e.g. {ring=0, db_valid=1, db_revoked=2}
    * @return  abstract state
    */
-  public State concreteToAbstractState(State state,HashMap<String,ArrayList<Term>> concreteTypeInfo, HashMap<String, Integer> position){
+  public State concreteToAbstractState(State state,HashMap<String,List<Term>> concreteTypeInfo, HashMap<String, Integer> position){
     State absStae = new State();
     Set<Term> contreteUsers = new HashSet<>();
     contreteUsers = getConcreteTypeValue(concreteTypeInfo);
