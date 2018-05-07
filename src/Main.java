@@ -75,7 +75,20 @@ public class Main {
   	
   	KeyLifeCycle klc = new KeyLifeCycle(fpAST);
   	klc.printKeyLifeCycle();
-  	//System.out.println(klc.toString());
+  	System.out.println("------------------------");
+  	FixpointsSort fps = new FixpointsSort();
+  	List<Term> factsUnsort = fps.factsSort(fpAST);
+  	for(Term t : factsUnsort){
+  		System.out.println(t.toString());
+  	}
+  	/*System.out.println(factsUnsort.get(6));
+  	System.out.println(factsUnsort.get(7));
+  	
+  	if(fps.isTwoFactsHaveSameForm(factsUnsort.get(7), factsUnsort.get(6))){
+  		System.out.println("yes");
+  	}else{
+  		System.out.println("no");
+  	}*/
   	
   	Scanner scanner = new Scanner(System.in);
   	displayMenu();

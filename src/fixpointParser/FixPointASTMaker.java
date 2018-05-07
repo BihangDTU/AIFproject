@@ -28,7 +28,7 @@ public class FixPointASTMaker extends AbstractParseTreeVisitor<AST> implements f
 	@Override
 	public AST visitAtom(fixpointsParser.AtomContext ctx){
 		String id=ctx.ID().getText();
-  	if (Character.isLowerCase(id.charAt(0))) {
+  	if (Character.isLowerCase(id.charAt(0)) || (id.charAt(0) == '0')) {
   		// assuming constants should be composed -- correct?
   		return new Composed(id,new ArrayList<Term>());
   	}
@@ -36,7 +36,7 @@ public class FixPointASTMaker extends AbstractParseTreeVisitor<AST> implements f
 	}
 	@Override
 	public AST visitZero(fixpointsParser.ZeroContext ctx){
-		return new Value(ctx.getText());
+		return new Composed(ctx.getText());
 	}
 	@Override
 	public AST visitWildcard(fixpointsParser.WildcardContext ctx){
