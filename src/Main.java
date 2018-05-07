@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -72,23 +73,37 @@ public class Main {
   		//remove duplicate agents in agent List 
   		UserType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(agents)));
   	}
-  	
-  	KeyLifeCycle klc = new KeyLifeCycle(fpAST);
-  	klc.printKeyLifeCycle();
-  	System.out.println("------------------------");
+
   	FixpointsSort fps = new FixpointsSort();
-  	List<Term> factsUnsort = fps.factsSort(fpAST);
-  	for(Term t : factsUnsort){
+  	List<ArrayList<Term>> factsUnsort = fps.factsSort(fpAST);
+  	for(ArrayList<Term> t : factsUnsort){
   		System.out.println(t.toString());
   	}
-  	/*System.out.println(factsUnsort.get(6));
-  	System.out.println(factsUnsort.get(7));
-  	
-  	if(fps.isTwoFactsHaveSameForm(factsUnsort.get(7), factsUnsort.get(6))){
+  	System.out.println("------------------------");
+  	List<Term> timplies = fps.KeyLifeCycle(fpAST);
+  	for(Term tp : timplies){
+  		System.out.println(tp.toString());
+  	}
+  	System.out.println("------------------------");
+  	HashMap<Term,List<Term>> timpliesMap = fps.getTimpliesMap(fpAST);
+  	List<ArrayList<Term>> factsSort = fps.factsSort(fpAST);
+  	for(ArrayList<Term> ts : factsSort){
+  		for(Term t : ts){
+  			System.out.println(t);
+  		}
+  		System.out.println();
+  	}
+  	Term t1 = factsSort.get(1).get(1);
+  	Term t2 = factsSort.get(1).get(3);
+  	System.out.println(t1);
+  	System.out.println(t2);
+  	if(fps.isT1InferT2(t1, t2, timpliesMap)){
   		System.out.println("yes");
   	}else{
   		System.out.println("no");
-  	}*/
+  	}
+  	
+  	
   	
   	Scanner scanner = new Scanner(System.in);
   	displayMenu();
