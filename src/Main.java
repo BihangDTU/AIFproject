@@ -85,7 +85,7 @@ public class Main {
   		System.out.println(tp.toString());
   	}
   	System.out.println("------------------------");
-  	HashMap<Term,List<Term>> timpliesMap = fps.getTimpliesMap(fpAST);
+  	HashMap<Term,HashSet<Term>> timpliesMap = fps.getTimpliesMap(fpAST);
   	List<ArrayList<Term>> factsSort = fps.factsSort(fpAST);
   	for(ArrayList<Term> ts : factsSort){
   		for(Term t : ts){
@@ -97,12 +97,18 @@ public class Main {
   	Term t2 = factsSort.get(1).get(3);
   	System.out.println(t1);
   	System.out.println(t2);
-  	if(fps.isT1InferT2(t1, t2, timpliesMap)){
+  	if(fps.canT1InferT2(t1, t2, timpliesMap)){
   		System.out.println("yes");
   	}else{
   		System.out.println("no");
   	}
-  	
+  	System.out.println("------------------------");
+  	HashMap<Term,HashSet<Term>> tMap = fps.getTimpliesMap(fpAST);
+  	for(Map.Entry<Term,HashSet<Term>> entry : tMap.entrySet()){
+  		System.out.print(entry.getKey());
+  		System.out.print(" ---> ");
+  		System.out.println(entry.getValue());
+  	}
   	
   	
   	Scanner scanner = new Scanner(System.in);

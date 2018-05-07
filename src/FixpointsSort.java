@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -21,18 +22,25 @@ public class FixpointsSort {
 		return timplies;
 	}
 	
-	public HashMap<Term,List<Term>> getTimpliesMap(AST fpAST){
-		HashMap<Term,List<Term>> timpliesMap = new HashMap<Term,List<Term>>(); 
+	public HashMap<Term,HashSet<Term>> getTimpliesMap(AST fpAST){
+		HashMap<Term,HashSet<Term>> timpliesMap = new HashMap<Term,HashSet<Term>>(); 
 		List<Term> timplies = KeyLifeCycle(fpAST);
   	for(Term t : timplies){
   		if(!timpliesMap.containsKey(t.getArguments().get(0))){
-  			List<Term> subVal = new ArrayList<Term>();
+  			HashSet<Term> subVal = new HashSet<Term>();
   			subVal.add(t.getArguments().get(1));
   			timpliesMap.put(t.getArguments().get(0), subVal);
   		}else{
   			timpliesMap.get(t.getArguments().get(0)).add(t.getArguments().get(1));
   		}
   	}
+  	for(Map.Entry<Term,HashSet<Term>> tMap : timpliesMap.entrySet()){
+  		for(Map.Entry<Term,HashSet<Term>> map : timpliesMap.entrySet()){
+  			if(timpliesMap.get(tMap.getKey()).contains(map.getKey())){
+  				timpliesMap.get(tMap.getKey()).addAll(timpliesMap.get(map.getKey()));
+  			}
+  		}
+  	}	
   	return timpliesMap;
 	}
 	
@@ -50,7 +58,7 @@ public class FixpointsSort {
 		return noDuplicateFacts; 
 	}*/
 	
-	public boolean isT1InferT2(Term t1, Term t2, HashMap<Term,List<Term>> timpliesMap){ // need more test more cases
+	public boolean canT1InferT2(Term t1, Term t2, HashMap<Term,HashSet<Term>> timpliesMap){ // need more test more cases
 		if(t1.equals(t2)){
 			return true;
 		}else if((t1 instanceof Composed) && (t2 instanceof Composed)){
@@ -63,7 +71,7 @@ public class FixpointsSort {
 								return false;
 							}
 						}else{
-							return isT1InferT2(t1.getArguments().get(i), t2.getArguments().get(i), timpliesMap);
+							return canT1InferT2(t1.getArguments().get(i), t2.getArguments().get(i), timpliesMap);
 						}
 					}else{
 						if(t1.getArguments().get(i).equals(t2.getArguments().get(i))){
