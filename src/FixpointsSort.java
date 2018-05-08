@@ -10,8 +10,6 @@ public class FixpointsSort {
 	
 	public FixpointsSort(){}
 	
-
-	
 	public List<Term> KeyLifeCycle(AST fpAST){
 		List<Term> timplies = new ArrayList<Term>();
 		for (Map.Entry<Integer, Fixpoint> entry : ((FixpointData)fpAST).getFixpoints().entrySet()) {
@@ -44,19 +42,37 @@ public class FixpointsSort {
   	return timpliesMap;
 	}
 	
-	/*public List<Term> factsWithoutDuplicate(List<ArrayList<Term>> factsSorted, HashMap<Term,List<Term>> timpliesMap){
+	public List<Term> factsWithoutDuplicate(List<ArrayList<Term>> factsSorted, HashMap<Term,HashSet<Term>> timpliesMap){
 		List<Term> noDuplicateFacts = new ArrayList<Term>();
 		for(ArrayList<Term> terms : factsSorted){
 			if(terms.size() == 1){
 				noDuplicateFacts.add(terms.get(0));
 			}else{				
-				for(Term t : terms){
-					
-				}
+				Term lastElementFlag = new Variable("Flag");
+				terms.add(lastElementFlag);
+				ArrayList<Term> termsCopy = new ArrayList<Term>(terms);
+				while(true){
+					if(terms.get(0).equals(lastElementFlag)) break;
+					Term firstTerm = terms.get(0);				
+					for(Term t : terms){
+						if(canT1InferT2(firstTerm,t,timpliesMap)){
+							termsCopy.remove(t);
+						}
+					}
+					termsCopy.add(firstTerm);
+					terms.clear();
+					terms.addAll(termsCopy);		
+					/*for(Term t : terms){
+						System.out.println(t);
+					}
+					System.out.println();*/
+				}		
+				terms.remove(lastElementFlag);
+				noDuplicateFacts.addAll(terms);
 			}
 		}	
 		return noDuplicateFacts; 
-	}*/
+	}
 	
 	public boolean canT1InferT2(Term t1, Term t2, HashMap<Term,HashSet<Term>> timpliesMap){ // need more test more cases
 		if(t1.equals(t2)){
@@ -67,9 +83,13 @@ public class FixpointsSort {
 				for(int i=0;i<argumentsSize;i++){
 					if((t1.getArguments().get(i) instanceof Composed) && (t2.getArguments().get(i) instanceof Composed)){
 						if(t1.getArguments().get(i).getFactName().equals("val") && t2.getArguments().get(i).getFactName().equals("val")){
-							if(!timpliesMap.get(t1.getArguments().get(i)).contains(t2.getArguments().get(i))){
+							if(timpliesMap.containsKey(t1.getArguments().get(i))){
+								if(!timpliesMap.get(t1.getArguments().get(i)).contains(t2.getArguments().get(i))){
+									return false;
+								}
+							}else{
 								return false;
-							}
+							}						
 						}else{
 							return canT1InferT2(t1.getArguments().get(i), t2.getArguments().get(i), timpliesMap);
 						}

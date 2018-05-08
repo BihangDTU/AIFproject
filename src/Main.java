@@ -109,6 +109,12 @@ public class Main {
   		System.out.print(" ---> ");
   		System.out.println(entry.getValue());
   	}
+  	System.out.println("------------------------");
+  	List<Term> fixponitsWithoutDuplicate= fps.factsWithoutDuplicate(factsSort, timpliesMap);
+  	
+  	for(Term tt : fixponitsWithoutDuplicate){
+  		System.out.println(tt.toString());
+  	}
   	
   	
   	Scanner scanner = new Scanner(System.in);
