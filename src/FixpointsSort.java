@@ -55,17 +55,13 @@ public class FixpointsSort {
 					if(terms.get(0).equals(lastElementFlag)) break;
 					Term firstTerm = terms.get(0);				
 					for(Term t : terms){
-						if(canT1InferT2(firstTerm,t,timpliesMap)){
+						if(canT1ImpliesT2(firstTerm,t,timpliesMap)){
 							termsCopy.remove(t);
 						}
 					}
 					termsCopy.add(firstTerm);
 					terms.clear();
 					terms.addAll(termsCopy);		
-					/*for(Term t : terms){
-						System.out.println(t);
-					}
-					System.out.println();*/
 				}		
 				terms.remove(lastElementFlag);
 				noDuplicateFacts.addAll(terms);
@@ -74,7 +70,7 @@ public class FixpointsSort {
 		return noDuplicateFacts; 
 	}
 	
-	public boolean canT1InferT2(Term t1, Term t2, HashMap<Term,HashSet<Term>> timpliesMap){ // need more test more cases
+	public boolean canT1ImpliesT2(Term t1, Term t2, HashMap<Term,HashSet<Term>> timpliesMap){ // need more test more cases
 		if(t1.equals(t2)){
 			return true;
 		}else if((t1 instanceof Composed) && (t2 instanceof Composed)){
@@ -91,7 +87,7 @@ public class FixpointsSort {
 								return false;
 							}						
 						}else{
-							return canT1InferT2(t1.getArguments().get(i), t2.getArguments().get(i), timpliesMap);
+							return canT1ImpliesT2(t1.getArguments().get(i), t2.getArguments().get(i), timpliesMap);
 						}
 					}else{
 						if(t1.getArguments().get(i).equals(t2.getArguments().get(i))){

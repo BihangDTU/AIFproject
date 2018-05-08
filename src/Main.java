@@ -74,63 +74,22 @@ public class Main {
   		UserType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(agents)));
   	}
 
-  	FixpointsSort fps = new FixpointsSort();
-  	List<ArrayList<Term>> factsUnsort = fps.factsSort(fpAST);
-  	for(ArrayList<Term> t : factsUnsort){
-  		System.out.println(t.toString());
-  	}
-  	System.out.println("------------------------");
-  	List<Term> timplies = fps.KeyLifeCycle(fpAST);
-  	for(Term tp : timplies){
-  		System.out.println(tp.toString());
-  	}
-  	System.out.println("------------------------");
-  	HashMap<Term,HashSet<Term>> timpliesMap = fps.getTimpliesMap(fpAST);
-  	List<ArrayList<Term>> factsSort = fps.factsSort(fpAST);
-  	for(ArrayList<Term> ts : factsSort){
-  		for(Term t : ts){
-  			System.out.println(t);
-  		}
-  		System.out.println();
-  	}
-  	Term t1 = factsSort.get(1).get(1);
-  	Term t2 = factsSort.get(1).get(3);
-  	System.out.println(t1);
-  	System.out.println(t2);
-  	if(fps.canT1InferT2(t1, t2, timpliesMap)){
-  		System.out.println("yes");
-  	}else{
-  		System.out.println("no");
-  	}
-  	System.out.println("------------------------");
-  	HashMap<Term,HashSet<Term>> tMap = fps.getTimpliesMap(fpAST);
-  	for(Map.Entry<Term,HashSet<Term>> entry : tMap.entrySet()){
-  		System.out.print(entry.getKey());
-  		System.out.print(" ---> ");
-  		System.out.println(entry.getValue());
-  	}
-  	System.out.println("------------------------");
-  	List<Term> fixponitsWithoutDuplicate= fps.factsWithoutDuplicate(factsSort, timpliesMap);
-  	
-  	for(Term tt : fixponitsWithoutDuplicate){
-  		System.out.println(tt.toString());
-  	}
-  	
-  	
   	Scanner scanner = new Scanner(System.in);
   	displayMenu();
   	invokeFunctions(scanner,aifAST,fpAST,UserType);
   }
   public static void displayMenu(){
-  	System.out.println("--------------------------------------------------------");
-  	System.out.println("->0.  Exit program                                    <-");
-		System.out.println("->1.  Print .aifom file on Console                    <-");
-		System.out.println("->2.  Print .HC file on Console                       <-");
-		System.out.println("->3.  Generate abstract attack trace in LaTex Command <-");
-		System.out.println("->4.  Genrate concrete attack in LaTex command        <-");
-		System.out.println("->5.  Genrate concrete attack with state transition   <-");
-		System.out.println("->6.  Display Menue                                   <-");
-		System.out.println("--------------------------------------------------------");
+  	System.out.println("--------------------------------------------------------------");
+  	System.out.println("->0.  Exit program                                          <-");
+		System.out.println("->1.  Print .aifom file on Console                          <-");
+		System.out.println("->2.  Print .HC file on Console                             <-");
+		System.out.println("->3.  Generate abstract attack trace in LaTex Command       <-");
+		System.out.println("->4.  Genrate concrete attack in LaTex command              <-");
+		System.out.println("->5.  Genrate concrete attack with state transition         <-");
+		System.out.println("->6.  Print sorted fixpoints                                <-");
+		System.out.println("->7.  Print key life-cycle and fixpoints without duplicate  <-");
+		System.out.println("->8.  Display Menue                                         <-");
+		System.out.println("--------------------------------------------------------------");
   }
   
 	public static void invokeFunctions(Scanner scanner,AST aifAST,AST fpAST,HashMap<String,List<Term>> UserType){
@@ -189,10 +148,44 @@ public class Main {
 			    node1.printAttack(node1);
 					break;
 				case 6:
-					displayMenu();
+					FixpointsSort fps = new FixpointsSort();
+					List<ArrayList<Term>> factsSort = fps.factsSort(fpAST);
+					System.out.println("Sorted Fixpoints:");
+			  	for(ArrayList<Term> ts : factsSort){
+			  		for(Term t : ts){
+			  			System.out.println(t + ";");
+			  		}
+			  		System.out.println();
+			  	}
 					break;
 				case 7:
-
+					FixpointsSort fp = new FixpointsSort();
+					HashMap<Term,HashSet<Term>> timpliesMap = fp.getTimpliesMap(fpAST);
+					List<ArrayList<Term>> factsSorted = fp.factsSort(fpAST);
+					System.out.println("Key life-cycle:");
+			  	for(Map.Entry<Term,HashSet<Term>> entry : timpliesMap.entrySet()){
+			  		System.out.print(entry.getKey());
+			  		System.out.print(" ---> ");
+			  		List<Term> ts = new ArrayList<Term>(entry.getValue());
+			  		for(int i=0;i<ts.size();i++){
+			  			System.out.print(ts.get(i).toString());
+			  			if(i<ts.size()-1){
+			  				System.out.print(", ");
+			  			}else{
+			  				System.out.println(";");
+			  			}
+			  		}
+			  	}
+			  	List<Term> fixponitsWithoutDuplicate= fp.factsWithoutDuplicate(factsSorted, timpliesMap);		
+			  	System.out.println();
+			  	System.out.println("Fixpoints without duplicate:");
+			  	for(Term tt : fixponitsWithoutDuplicate){
+			  		System.out.println(tt.toString() + ";");
+			  	}
+			  	System.out.println();
+					break;
+				case 8:
+					displayMenu();
 					break;
 				default:
 					System.out.println("Invalid operation ID. try again");
