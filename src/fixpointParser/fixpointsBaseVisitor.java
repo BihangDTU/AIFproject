@@ -38,7 +38,7 @@ public class fixpointsBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitZero(fixpointsParser.ZeroContext ctx) { return visitChildren(ctx); }
+	@Override public T visitNum(fixpointsParser.NumContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

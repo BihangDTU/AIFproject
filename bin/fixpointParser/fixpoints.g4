@@ -10,7 +10,7 @@ fixPoints : aiffixpoint*
      
 terms : term (',' term)* ;
 term : ID                   # Atom 
-	 | '0'                  # Zero
+	 | NUM                  # Num
      | '_'                  # Wildcard
      | ID '(' terms ')'     # Composed
      | 'val' '('  terms ')' # Abstraction

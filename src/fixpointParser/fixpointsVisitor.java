@@ -30,12 +30,12 @@ public interface fixpointsVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAtom(fixpointsParser.AtomContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code Zero}
+	 * Visit a parse tree produced by the {@code Num}
 	 * labeled alternative in {@link fixpointsParser#term}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitZero(fixpointsParser.ZeroContext ctx);
+	T visitNum(fixpointsParser.NumContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code Wildcard}
 	 * labeled alternative in {@link fixpointsParser#term}.

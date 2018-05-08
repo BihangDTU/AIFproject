@@ -52,13 +52,13 @@ public class fixpointsBaseListener implements fixpointsListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterZero(fixpointsParser.ZeroContext ctx) { }
+	@Override public void enterNum(fixpointsParser.NumContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitZero(fixpointsParser.ZeroContext ctx) { }
+	@Override public void exitNum(fixpointsParser.NumContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -35,7 +35,7 @@ public class FixPointASTMaker extends AbstractParseTreeVisitor<AST> implements f
   	return new Variable(id);
 	}
 	@Override
-	public AST visitZero(fixpointsParser.ZeroContext ctx){
+	public AST visitNum(fixpointsParser.NumContext ctx){
 		return new Composed(ctx.getText());
 	}
 	@Override

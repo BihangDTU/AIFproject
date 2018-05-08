@@ -40,17 +40,17 @@ public interface fixpointsListener extends ParseTreeListener {
 	 */
 	void exitAtom(fixpointsParser.AtomContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Zero}
+	 * Enter a parse tree produced by the {@code Num}
 	 * labeled alternative in {@link fixpointsParser#term}.
 	 * @param ctx the parse tree
 	 */
-	void enterZero(fixpointsParser.ZeroContext ctx);
+	void enterNum(fixpointsParser.NumContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code Zero}
+	 * Exit a parse tree produced by the {@code Num}
 	 * labeled alternative in {@link fixpointsParser#term}.
 	 * @param ctx the parse tree
 	 */
-	void exitZero(fixpointsParser.ZeroContext ctx);
+	void exitNum(fixpointsParser.NumContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Wildcard}
 	 * labeled alternative in {@link fixpointsParser#term}.

@@ -18,7 +18,7 @@ public class fixpointsParser extends Parser {
 		new PredictionContextCache();
 	public static final int
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, T__8=9, 
-		T__9=10, T__10=11, T__11=12, T__12=13, NUM=14, ID=15, WHITESPACE=16, COMMENT=17;
+		T__9=10, T__10=11, T__11=12, NUM=13, ID=14, WHITESPACE=15, COMMENT=16;
 	public static final int
 		RULE_fixPoints = 0, RULE_terms = 1, RULE_term = 2, RULE_aiffixpoint = 3, 
 		RULE_infers = 4, RULE_infer = 5, RULE_fact = 6, RULE_vardecs = 7, RULE_vardec = 8, 
@@ -29,12 +29,12 @@ public class fixpointsParser extends Parser {
 	};
 
 	private static final String[] _LITERAL_NAMES = {
-		null, "','", "'0'", "'_'", "'('", "')'", "'val'", "'.'", "'<='", "';'", 
-		"'+'", "':'", "'value'", "'untyped'"
+		null, "','", "'_'", "'('", "')'", "'val'", "'.'", "'<='", "';'", "'+'", 
+		"':'", "'value'", "'untyped'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, null, null, null, null, null, null, null, null, null, null, null, 
-		null, null, "NUM", "ID", "WHITESPACE", "COMMENT"
+		null, "NUM", "ID", "WHITESPACE", "COMMENT"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -122,7 +122,7 @@ public class fixpointsParser extends Parser {
 			setState(23);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==T__3) {
+			while (_la==T__2) {
 				{
 				{
 				setState(20);
@@ -223,22 +223,6 @@ public class fixpointsParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class ZeroContext extends TermContext {
-		public ZeroContext(TermContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof fixpointsListener ) ((fixpointsListener)listener).enterZero(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof fixpointsListener ) ((fixpointsListener)listener).exitZero(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof fixpointsVisitor ) return ((fixpointsVisitor<? extends T>)visitor).visitZero(this);
-			else return visitor.visitChildren(this);
-		}
-	}
 	public static class ComposedContext extends TermContext {
 		public TerminalNode ID() { return getToken(fixpointsParser.ID, 0); }
 		public TermsContext terms() {
@@ -272,6 +256,23 @@ public class fixpointsParser extends Parser {
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof fixpointsVisitor ) return ((fixpointsVisitor<? extends T>)visitor).visitWildcard(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class NumContext extends TermContext {
+		public TerminalNode NUM() { return getToken(fixpointsParser.NUM, 0); }
+		public NumContext(TermContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof fixpointsListener ) ((fixpointsListener)listener).enterNum(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof fixpointsListener ) ((fixpointsListener)listener).exitNum(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof fixpointsVisitor ) return ((fixpointsVisitor<? extends T>)visitor).visitNum(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -328,11 +329,11 @@ public class fixpointsParser extends Parser {
 				}
 				break;
 			case 2:
-				_localctx = new ZeroContext(_localctx);
+				_localctx = new NumContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(37);
-				match(T__1);
+				match(NUM);
 				}
 				break;
 			case 3:
@@ -340,7 +341,7 @@ public class fixpointsParser extends Parser {
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(38);
-				match(T__2);
+				match(T__1);
 				}
 				break;
 			case 4:
@@ -350,11 +351,11 @@ public class fixpointsParser extends Parser {
 				setState(39);
 				match(ID);
 				setState(40);
-				match(T__3);
+				match(T__2);
 				setState(41);
 				terms();
 				setState(42);
-				match(T__4);
+				match(T__3);
 				}
 				break;
 			case 5:
@@ -362,13 +363,13 @@ public class fixpointsParser extends Parser {
 				enterOuterAlt(_localctx, 5);
 				{
 				setState(44);
-				match(T__5);
+				match(T__4);
 				setState(45);
-				match(T__3);
+				match(T__2);
 				setState(46);
 				terms();
 				setState(47);
-				match(T__4);
+				match(T__3);
 				}
 				break;
 			}
@@ -425,11 +426,11 @@ public class fixpointsParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(51);
-			match(T__3);
+			match(T__2);
 			setState(52);
 			match(NUM);
 			setState(53);
-			match(T__4);
+			match(T__3);
 			setState(55);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
@@ -443,21 +444,21 @@ public class fixpointsParser extends Parser {
 			setState(58);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__6) {
+			if (_la==T__5) {
 				{
 				setState(57);
-				match(T__6);
+				match(T__5);
 				}
 			}
 
 			setState(60);
 			fact();
 			setState(61);
-			match(T__7);
+			match(T__6);
 			setState(63);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__3) {
+			if (_la==T__2) {
 				{
 				setState(62);
 				((AiffixpointContext)_localctx).inf = infers();
@@ -467,7 +468,7 @@ public class fixpointsParser extends Parser {
 			setState(65);
 			match(ID);
 			setState(66);
-			match(T__8);
+			match(T__7);
 			}
 		}
 		catch (RecognitionException re) {
@@ -519,11 +520,11 @@ public class fixpointsParser extends Parser {
 			setState(73);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==T__9) {
+			while (_la==T__8) {
 				{
 				{
 				setState(69);
-				match(T__9);
+				match(T__8);
 				setState(70);
 				infer();
 				}
@@ -573,11 +574,11 @@ public class fixpointsParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(76);
-			match(T__3);
+			match(T__2);
 			setState(77);
 			match(NUM);
 			setState(78);
-			match(T__4);
+			match(T__3);
 			}
 		}
 		catch (RecognitionException re) {
@@ -636,14 +637,14 @@ public class fixpointsParser extends Parser {
 			setState(85);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__3) {
+			if (_la==T__2) {
 				{
 				setState(81);
-				match(T__3);
+				match(T__2);
 				setState(82);
 				terms();
 				setState(83);
-				match(T__4);
+				match(T__3);
 				}
 			}
 
@@ -703,7 +704,7 @@ public class fixpointsParser extends Parser {
 					{
 					{
 					setState(88);
-					match(T__6);
+					match(T__5);
 					setState(89);
 					vardec();
 					}
@@ -759,7 +760,7 @@ public class fixpointsParser extends Parser {
 			setState(95);
 			match(ID);
 			setState(96);
-			match(T__10);
+			match(T__9);
 			setState(97);
 			vartype();
 			}
@@ -851,20 +852,20 @@ public class fixpointsParser extends Parser {
 				match(ID);
 				}
 				break;
-			case T__11:
+			case T__10:
 				_localctx = new ValueContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(100);
-				match(T__11);
+				match(T__10);
 				}
 				break;
-			case T__12:
+			case T__11:
 				_localctx = new UntypedContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(101);
-				match(T__12);
+				match(T__11);
 				}
 				break;
 			default:
@@ -883,7 +884,7 @@ public class fixpointsParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\23k\4\2\t\2\4\3\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\22k\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\3"+
 		"\2\7\2\30\n\2\f\2\16\2\33\13\2\3\2\3\2\3\3\3\3\3\3\7\3\"\n\3\f\3\16\3"+
 		"%\13\3\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\5\4\64\n\4"+
@@ -895,20 +896,20 @@ public class fixpointsParser extends Parser {
 		"R\3\2\2\2\20Y\3\2\2\2\22a\3\2\2\2\24h\3\2\2\2\26\30\5\b\5\2\27\26\3\2"+
 		"\2\2\30\33\3\2\2\2\31\27\3\2\2\2\31\32\3\2\2\2\32\34\3\2\2\2\33\31\3\2"+
 		"\2\2\34\35\7\2\2\3\35\3\3\2\2\2\36#\5\6\4\2\37 \7\3\2\2 \"\5\6\4\2!\37"+
-		"\3\2\2\2\"%\3\2\2\2#!\3\2\2\2#$\3\2\2\2$\5\3\2\2\2%#\3\2\2\2&\64\7\21"+
-		"\2\2\'\64\7\4\2\2(\64\7\5\2\2)*\7\21\2\2*+\7\6\2\2+,\5\4\3\2,-\7\7\2\2"+
-		"-\64\3\2\2\2./\7\b\2\2/\60\7\6\2\2\60\61\5\4\3\2\61\62\7\7\2\2\62\64\3"+
-		"\2\2\2\63&\3\2\2\2\63\'\3\2\2\2\63(\3\2\2\2\63)\3\2\2\2\63.\3\2\2\2\64"+
-		"\7\3\2\2\2\65\66\7\6\2\2\66\67\7\20\2\2\679\7\7\2\28:\5\20\t\298\3\2\2"+
-		"\29:\3\2\2\2:<\3\2\2\2;=\7\t\2\2<;\3\2\2\2<=\3\2\2\2=>\3\2\2\2>?\5\16"+
-		"\b\2?A\7\n\2\2@B\5\n\6\2A@\3\2\2\2AB\3\2\2\2BC\3\2\2\2CD\7\21\2\2DE\7"+
-		"\13\2\2E\t\3\2\2\2FK\5\f\7\2GH\7\f\2\2HJ\5\f\7\2IG\3\2\2\2JM\3\2\2\2K"+
-		"I\3\2\2\2KL\3\2\2\2L\13\3\2\2\2MK\3\2\2\2NO\7\6\2\2OP\7\20\2\2PQ\7\7\2"+
-		"\2Q\r\3\2\2\2RW\7\21\2\2ST\7\6\2\2TU\5\4\3\2UV\7\7\2\2VX\3\2\2\2WS\3\2"+
-		"\2\2WX\3\2\2\2X\17\3\2\2\2Y^\5\22\n\2Z[\7\t\2\2[]\5\22\n\2\\Z\3\2\2\2"+
-		"]`\3\2\2\2^\\\3\2\2\2^_\3\2\2\2_\21\3\2\2\2`^\3\2\2\2ab\7\21\2\2bc\7\r"+
-		"\2\2cd\5\24\13\2d\23\3\2\2\2ei\7\21\2\2fi\7\16\2\2gi\7\17\2\2he\3\2\2"+
-		"\2hf\3\2\2\2hg\3\2\2\2i\25\3\2\2\2\f\31#\639<AKW^h";
+		"\3\2\2\2\"%\3\2\2\2#!\3\2\2\2#$\3\2\2\2$\5\3\2\2\2%#\3\2\2\2&\64\7\20"+
+		"\2\2\'\64\7\17\2\2(\64\7\4\2\2)*\7\20\2\2*+\7\5\2\2+,\5\4\3\2,-\7\6\2"+
+		"\2-\64\3\2\2\2./\7\7\2\2/\60\7\5\2\2\60\61\5\4\3\2\61\62\7\6\2\2\62\64"+
+		"\3\2\2\2\63&\3\2\2\2\63\'\3\2\2\2\63(\3\2\2\2\63)\3\2\2\2\63.\3\2\2\2"+
+		"\64\7\3\2\2\2\65\66\7\5\2\2\66\67\7\17\2\2\679\7\6\2\28:\5\20\t\298\3"+
+		"\2\2\29:\3\2\2\2:<\3\2\2\2;=\7\b\2\2<;\3\2\2\2<=\3\2\2\2=>\3\2\2\2>?\5"+
+		"\16\b\2?A\7\t\2\2@B\5\n\6\2A@\3\2\2\2AB\3\2\2\2BC\3\2\2\2CD\7\20\2\2D"+
+		"E\7\n\2\2E\t\3\2\2\2FK\5\f\7\2GH\7\13\2\2HJ\5\f\7\2IG\3\2\2\2JM\3\2\2"+
+		"\2KI\3\2\2\2KL\3\2\2\2L\13\3\2\2\2MK\3\2\2\2NO\7\5\2\2OP\7\17\2\2PQ\7"+
+		"\6\2\2Q\r\3\2\2\2RW\7\20\2\2ST\7\5\2\2TU\5\4\3\2UV\7\6\2\2VX\3\2\2\2W"+
+		"S\3\2\2\2WX\3\2\2\2X\17\3\2\2\2Y^\5\22\n\2Z[\7\b\2\2[]\5\22\n\2\\Z\3\2"+
+		"\2\2]`\3\2\2\2^\\\3\2\2\2^_\3\2\2\2_\21\3\2\2\2`^\3\2\2\2ab\7\20\2\2b"+
+		"c\7\f\2\2cd\5\24\13\2d\23\3\2\2\2ei\7\20\2\2fi\7\r\2\2gi\7\16\2\2he\3"+
+		"\2\2\2hf\3\2\2\2hg\3\2\2\2i\25\3\2\2\2\f\31#\639<AKW^h";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
