@@ -91,17 +91,19 @@ public class aifParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 	public static class AifContext extends ParserRuleContext {
+		public SymdecsContext functionsDef;
+		public SymdecsContext factsDef;
 		public TerminalNode ID() { return getToken(aifParser.ID, 0); }
 		public TermsContext terms() {
 			return getRuleContext(TermsContext.class,0);
 		}
+		public TerminalNode EOF() { return getToken(aifParser.EOF, 0); }
 		public List<SymdecsContext> symdecs() {
 			return getRuleContexts(SymdecsContext.class);
 		}
 		public SymdecsContext symdecs(int i) {
 			return getRuleContext(SymdecsContext.class,i);
 		}
-		public TerminalNode EOF() { return getToken(aifParser.EOF, 0); }
 		public List<TypedecContext> typedec() {
 			return getRuleContexts(TypedecContext.class);
 		}
@@ -171,13 +173,13 @@ public class aifParser extends Parser {
 			setState(41);
 			match(T__4);
 			setState(42);
-			symdecs();
+			((AifContext)_localctx).functionsDef = symdecs();
 			setState(43);
 			match(T__1);
 			setState(44);
 			match(T__5);
 			setState(45);
-			symdecs();
+			((AifContext)_localctx).factsDef = symdecs();
 			setState(46);
 			match(T__1);
 			setState(47);

@@ -8,8 +8,8 @@ COMMENT : '%'~[\n]+'\n' -> skip;
 aif : 'Problem:' ID ';'
       'Types:' typedec*
       'Sets:' terms ';'
-      'Functions:' symdecs ';'
-      'Facts:' symdecs ';'
+      'Functions:' functionsDef=symdecs ';'
+      'Facts:' factsDef=symdecs ';'
       'Rules:' aifrule*
       EOF ;
 

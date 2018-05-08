@@ -20,8 +20,16 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   	for(aifParser.TypedecContext t : ctx.typedec()){
   		types.add((Type)visit(t));
   	}
-  	Functions functions = new Functions((Functions)visit(ctx.symdecs(0)));
-  	Functions facts = new Functions((Functions)visit(ctx.symdecs(1))); 
+  	
+  	Functions functions = new Functions();
+  	for(aifParser.SymdecContext fun : ctx.functionsDef.symdec()){
+  		functions.addFunction((Function)visit(fun));
+  	}
+  
+  	Functions facts = new Functions();
+  	for(aifParser.SymdecContext fact : ctx.factsDef.symdec()){
+  		facts.addFunction((Function)visit(fact));
+  	}
   	List<Term> sets = new ArrayList<Term>();
   	for(aifParser.TermContext set : ctx.terms().term()){
   		sets.add((Term)visit(set));
