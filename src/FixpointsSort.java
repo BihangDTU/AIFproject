@@ -19,7 +19,11 @@ public class FixpointsSort {
 		}
 		return timplies;
 	}
-	
+	/**
+   * Returns 
+   * @param  fpAST  aif data structure
+   * @return a map which contains a term as a key map to...
+   */
 	public HashMap<Term,HashSet<Term>> getTimpliesMap(AST fpAST){
 		HashMap<Term,HashSet<Term>> timpliesMap = new HashMap<Term,HashSet<Term>>(); 
 		List<Term> timplies = KeyLifeCycle(fpAST);

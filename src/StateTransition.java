@@ -303,8 +303,8 @@ public class StateTransition {
   }
   
   /**
-   * Returns list of states after apply a AIF rule. 
-   * apply the AIF rule for the state can add new some new facts and positive condition 
+   * Returns a list of states after apply a AIF rule. 
+   * apply the AIF rule for the state can add some new facts and positive condition 
    * to the current state or remove positive condition from the current sate.
    * @param  state  current state
    * @param  rule   one of concreteRyles from AIF specification
@@ -331,10 +331,18 @@ public class StateTransition {
     }else{
       for(HashMap<String,Term> ctype : concreteTypeSubs){ // need to update to multiple fresh variables
         if(!rule.getNewFreshVars().getFreshs().isEmpty()){ //check whether exist new generate variable.
-          new_var_counter ++;
-          String newConcreteVarStr = rule.getNewFreshVars().getFreshs().get(0).getVarName().toLowerCase() + "_" + new_var_counter;
-          Term newConcreteVar = new Composed(newConcreteVarStr);
-          ctype.put(rule.getNewFreshVars().getFreshs().get(0).getVarName(), newConcreteVar);
+        	String newConcreteVarStr;
+        	Term newConcreteVar;
+        	for(int i=0;i<rule.getNewFreshVars().getFreshs().size();i++){
+        		new_var_counter ++;
+        		newConcreteVarStr = rule.getNewFreshVars().getFreshs().get(i).getVarName().toLowerCase() + "_" + new_var_counter;
+        		newConcreteVar = new Composed(newConcreteVarStr);
+        		ctype.put(rule.getNewFreshVars().getFreshs().get(i).getVarName(), newConcreteVar);
+        	}
+          //new_var_counter ++;
+          //String newConcreteVarStr = rule.getNewFreshVars().getFreshs().get(0).getVarName().toLowerCase() + "_" + new_var_counter;
+          //Term newConcreteVar = new Composed(newConcreteVarStr);
+          //ctype.put(rule.getNewFreshVars().getFreshs().get(0).getVarName(), newConcreteVar);
         }
         /*substitute contrete type values to the rule*/
         /*After substitution, contreteRules will contaions all rules which have been substituted with concrete user type value*/

@@ -55,7 +55,8 @@ public class Main {
   	/*get user define types. for infinite agents {...}, 
   	  only use lower case of it's type as agent e.g. Honest = {...} to Honest = {honest} 
   	  e.g. {Agent=[server, dishon, honest], Honest=[honest], User=[dishon, honest], 
-  	  Sts=[valid, revoked], Server=[server], Dishon=[dishon]}*/
+  	  Sts=[valid, revoked], Server=[server], Dishon=[dishon]}
+  	*/
   	HashMap<String,List<Term>> UserType = new HashMap<>();
   	for(Type ty : ((AIFdata)aifAST).getTypes()){
   		List<Term> agents = new ArrayList<Term>();
@@ -73,11 +74,12 @@ public class Main {
   		//remove duplicate agents in agent List 
   		UserType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(agents)));
   	}
-
-  	Scanner scanner = new Scanner(System.in);
+  	
+  	System.out.println(UserType);
   	displayMenu();
-  	invokeFunctions(scanner,aifAST,fpAST,UserType);
+  	invokeFunctions(aifAST,fpAST,UserType);
   }
+  
   public static void displayMenu(){
   	System.out.println("--------------------------------------------------------------");
   	System.out.println("->0.  Exit program                                          <-");
@@ -92,107 +94,110 @@ public class Main {
 		System.out.println("--------------------------------------------------------------");
   }
   
-	public static void invokeFunctions(Scanner scanner,AST aifAST,AST fpAST,HashMap<String,List<Term>> UserType){
+	public static void invokeFunctions(AST aifAST,AST fpAST,HashMap<String,List<Term>> UserType){
+		Scanner scanner = new Scanner(System.in);
 		boolean runing = true;
 		while(runing) {
 			System.out.println("Enter operation ID: ");
-			//Scanner scanner = new Scanner(System.in);
-			String functionIdStr = scanner.nextLine();
-			//scanner.close();
-			int functionId = Integer.parseInt(functionIdStr); // it only allow to input number, need to fix
-			switch(functionId) {
-				case 0:
-					runing = false;
-					System.out.println("Program exited");
-					break;
-				case 1:
-					System.out.println(aifAST);
-					break;
-				case 2:
-					System.out.println(fpAST);
-					break;
-				case 3:
-					AttackTrace abstractAttackTrace = new AttackTrace(); 
-					System.out.println("LaTex command:");
-					abstractAttackTrace.abstractAttackTrace((((FixpointData)fpAST)).getFixpoints());
-			  	System.out.println();
-					break;
-				case 4:
-					AttackTrace concreteAttackTrace = new AttackTrace();
-					HashMap<String, ConcreteRules> rules = new HashMap<>(); 
-					for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
-						rules.put(cr.getRulesName(), cr);
-					}
-					AttackInfo AttInfo = concreteAttackTrace.concreteAttackTrace(((FixpointData)fpAST).getFixpoints(),rules);
-			    System.out.println("Attack trace: "+AttInfo.getAttackTraces());
-			    System.out.println();
-			    System.out.println("LaTex command:");
-			    System.out.println(AttInfo.getLaTaxCMD());
-			    System.out.println();
-					break;
-				case 5:
-				  //get aif build in types e.g. {value, untyped}
-					HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();
-					StateTransition ST = new StateTransition();
-			    ST.setBuildInTypes(buildInTypes);
-			    State state = new State();
-			    Node stateNode = new Node(state);
-			  	
-			    AttackTrace cAttackTrace = new AttackTrace();
-					HashMap<String, ConcreteRules> concreteRules = new HashMap<>(); 
-					for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
-						concreteRules.put(cr.getRulesName(), cr);
-					}
-					AttackInfo attackInfo = cAttackTrace.concreteAttackTrace(((FixpointData)fpAST).getFixpoints(),concreteRules);
-			  	Node node1 = ST.stateTransition(stateNode,concreteRules,attackInfo.getAttackTraces(),UserType,((AIFdata)aifAST).getSets());
-			    node1.printAttack(node1);
-					break;
-				case 6:
-					FixpointsSort fps = new FixpointsSort();
-					List<ArrayList<Term>> factsSort = fps.factsSort(fpAST);
-					System.out.println("Sorted Fixpoints:");
-			  	for(ArrayList<Term> ts : factsSort){
-			  		for(Term t : ts){
-			  			System.out.println(t + ";");
-			  		}
-			  		System.out.println();
-			  	}
-					break;
-				case 7:
-					FixpointsSort fp = new FixpointsSort();
-					HashMap<Term,HashSet<Term>> timpliesMap = fp.getTimpliesMap(fpAST);
-					List<ArrayList<Term>> factsSorted = fp.factsSort(fpAST);
-					System.out.println("Key life-cycle:");
-			  	for(Map.Entry<Term,HashSet<Term>> entry : timpliesMap.entrySet()){
-			  		System.out.print(entry.getKey());
-			  		System.out.print(" ---> ");
-			  		List<Term> ts = new ArrayList<Term>(entry.getValue());
-			  		for(int i=0;i<ts.size();i++){
-			  			System.out.print(ts.get(i).toString());
-			  			if(i<ts.size()-1){
-			  				System.out.print(", ");
-			  			}else{
-			  				System.out.println(";");
-			  			}
-			  		}
-			  	}
-			  	List<Term> fixponitsWithoutDuplicate= fp.factsWithoutDuplicate(factsSorted, timpliesMap);		
-			  	System.out.println();
-			  	System.out.println("Fixpoints without duplicate:");
-			  	for(Term tt : fixponitsWithoutDuplicate){
-			  		System.out.println(tt.toString() + ";");
-			  	}
-			  	System.out.println();
-					break;
-				case 8:
-					displayMenu();
-					break;
-				default:
-					System.out.println("Invalid operation ID. try again");
-					break;	
+			try {
+				int operationID = scanner.nextInt();// it only allow to input number, need to fix
+				switch(operationID) {
+  				case 0:
+  					runing = false;
+  					System.out.println("Program exited");
+  					break;
+  				case 1:
+  					System.out.println(aifAST);
+  					break;
+  				case 2:
+  					System.out.println(fpAST);
+  					break;
+  				case 3:
+  					AttackTrace abstractAttackTrace = new AttackTrace(); 
+  					System.out.println("LaTex command:");
+  					abstractAttackTrace.abstractAttackTrace((((FixpointData)fpAST)).getFixpoints());
+  			  	System.out.println();
+  					break;
+  				case 4:
+  					AttackTrace concreteAttackTrace = new AttackTrace();
+  					HashMap<String, ConcreteRules> rules = new HashMap<>(); 
+  					for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
+  						rules.put(cr.getRulesName(), cr);
+  					}
+  					AttackInfo AttInfo = concreteAttackTrace.concreteAttackTrace(((FixpointData)fpAST).getFixpoints(),rules);
+  			    System.out.println("Attack trace: "+AttInfo.getAttackTraces());
+  			    System.out.println();
+  			    System.out.println("LaTex command:");
+  			    System.out.println(AttInfo.getLaTaxCMD());
+  			    System.out.println();
+  					break;
+  				case 5:
+  				  //get aif build in types e.g. {value, untyped}
+  					HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();
+  					StateTransition ST = new StateTransition();
+  			    ST.setBuildInTypes(buildInTypes);
+  			    State state = new State();
+  			    Node stateNode = new Node(state);
+  			  	
+  			    AttackTrace cAttackTrace = new AttackTrace();
+  					HashMap<String, ConcreteRules> concreteRules = new HashMap<>(); 
+  					for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
+  						concreteRules.put(cr.getRulesName(), cr);
+  					}
+  					AttackInfo attackInfo = cAttackTrace.concreteAttackTrace(((FixpointData)fpAST).getFixpoints(),concreteRules);
+  			  	Node node1 = ST.stateTransition(stateNode,concreteRules,attackInfo.getAttackTraces(),UserType,((AIFdata)aifAST).getSets());
+  			    node1.printAttack(node1);
+  					break;
+  				case 6:
+  					FixpointsSort fps = new FixpointsSort();
+  					List<ArrayList<Term>> factsSort = fps.factsSort(fpAST);
+  					System.out.println("Sorted Fixpoints:");
+  			  	for(ArrayList<Term> ts : factsSort){
+  			  		for(Term t : ts){
+  			  			System.out.println(t + ";");
+  			  		}
+  			  		System.out.println();
+  			  	}
+  					break;
+  				case 7:
+  					FixpointsSort fp = new FixpointsSort();
+  					HashMap<Term,HashSet<Term>> timpliesMap = fp.getTimpliesMap(fpAST);
+  					List<ArrayList<Term>> factsSorted = fp.factsSort(fpAST);
+  					System.out.println("Key life-cycle:");
+  			  	for(Map.Entry<Term,HashSet<Term>> entry : timpliesMap.entrySet()){
+  			  		System.out.print(entry.getKey());
+  			  		System.out.print(" ---> ");
+  			  		List<Term> ts = new ArrayList<Term>(entry.getValue());
+  			  		for(int i=0;i<ts.size();i++){
+  			  			System.out.print(ts.get(i).toString());
+  			  			if(i<ts.size()-1){
+  			  				System.out.print(", ");
+  			  			}else{
+  			  				System.out.println(";");
+  			  			}
+  			  		}
+  			  	}
+  			  	List<Term> fixponitsWithoutDuplicate= fp.factsWithoutDuplicate(factsSorted, timpliesMap);		
+  			  	System.out.println();
+  			  	System.out.println("Fixpoints without duplicate:");
+  			  	for(Term tt : fixponitsWithoutDuplicate){
+  			  		System.out.println(tt.toString() + ";");
+  			  	}
+  			  	System.out.println();
+  					break;
+  				case 8:
+  					displayMenu();
+  					break;
+  				default:
+  					System.out.println("Invalid operation ID. try again");
+  					break;	
+  			}
+			}catch (java.util.InputMismatchException e){
+				System.err.println("Invalid input. Program exited");
+				System.exit(-1);
 			}
-			
 		}
+	  scanner.close();
 	}
 
 }
