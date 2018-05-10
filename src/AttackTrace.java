@@ -10,7 +10,7 @@ public class AttackTrace {
   private final Term attact = new Composed("attack");
   private ArrayList<String> attackTraces = new ArrayList<>();
   
-  public String abstractAttackGraphLaTexCMD(int attackID, HashMap<Integer, Fixpoint> facts){
+  public String abstractAttackGraphLaTexCMD(int attackID, HashMap<Integer, Fixedpoint> facts){
     StringBuilder sbuf = new StringBuilder();
     Formatter fmt = new Formatter(sbuf);
     fmt.format("\\infer[" + facts.get(attackID).getRulesName() + "]");
@@ -35,10 +35,10 @@ public class AttackTrace {
     return sbuf.toString();
   }
   
-  public void abstractAttackTrace(HashMap<Integer, Fixpoint> facts){
+  public void abstractAttackTrace(HashMap<Integer, Fixedpoint> facts){
     boolean attack = false;
     int attackFactID = 0;
-    for(Map.Entry<Integer, Fixpoint> entry : facts.entrySet()){
+    for(Map.Entry<Integer, Fixedpoint> entry : facts.entrySet()){
       if(entry.getValue().getTerm().equals(attact)){
         attack = true;
         attackFactID = entry.getKey();
@@ -53,7 +53,7 @@ public class AttackTrace {
     }
   }
   
-  public String concreteAttackGraphLaTexCMD(int attackID, HashMap<Integer, Fixpoint> facts, HashMap<String, ConcreteRules> rules){
+  public String concreteAttackGraphLaTexCMD(int attackID, HashMap<Integer, Fixedpoint> facts, HashMap<String, ConcreteRules> rules){
     StringBuilder sbuf = new StringBuilder();
     Formatter fmt = new Formatter(sbuf);
     String rulesName = facts.get(attackID).getRulesName();
@@ -95,12 +95,12 @@ public class AttackTrace {
     return sbuf.toString();
   }
   
-  public AttackInfo concreteAttackTrace(HashMap<Integer, Fixpoint> facts, HashMap<String, ConcreteRules> rules){
+  public AttackInfo concreteAttackTrace(HashMap<Integer, Fixedpoint> facts, HashMap<String, ConcreteRules> rules){
     attackTraces.clear();
     AttackInfo attackInfo = new AttackInfo();
     boolean attack = false;
     int attackFactID = 0;
-    for(Map.Entry<Integer, Fixpoint> entry : facts.entrySet()){
+    for(Map.Entry<Integer, Fixedpoint> entry : facts.entrySet()){
       if(entry.getValue().getTerm().equals(attact)){
         attack = true;
         attackFactID = entry.getKey();
@@ -119,7 +119,7 @@ public class AttackTrace {
     return attackInfo;
 }
   
-  public String concreteAttackGraphLaTexCMDtype(int attackID, HashMap<Integer, Fixpoint> facts, HashMap<String, ConcreteRules> rules, HashMap<String, ArrayList<String>> userTypes){
+  public String concreteAttackGraphLaTexCMDtype(int attackID, HashMap<Integer, Fixedpoint> facts, HashMap<String, ConcreteRules> rules, HashMap<String, ArrayList<String>> userTypes){
     StringBuilder sbuf = new StringBuilder();
     Formatter fmt = new Formatter(sbuf);
     fmt.format("\\infer[" + facts.get(attackID).getRulesName() + "]");
@@ -157,10 +157,10 @@ public class AttackTrace {
     return sbuf.toString();
   }
   
-  public void concreteAttackTraceType(HashMap<Integer, Fixpoint> facts, HashMap<String, ConcreteRules> rules,HashMap<String, ArrayList<String>> userTypes){
+  public void concreteAttackTraceType(HashMap<Integer, Fixedpoint> facts, HashMap<String, ConcreteRules> rules,HashMap<String, ArrayList<String>> userTypes){
     boolean attack = false;
     int attackFactID = 0;
-    for(Map.Entry<Integer, Fixpoint> entry : facts.entrySet()){
+    for(Map.Entry<Integer, Fixedpoint> entry : facts.entrySet()){
       if(entry.getValue().getTerm().equals(attact)){
         attack = true;
         attackFactID = entry.getKey();
