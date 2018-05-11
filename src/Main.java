@@ -96,13 +96,13 @@ public class Main {
   	System.out.println(UserDefType);
   	
   	
-  	FixpointsSort fps = new FixpointsSort();
+  	/*FixpointsSort fps = new FixpointsSort();
   	List<FixedpointsWithType> tt = fps.getTimplies(fpAST);
   	for(FixedpointsWithType f : tt){
   		System.out.println(f.getvType().toString());
   		System.out.println(f.getTerm().toString());
   	}
-  	System.out.println("--------------------------------");
+  	System.out.println("--------------------------------");*/
   	/*Term t1 = tt.get(2).getTerm().getArguments().get(0);
   	Term t2 = tt.get(3).getTerm().getArguments().get(0);
   	System.out.println(t1);
@@ -113,7 +113,7 @@ public class Main {
   	}else{
   		System.out.println("no");
   	}*/
-  	ArrayList<Term> _zero = new ArrayList<>();
+  	/*ArrayList<Term> _zero = new ArrayList<>();
   	ArrayList<Term> args_SU = new ArrayList<>();
   	args_SU.add(new Variable("Server"));
   	args_SU.add(new Variable("User"));
@@ -146,7 +146,7 @@ public class Main {
   	Term val2 = new Composed("val",val2_args);
   	System.out.println(val1);
   	System.out.println(val2);
-  	
+  	*/
   	//HashMap<String, String> ttmap = fps.getSubstitutionMap(val1, val2);
   	//System.out.println(ttmap);
   	/*if(fps.isVal1GeneralThanVal2(val1, val2, UserDefType)){
@@ -155,10 +155,10 @@ public class Main {
   		System.out.println("no");
   	}*/
   	
-  	System.out.println("--------------------------------");
+  /*	System.out.println("--------------------------------");
   	
   	System.out.println("---------------------------------------");
-  	List<ArrayList<FixedpointsWithType>> fSorted = fps.factsSort(fpAST);
+  	List<ArrayList<FixedpointsWithType>> fSorted = fps.fixedpointsSort(fpAST);
   	for(ArrayList<FixedpointsWithType> fs : fSorted){
   		for(FixedpointsWithType fp : fs){
   			//System.out.println(fp.getvType().toString());
@@ -166,7 +166,7 @@ public class Main {
   		}
   		System.out.println();
   	}
-  	System.out.println("--------------------------");
+  	System.out.println("--------------------------");*/
 /*  	System.out.println(fSorted.get(0).get(0).toString());
   	System.out.println(fSorted.get(0).get(1).toString());
   	if(fps.canT1ImpliesT2(fSorted.get(0).get(0), fSorted.get(0).get(1), tt, UserDefType)){
@@ -181,25 +181,30 @@ public class Main {
   		System.out.print("  ---->  ");
   		System.out.println(entry.getValue().toString());
   	}*/
-  	List<FixedpointsWithType> gggg =  fps.getExtendedTimplies(fpAST);
+  	/*List<FixedpointsWithType> gggg =  fps.getExtendedTimplies(fpAST);
   	for(FixedpointsWithType pp : gggg){
   		System.out.print(pp.getTerm().getArguments().get(0));
   		System.out.print(" ---->");
   		System.out.println(pp.getTerm().getArguments().get(1));
   	}
   	System.out.println("---------------------------------------");
-  	List<FixedpointsWithType> fixpointWithoutDuplicate = fps.factsWithoutDuplicate(fSorted, gggg, UserDefType);
+  	List<FixedpointsWithType> timpliesSorted = fps.timpliesSort(gggg);
+  	for(FixedpointsWithType t : timpliesSorted){
+  		System.out.print(t.getTerm().getArguments().get(0));
+  		System.out.print(" ---->");
+  		System.out.println(t.getTerm().getArguments().get(1));
+  	}
+  	System.out.println("---------------------------------------");
+  	List<FixedpointsWithType> fixpointWithoutDuplicate = fps.fixedpointsWithoutDuplicate(fSorted, gggg, UserDefType);
   	for(FixedpointsWithType fpw : fixpointWithoutDuplicate){
   		System.out.println(fpw.getTerm().toString());
   	}
   	
   	System.out.println("---------------------------------------");
-  	
-  
-  	
+  	*/
   	
   	displayMenu();
-  	invokeFunctions(aifAST,fpAST,UserType);
+  	invokeFunctions(aifAST,fpAST,UserType,UserDefType);
   }
   
   public static void displayMenu(){
@@ -216,7 +221,7 @@ public class Main {
 		System.out.println("--------------------------------------------------------------");
   }
   
-	public static void invokeFunctions(AST aifAST,AST fpAST,HashMap<String,List<Term>> UserType){
+	public static void invokeFunctions(AST aifAST,AST fpAST,HashMap<String,List<Term>> UserType, HashMap<String,List<String>> UserDefType){
 		Scanner scanner = new Scanner(System.in);
 		boolean runing = true;
 		while(runing) {
@@ -271,41 +276,34 @@ public class Main {
   			    node1.printAttack(node1);
   					break;
   				case 6:
-  					/*FixpointsSort fps = new FixpointsSort();
-  					List<ArrayList<Term>> factsSort = fps.factsSort(fpAST);
+  					FixpointsSort fps = new FixpointsSort();
+  					List<ArrayList<FixedpointsWithType>> factsSort = fps.fixedpointsSort(fpAST);
   					System.out.println("Sorted Fixpoints:");
-  			  	for(ArrayList<Term> ts : factsSort){
-  			  		for(Term t : ts){
-  			  			System.out.println(t + ";");
+  			  	for(ArrayList<FixedpointsWithType> ts : factsSort){
+  			  		for(FixedpointsWithType t : ts){
+  			  			System.out.println(t.getTerm().toString() + ";");
   			  		}
   			  		System.out.println();
-  			  	}*/
+  			  	}
   					break;
   				case 7:
-  					/*FixpointsSort fp = new FixpointsSort();
-  					HashMap<Term,HashSet<Term>> timpliesMap = fp.getTimpliesMap(fpAST);
-  					List<ArrayList<Term>> factsSorted = fp.factsSort(fpAST);
+  					FixpointsSort fp = new FixpointsSort();
+  					List<FixedpointsWithType> timplies = fp.getExtendedTimplies(fpAST);
+  					List<FixedpointsWithType> sortedTimplies = fp.timpliesSort(timplies);
+  					List<ArrayList<FixedpointsWithType>> fixedpointsSorted = fp.fixedpointsSort(fpAST);
   					System.out.println("Key life-cycle:");
-  			  	for(Map.Entry<Term,HashSet<Term>> entry : timpliesMap.entrySet()){
-  			  		System.out.print(entry.getKey());
+  			  	for(FixedpointsWithType t : sortedTimplies){
+  			  		System.out.print(t.getTerm().getArguments().get(0));
   			  		System.out.print(" ---> ");
-  			  		List<Term> ts = new ArrayList<Term>(entry.getValue());
-  			  		for(int i=0;i<ts.size();i++){
-  			  			System.out.print(ts.get(i).toString());
-  			  			if(i<ts.size()-1){
-  			  				System.out.print(", ");
-  			  			}else{
-  			  				System.out.println(";");
-  			  			}
-  			  		}
+  			  		System.out.println(t.getTerm().getArguments().get(1) + ";");
   			  	}
-  			  	List<Term> fixponitsWithoutDuplicate= fp.factsWithoutDuplicate(factsSorted, timpliesMap);		
+  			  	List<FixedpointsWithType> fixpointWithoutDuplicate = fp.fixedpointsWithoutDuplicate(fixedpointsSorted, sortedTimplies, UserDefType);
   			  	System.out.println();
   			  	System.out.println("Fixpoints without duplicate:");
-  			  	for(Term tt : fixponitsWithoutDuplicate){
-  			  		System.out.println(tt.toString() + ";");
-  			  	}
-  			  	System.out.println();*/
+  			  	for(FixedpointsWithType fpw : fixpointWithoutDuplicate){
+  			  		System.out.println(fpw.getTerm().toString());
+  			  	}	
+  			  	System.out.println();
   					break;
   				case 8:
   					displayMenu();

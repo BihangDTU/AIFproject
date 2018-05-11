@@ -52,15 +52,6 @@ public class FixpointsSort {
 				timplies.add(new FixedpointsWithType(entry.getValue().getvType(),entry.getValue().getTerm()));
 			}
 		}
-		/*substituted variables with user define types
-		  A:Honest.S:Server.iknows(inv(val(0,0,db__revoked(S,A)))) 
-		  --> A:Honest.S:Server.iknows(inv(val(0,0,db__revoked(Server,Honest))))  
-		*/
-		/*List<FixedpointsWithType> timpliessubstituted = new ArrayList<FixedpointsWithType>();
-		for(FixedpointsWithType fpt : timplies){
-			timpliessubstituted .add(new FixedpointsWithType(fpt.getvType(),termSubs(fpt.getTerm(),fpt.getvType())));
-		}	
-		return timpliessubstituted;*/
 		return timplies;
 	}
 
@@ -69,6 +60,21 @@ public class FixpointsSort {
    * @param  fpAST   dataStructure contains fixed points from output file  
    * @return  a list of all possible implies (the variable have been substituted with user define type)
    */
+	/*extend timplies, the type are considered here
+	 * (1) timpies(val(ring(Agent),0,0),val(ring(Agent),valid(Server,Agent),0))
+	 * (2) timpies(val(ring(User),valid(Server,User),0),val(0,valid(Server,User),0))
+	 * (3) timpies(val(0,valid(Server,User),0),val(0,0,revoked(Server,User)))
+	 *  
+	 *       Agent      User       Honest
+	 * (1,0,0) -> (1,1,0) -> (0,1,0) -> (0,0,1)
+	 * 
+	 * (1) timpies(val(ring(Agent),0,0),val(ring(Agent),valid(Server,Agent),0))
+	 * (2) timpies(val(ring(User),0,0),val(ring(User),valid(Server,User),0))
+	 * (3) timpies(val(ring(Honest),0,0)),0,0,revoked(Server,Honest)))
+	 * (4) timpies(val(ring(User),valid(Server,User),0),val(0,valid(Server,User),0))
+	 * (5) timpies(val(ring(Honest),valid(Server,Honest),0),val(0,valid(Server,Honest),0))
+	 * (7) timpies(val(0,valid(Server,User),0),val(0,0,revoked(Server,User)))
+	 */
 	public List<FixedpointsWithType> getExtendedTimplies(AST fpAST){
 		HashMap<Term,HashSet<Term>> timpliesMap = new HashMap<Term,HashSet<Term>>(); 
 		List<FixedpointsWithType> timplies = getTimplies(fpAST);
@@ -103,23 +109,8 @@ public class FixpointsSort {
   				break;
   			}
   		}
-  	}	
-  	/*extend timplies, the type are considered here
-  	 * (1) timpies(val(ring(Agent),0,0),val(ring(Agent),valid(Server,Agent),0))
-  	 * (2) timpies(val(ring(User),valid(Server,User),0),val(0,valid(Server,User),0))
-  	 * (3) timpies(val(0,valid(Server,User),0),val(0,0,revoked(Server,User)))
-  	 *  
-  	 *       Agent      User       Honest
-  	 * (1,0,0) -> (1,1,0) -> (0,1,0) -> (0,0,1)
-  	 * 
-  	 * (1) timpies(val(ring(Agent),0,0),val(ring(Agent),valid(Server,Agent),0))
-  	 * (2) timpies(val(ring(User),0,0),val(ring(User),valid(Server,User),0))
-  	 * (3) timpies(val(ring(Honest),0,0)),0,0,revoked(Server,Honest)))
-  	 * (4) timpies(val(ring(User),valid(Server,User),0),val(0,valid(Server,User),0))
-  	 * (5) timpies(val(ring(Honest),valid(Server,Honest),0),val(0,valid(Server,Honest),0))
-  	 * (7) timpies(val(0,valid(Server,User),0),val(0,0,revoked(Server,User)))
-  	 */
-  	List<FixedpointsWithType> extendedTimplies = new ArrayList<>();
+  	}		
+  	HashSet<FixedpointsWithType> extendedTimplies = new HashSet<>();
   	for(Map.Entry<Term,HashSet<Term>> ts : timpliesMap.entrySet()){
   		for(Term t : ts.getValue()){
   			for(FixedpointsWithType fp : timplies){
@@ -141,7 +132,81 @@ public class FixpointsSort {
   	return extendedTimpliesSubstituted;
 	}
 	
-	public List<FixedpointsWithType> factsWithoutDuplicate(List<ArrayList<FixedpointsWithType>> factsSorted, List<FixedpointsWithType> timplies, HashMap<String,List<String>> UserDefType){
+	
+	public List<FixedpointsWithType> timpliesSort(List<FixedpointsWithType> timplies){
+		List<FixedpointsWithType> timpliesSorted = new ArrayList<FixedpointsWithType>();
+		List<FixedpointsWithType> timpliesUnsort = new ArrayList<FixedpointsWithType>(timplies);
+		List<FixedpointsWithType> factsUnsortCopy = new ArrayList<FixedpointsWithType>(timpliesUnsort);
+		while(true){
+			if(timpliesUnsort.isEmpty()){
+				break;
+			}else{
+				FixedpointsWithType firstTimplies = timpliesUnsort.get(0);
+				for(FixedpointsWithType t : timpliesUnsort){
+					if(isTwoValHaveSameForm(firstTimplies.getTerm().getArguments().get(0),t.getTerm().getArguments().get(0))){
+						timpliesSorted.add(t);
+						factsUnsortCopy.remove(t);
+					}
+				}
+			}
+			timpliesUnsort.clear();
+			timpliesUnsort.addAll(factsUnsortCopy);
+		}	
+		return timpliesSorted;
+	}
+	
+	/**
+   * Returns a list which contains sorted fixed points in each lists. (timplies and occurs are removed)
+   * @param  fpAST   dataStructure contains fixed points from output file  
+   * @return  a list which contains sorted fixed points in each lists
+   */
+	public List<ArrayList<FixedpointsWithType>> fixedpointsSort(AST fpAST){
+		List<ArrayList<FixedpointsWithType>> factsSorted = new ArrayList<ArrayList<FixedpointsWithType>>();
+		List<FixedpointsWithType> facts = new ArrayList<FixedpointsWithType>();
+		List<FixedpointsWithType> factsUnsort = new ArrayList<FixedpointsWithType>();
+		for (Map.Entry<Integer, Fixedpoint> entry : ((FixedpointData)fpAST).getFixpoints().entrySet()) {
+			factsUnsort.add(new FixedpointsWithType(entry.getValue().getvType(),entry.getValue().getTerm()));
+		}		
+		List<FixedpointsWithType> factsUnsortCopy = new ArrayList<FixedpointsWithType>(factsUnsort);
+		/*remove timplies and occurs from fixed points*/
+		for(FixedpointsWithType Fixedpoint : factsUnsort){
+			if(Fixedpoint.getTerm().getFactName().equals("timplies") || Fixedpoint.getTerm().getFactName().equals("occurs")){
+				factsUnsortCopy.remove(Fixedpoint);
+			}
+		}
+		factsUnsort.clear();
+		factsUnsort.addAll(factsUnsortCopy);
+	  /*sort fixed points into different lists then add to one list which contains lists of sorted fixed points.*/
+		while(true){
+			if(factsUnsort.isEmpty()){
+				break;
+			}else{
+				FixedpointsWithType firstFact = factsUnsort.get(0);
+				for(FixedpointsWithType t : factsUnsort){
+					if(isTwoFactsHaveSameForm(firstFact.getTerm(),t.getTerm())){
+						facts.add(t);
+						factsUnsortCopy.remove(t);
+					}
+				}
+				factsSorted.add(new ArrayList<>(facts));
+				facts.clear();
+			}
+			factsUnsort.clear();
+			factsUnsort.addAll(factsUnsortCopy);
+		}	
+		/*substituted user define types into fixed points */
+		List<ArrayList<FixedpointsWithType>> factsSortedSubs = new ArrayList<ArrayList<FixedpointsWithType>>();
+		for(ArrayList<FixedpointsWithType> fpts : factsSorted){
+			ArrayList<FixedpointsWithType> factsSubs = new ArrayList<FixedpointsWithType>();
+			for(FixedpointsWithType fpt : fpts){
+				factsSubs.add(new FixedpointsWithType(fpt.getvType(),termSubs(fpt.getTerm(),fpt.getvType())));
+			}
+			factsSortedSubs.add(factsSubs);
+		}
+		return factsSortedSubs;
+	}
+	
+	public List<FixedpointsWithType> fixedpointsWithoutDuplicate(List<ArrayList<FixedpointsWithType>> factsSorted, List<FixedpointsWithType> timplies, HashMap<String,List<String>> UserDefType){
 		List<FixedpointsWithType> noDuplicateFacts = new ArrayList<FixedpointsWithType>();
 		for(ArrayList<FixedpointsWithType> terms : factsSorted){
 			if(terms.size() == 1){
@@ -231,53 +296,7 @@ public class FixpointsSort {
 		return true;
 	}
 
-	public List<ArrayList<FixedpointsWithType>> factsSort(AST fpAST){
-		List<ArrayList<FixedpointsWithType>> factsSorted = new ArrayList<ArrayList<FixedpointsWithType>>();
-		List<FixedpointsWithType> facts = new ArrayList<FixedpointsWithType>();
-		List<FixedpointsWithType> factsUnsort = new ArrayList<FixedpointsWithType>();
-		for (Map.Entry<Integer, Fixedpoint> entry : ((FixedpointData)fpAST).getFixpoints().entrySet()) {
-			factsUnsort.add(new FixedpointsWithType(entry.getValue().getvType(),entry.getValue().getTerm()));
-		}		
-		List<FixedpointsWithType> factsUnsortCopy = new ArrayList<FixedpointsWithType>(factsUnsort);
-		boolean isSortedComplete = false;
-		while(!isSortedComplete){
-			for(FixedpointsWithType firstTerm : factsUnsort){
-				if(firstTerm.getTerm().getFactName().equals("timplies") || firstTerm.getTerm().getFactName().equals("occurs")){
-					factsUnsortCopy.remove(firstTerm);
-				}else{
-					break;
-				}
-			}
-			factsUnsort.clear();
-			factsUnsort.addAll(factsUnsortCopy);
-			if(factsUnsort.isEmpty()){
-				isSortedComplete = true;
-			}else{
-				FixedpointsWithType firstFact = factsUnsort.get(0);
-				for(FixedpointsWithType t : factsUnsort){
-					if(isTwoFactsHaveSameForm(firstFact.getTerm(),t.getTerm())){
-						facts.add(t);
-						factsUnsortCopy.remove(t);
-					}
-				}
-				factsSorted.add(new ArrayList<>(facts));
-				facts.clear();
-			}
-			factsUnsort.clear();
-			factsUnsort.addAll(factsUnsortCopy);
-		}	
-		List<ArrayList<FixedpointsWithType>> factsSortedSubs = new ArrayList<ArrayList<FixedpointsWithType>>();
-		//ArrayList<FixedpointsWithType> factsSubs = new ArrayList<FixedpointsWithType>();
-		for(ArrayList<FixedpointsWithType> fpts : factsSorted){
-			ArrayList<FixedpointsWithType> factsSubs = new ArrayList<FixedpointsWithType>();
-			for(FixedpointsWithType fpt : fpts){
-				factsSubs.add(new FixedpointsWithType(fpt.getvType(),termSubs(fpt.getTerm(),fpt.getvType())));
-			}
-			factsSortedSubs.add(factsSubs);
-		}
-		return factsSortedSubs;
-		//return factsSorted;
-	}
+	
 	
 	private HashMap<String,String> getSubstitutionMap(Term val1, Term val2){
 		HashMap<String,String> map = new HashMap<String,String>();
