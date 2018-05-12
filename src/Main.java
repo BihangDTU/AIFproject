@@ -199,10 +199,23 @@ public class Main {
   	for(FixedpointsWithType fpw : fixpointWithoutDuplicate){
   		System.out.println(fpw.getTerm().toString());
   	}
-  	
-  	System.out.println("---------------------------------------");
   	*/
+  	System.out.println("---------------------------------------");
   	
+  	AbstractRuleConversion ST = new AbstractRuleConversion();
+
+  	System.out.println("---------------------------------------");
+  	HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
+		for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
+			concreteRules.put(cr.getRulesName(), cr);
+		}
+		System.out.println(concreteRules.get("serverUpdateKey"));
+		AbstractRule absrules = ST.concreteRuleToAbsRuleConversion(aifAST,"serverUpdateKey");
+		System.out.println(absrules);
+		System.out.println();
+		System.out.println(ST.concreteRuleToAbsRuleConversion(absrules));
+		
+		
   	displayMenu();
   	invokeFunctions(aifAST,fpAST,UserType,UserDefType);
   }
@@ -247,8 +260,8 @@ public class Main {
   					break;
   				case 4:
   					AttackTrace concreteAttackTrace = new AttackTrace();
-  					HashMap<String, ConcreteRules> rules = new HashMap<>(); 
-  					for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
+  					HashMap<String, ConcreteRule> rules = new HashMap<>(); 
+  					for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
   						rules.put(cr.getRulesName(), cr);
   					}
   					AttackInfo AttInfo = concreteAttackTrace.concreteAttackTrace(((FixedpointData)fpAST).getFixpoints(),rules);
@@ -267,8 +280,8 @@ public class Main {
   			    Node stateNode = new Node(state);
   			  	
   			    AttackTrace cAttackTrace = new AttackTrace();
-  					HashMap<String, ConcreteRules> concreteRules = new HashMap<>(); 
-  					for(ConcreteRules cr: ((AIFdata)aifAST).getRules()){
+  					HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
+  					for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
   						concreteRules.put(cr.getRulesName(), cr);
   					}
   					AttackInfo attackInfo = cAttackTrace.concreteAttackTrace(((FixedpointData)fpAST).getFixpoints(),concreteRules);

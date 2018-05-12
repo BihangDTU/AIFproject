@@ -7,8 +7,8 @@ import java.util.Map;
 import dataStructure.*;
 
 public class FixpointsSort {
-	StateTransition st = new StateTransition();
-	DeepClone dClone = new DeepClone();
+	StateTransition st = new StateTransition();  // need move to new class
+	DeepClone dClone = new DeepClone();  // need move to new class
 	public FixpointsSort(){}
 	
 	 /**
@@ -18,7 +18,7 @@ public class FixpointsSort {
    * @param  subs e.g. {PK=pk, A=a}
    * @return e.g. iknows(sign(inv(pk),pair(a,NPK)))
    */
-  public Term termSubs(Term t, HashMap<String,String> subs){
+  public Term termSubs(Term t, HashMap<String,String> subs){   // need move to new calss
     Term t_copy = (Term)dClone.deepClone(t);
     if(!st.getVars(t).isEmpty()){
       if(t instanceof Variable){
@@ -296,8 +296,6 @@ public class FixpointsSort {
 		return true;
 	}
 
-	
-	
 	private HashMap<String,String> getSubstitutionMap(Term val1, Term val2){
 		HashMap<String,String> map = new HashMap<String,String>();
 		if(isTwoValHaveSameForm(val1,val2) && (val1.getArguments().size() == val2.getArguments().size())){

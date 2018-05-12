@@ -121,8 +121,8 @@ public class StateTransition {
    * @param  subs  e.g. {A=a, S=s}
    * @return       substituted concrete rule
    */
-  public ConcreteRules ConcreteRulesSubstitution(ConcreteRules r, HashMap<String,Term> subs){
-    ConcreteRules rule = (ConcreteRules)dClone.deepClone(r);
+  public ConcreteRule ConcreteRulesSubstitution(ConcreteRule r, HashMap<String,Term> subs){
+    ConcreteRule rule = (ConcreteRule)dClone.deepClone(r);
     for(int i=0;i<r.getLF().size();i++){
       rule.getLF().set(i, termSubs(r.getLF().get(i),subs));   
     }
@@ -148,7 +148,7 @@ public class StateTransition {
    * @param  rule  a concrete rule   
    * @return boolean  
    */
-  public boolean isRuleContainsVar(ConcreteRules rule){
+  public boolean isRuleContainsVar(ConcreteRule rule){
     for(Term lf : rule.getLF()){
       if(!getVars(lf).isEmpty()){
         return true;
@@ -312,7 +312,7 @@ public class StateTransition {
    * @param  dbSet  e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return list of possible states
    */
-  public List<State> ruleApply(State state, ConcreteRules rule,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
+  public List<State> ruleApply(State state, ConcreteRule rule,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
     List<State> newStates = new ArrayList<>();
     HashMap<String, String> varsTypes = new HashMap<>();
     HashMap<String, List<Term>> cTypeInfo = new HashMap<>();
@@ -324,7 +324,7 @@ public class StateTransition {
     /*get all prossible combination of user define types for substitution*/
     Set<HashMap<String,Term>> concreteTypeSubs = userTypeSubstitution(cTypeInfo); 
     //System.out.println("concreteTypeValue: " + concreteTypeSubs);
-    Set<ConcreteRules> contreteRules = new HashSet();
+    Set<ConcreteRule> contreteRules = new HashSet();
     /* instantiate AIF rule with contrete instance of user define type */
     if(concreteTypeSubs.isEmpty()){
       contreteRules.add(rule);
@@ -350,8 +350,8 @@ public class StateTransition {
       }   
       // System.out.println("contreteRules: " + contreteRules.size());
     }
-    List<ConcreteRules> contreteRulesList = new ArrayList<>(contreteRules);
-    List<ConcreteRules> contreteRulesList_copy = (List<ConcreteRules>)dClone.deepClone(contreteRulesList);
+    List<ConcreteRule> contreteRulesList = new ArrayList<>(contreteRules);
+    List<ConcreteRule> contreteRulesList_copy = (List<ConcreteRule>)dClone.deepClone(contreteRulesList);
     for(int i=0;i<contreteRulesList_copy.size();i++){
       /*if the database b set in position condition contains any types with "_"*/
       /* then remove that database and add all expanded database */
@@ -372,7 +372,7 @@ public class StateTransition {
       //System.out.println(contreteRulesList_copy.get(i).toString());
     }
     /*apply each substituded rule to the current state*/
-    for(ConcreteRules cr : contreteRulesList_copy){
+    for(ConcreteRule cr : contreteRulesList_copy){
       /* no prerequest condition*/
       if(cr.getLF().isEmpty() && cr.getSplus().isEmpty() && cr.getSnega().isEmpty()){
         State newState = (State)dClone.deepClone(state);
@@ -385,8 +385,8 @@ public class StateTransition {
         newStates.add(newState);
       }else{
         /* left hand side is not empty */
-        List<ConcreteRules> contreteR_satisfy = new ArrayList<>();
-        List<ConcreteRules> contreteR_satisfy_copy = new ArrayList<>();
+        List<ConcreteRule> contreteR_satisfy = new ArrayList<>();
+        List<ConcreteRule> contreteR_satisfy_copy = new ArrayList<>();
         boolean isFirstFact = true;
         for(int j=0;j<cr.getLF().size();j++){
           for(Term fact : state.getFacts()){
@@ -421,7 +421,7 @@ public class StateTransition {
         /*for(ConcreteRules r_c : contreteR_satisfy_copy){
           System.out.println("rc: "+r_c.toString());
         }*/        
-        for(ConcreteRules r_copy : contreteR_satisfy_copy){
+        for(ConcreteRule r_copy : contreteR_satisfy_copy){
           if(isRuleContainsVar(r_copy)){
             contreteR_satisfy.remove(r_copy);
           }
@@ -432,7 +432,7 @@ public class StateTransition {
         /* if the left hand side rule satisfy the state transform condition then we add RF
            and RS to the state, and remove positive condition from the state.
         */
-        for(ConcreteRules r_satisfy : contreteR_satisfy){
+        for(ConcreteRule r_satisfy : contreteR_satisfy){
           if(state.getPositiveConditins().containsAll(r_satisfy.getSplus()) 
                   && state.getFacts().containsAll(r_satisfy.getLF())
                   && !isSnegaInState(r_satisfy.getSnega(),state)){
@@ -463,7 +463,7 @@ public class StateTransition {
    * @param dbSet             e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return  all states that can be explore by the current state according to the attack traces
    */
-  public Node stateTransition(Node state, HashMap<String, ConcreteRules> rules,List<String> attackTraces,
+  public Node stateTransition(Node state, HashMap<String, ConcreteRule> rules,List<String> attackTraces,
                                      HashMap<String,List<Term>> concreteTypeInfo,List<Term> dbSet){
    // Node<State> newState = new Node<>(state.getState());
     //ArrayList<String> concreteAttackTreces = new ArrayList<>(); 
@@ -486,38 +486,6 @@ public class StateTransition {
     }
     return state;
   }
-  
-  /*public Node stateTrace(Node state, HashMap<String, ConcreteRules> rules,ArrayList<String> attackTraces,
-                                     HashMap<String,ArrayList<Term>> concreteTypeInfo,ArrayList<Term> dbSet, ArrayList<ConcreteAttackTrace> trace){
-   // Node<State> newState = new Node<>(state.getState());
-    //ArrayList<String> concreteAttackTreces = new ArrayList<>(); 
-    String applyRuleName;
-    ArrayList<String> attackTracesCopy = new ArrayList<>();
-    attackTracesCopy.addAll(attackTraces);
-    ArrayList<ConcreteAttackTrace> tt = removeElementsForContreteList(trace,attackTracesCopy);
-    System.out.println("-----------------");
-    for(ConcreteAttackTrace t : tt){
-      System.out.println(t.getRuleName());
-      System.out.println(t.getState());
-    }
-    System.out.println("-----------------");
-    if(!attackTraces.isEmpty()){
-      applyRuleName = attackTraces.get(0);
-      attackTracesCopy.remove(0);
-      System.out.println(attackTracesCopy);
-      ArrayList<State> childrenState = ruleApply(state.getState(), rules.get(applyRuleName), concreteTypeInfo, dbSet);
-      //System.out.println(applyRuleName + ":");
-      for(State child : childrenState){
-        //System.out.println("  " + child);
-        ConcreteAttackTrace newTrace = new ConcreteAttackTrace(applyRuleName,child);
-        trace.add(newTrace);
-        Node childState = new Node(child);
-        stateTrace(childState,rules,attackTracesCopy,concreteTypeInfo,dbSet,trace);
-        state.addChild(childState);        
-      }
-    }
-    return state;
-  }*/
   
    /*
    * @param concreteTypeInfo  e.g. {Agent=[a, i, s], Honest=[a], User=[a, i], Server=[s], Dishon=[i]}
@@ -587,25 +555,4 @@ public class StateTransition {
     }
     return absStae;
   }
-  
- /* public ArrayList<ConcreteAttackTrace> removeElementsForContreteList(ArrayList<ConcreteAttackTrace> list, ArrayList<String>removeElements){
-    //ArrayList<ConcreteAttackTrace> newList = (ArrayList<ConcreteAttackTrace>)dClone.deepClone(list);
-    for(String e : removeElements){
-      for(int i=0;i<list.size();i++){
-        if(list.get(i).getRuleName().equals(e)){
-          list.remove(i);
-        }
-      }
-    }   
-    return list;
-  }
-  */
-/*  public boolean isAttackFound(State state){
-    for(Term t : state.getFacts()){
-      if(t.getFactName().equals("attack")){
-        return true;
-      }
-    }
-    return false;
-  }*/
 }

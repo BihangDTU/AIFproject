@@ -35,9 +35,9 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   		sets.add((Term)visit(set));
   	}
   	//Terms sets = (Terms)visit(ctx.terms());
-  	List<ConcreteRules> rules = new ArrayList<ConcreteRules>();
+  	List<ConcreteRule> rules = new ArrayList<ConcreteRule>();
   	for(aifParser.AifruleContext r : ctx.aifrule()){
-  		ConcreteRules cr = (ConcreteRules)visit(r); 
+  		ConcreteRule cr = (ConcreteRule)visit(r); 
   		rules.add(cr);
   		for (Map.Entry<String, String> varsType : cr.getVarsTypes().entrySet()) {
   			if(Character.isLowerCase(varsType.getValue().charAt(0))){
@@ -182,7 +182,7 @@ public class AifASTMaker extends AbstractParseTreeVisitor<AST> implements aifVis
   		}
   	}
 
-  	return new ConcreteRules(rulesName,varsTypes,LF,Splus,Snega,freshs,RF,RS);
+  	return new ConcreteRule(rulesName,varsTypes,LF,Splus,Snega,freshs,RF,RS);
   };
   @Override
   public AST visitFacts(aifParser.FactsContext ctx){

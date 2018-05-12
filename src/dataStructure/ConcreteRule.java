@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class ConcreteRules extends AST implements Serializable{
+public class ConcreteRule extends AST implements Serializable{
 	/**
 	 * 
 	 */
@@ -25,8 +25,8 @@ public class ConcreteRules extends AST implements Serializable{
   private List<Term> RF = new ArrayList<>();
   private List<Condition> RS = new ArrayList<>();
   
-  public ConcreteRules(){}
-  public ConcreteRules(String rulesName, HashMap<String, String> varsTypes, List<Term> LF, List<Condition> Splus,
+  public ConcreteRule(){}
+  public ConcreteRule(String rulesName, HashMap<String, String> varsTypes, List<Term> LF, List<Condition> Splus,
                        List<Condition> Snega, Freshs freshVars, List<Term> RF, List<Condition> RS) {
     this.rulesName = rulesName;
     this.varsTypes = varsTypes;
@@ -128,33 +128,33 @@ public class ConcreteRules extends AST implements Serializable{
   
   @Override
   public String toString(){
-    String concreteRules;
+    String concreteRules = "";
     int acc = 0;
     concreteRules = rulesName + "(";
     for (Map.Entry<String, String> entry : varsTypes.entrySet()) {
       acc++;
       if(acc == varsTypes.size()){
-        concreteRules = concreteRules + entry.getKey() + ":" + entry.getValue();
+        concreteRules += entry.getKey() + ":" + entry.getValue();
       }else{
-        concreteRules = concreteRules + entry.getKey() + ":" + entry.getValue() + ", ";
+        concreteRules += entry.getKey() + ":" + entry.getValue() + ", ";
       }
     }
-    concreteRules = concreteRules + ")\n";
+    concreteRules += ")\n";
     for(int i=0;i<LF.size();i++){
       if(i == 0){
-        concreteRules = concreteRules + LF.get(i);
+        concreteRules += LF.get(i);
       }else{
-        concreteRules = concreteRules + "." + LF.get(i);
+        concreteRules += "." + LF.get(i);
       } 
     }
     for (int i=0;i<Splus.size();i++){
-      concreteRules = concreteRules+ "." + Splus.get(i).getVar().toString() + " in " + Splus.get(i).getTerm().toString();
+      concreteRules += "." + Splus.get(i).getVar().toString() + " in " + Splus.get(i).getTerm().toString();
     }
     for (int i=0;i<Snega.size();i++){
-      concreteRules = concreteRules + "." + Snega.get(i).getVar().toString() + " notin " + Snega.get(i).getTerm().toString();
+      concreteRules += "." + Snega.get(i).getVar().toString() + " notin " + Snega.get(i).getTerm().toString();
     }
     if(freshVars.getFreshs().isEmpty()){
-      concreteRules = concreteRules + " => ";
+      concreteRules += " => ";
     }else{
     	concreteRules += " =[";
       for(int i=0;i<freshVars.getFreshs().size();i++){
@@ -167,16 +167,16 @@ public class ConcreteRules extends AST implements Serializable{
     }
     for (int i=0;i<RS.size();i++){
       if(i == 0){
-        concreteRules = concreteRules + RS.get(i).getVar().toString() + " in " + RS.get(i).getTerm().toString();
+        concreteRules += RS.get(i).getVar().toString() + " in " + RS.get(i).getTerm().toString();
       }else{
-        concreteRules = concreteRules+ "." + RS.get(i).getVar().toString() + " in " + RS.get(i).getTerm().toString();
+        concreteRules += "." + RS.get(i).getVar().toString() + " in " + RS.get(i).getTerm().toString();
       }
     }
     for(int i=0;i<RF.size();i++){
       if(RS.isEmpty() && i == 0){
-        concreteRules = concreteRules + RF.get(i);
+        concreteRules += RF.get(i);
       }else{
-        concreteRules = concreteRules + "." + RF.get(i);
+        concreteRules += "." + RF.get(i);
       } 
     }
     return concreteRules + ";";
@@ -185,10 +185,10 @@ public class ConcreteRules extends AST implements Serializable{
   @Override
   public boolean equals(Object o){
     if (o == this) return true;
-      if (!(o instanceof ConcreteRules)) {
+      if (!(o instanceof ConcreteRule)) {
         return false;
       }
-    ConcreteRules concreteRules = (ConcreteRules) o;		
+    ConcreteRule concreteRules = (ConcreteRule) o;		
     return Objects.equals(rulesName, concreteRules.rulesName) &&
             Objects.equals(varsTypes, concreteRules.varsTypes) &&
             Objects.equals(LF, concreteRules.LF) &&

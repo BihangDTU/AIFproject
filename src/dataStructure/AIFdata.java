@@ -8,10 +8,10 @@ public class AIFdata extends AST {
 	private List<Term> sets = new ArrayList<Term>();;
 	private Functions functions;
 	private Functions facts;
-	private List<ConcreteRules> rules;
+	private List<ConcreteRule> rules;
 	private HashSet<String> buildInTypes = new HashSet<String>();
 	public AIFdata(List<Type> types, List<Term> sets, Functions function, 
-									Functions facts, List<ConcreteRules> rules,HashSet<String> buildInTypes){
+									Functions facts, List<ConcreteRule> rules,HashSet<String> buildInTypes){
 		this.types = types;
 		this.sets = sets;
 		this.functions = function;
@@ -19,7 +19,7 @@ public class AIFdata extends AST {
 		this.rules = rules;
 		this.buildInTypes = buildInTypes;
 	}
-	public AIFdata(List<ConcreteRules> rules){
+	public AIFdata(List<ConcreteRule> rules){
 		//this.types=types;
 		this.rules=rules;
 	}
@@ -48,10 +48,10 @@ public class AIFdata extends AST {
 	public void setFacts(Functions facts) {
 		this.facts = facts;
 	}
-	public List<ConcreteRules> getRules() {
+	public List<ConcreteRule> getRules() {
 		return rules;
 	}
-	public void setRules(List<ConcreteRules> rules) {
+	public void setRules(List<ConcreteRule> rules) {
 		this.rules = rules;
 	}
 	
@@ -76,7 +76,7 @@ public class AIFdata extends AST {
 		}
 		s += functions.toString();
 		s += facts.toString();
-		for(ConcreteRules r:rules) s += r + "\n";
+		for(ConcreteRule r:rules) s += r + "\n";
 		return s;
 	}
 }
