@@ -3,12 +3,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import dataStructure.*;
 
 public class FixpointsSort {
 	StateTransition st = new StateTransition();  // need move to new class
 	DeepClone dClone = new DeepClone();  // need move to new class
+	StateTransition ST = new StateTransition();
 	public FixpointsSort(){}
 	
 	 /**
@@ -317,11 +319,17 @@ public class FixpointsSort {
 			for(int i=0;i<val1.getArguments().size();i++){
 				Term val1Arg = val1.getArguments().get(i);
 				Term val2Arg = val2.getArguments().get(i);
-				if(!val1Arg.equals(val2Arg)){				
-					for(int j=0;j<val1Arg.getArguments().size();j++){
-						if(UserDefType.containsKey(val1Arg.getArguments().get(j).getVarName())){
-							if(!UserDefType.get(val1Arg.getArguments().get(j).getVarName()).containsAll(UserDefType.get(val2Arg.getArguments().get(j).getVarName()))){
-								return false;
+				if(!val1Arg.getFactName().equals("_")){
+					if(!val1Arg.equals(val2Arg)){
+						if(val1Arg.getFactName().equals(val2Arg.getFactName())){
+							for(int j=0;j<val1Arg.getArguments().size();j++){
+								if(UserDefType.containsKey(val1Arg.getArguments().get(j).getVarName()) && UserDefType.containsKey(val2Arg.getArguments().get(j).getVarName())){
+									if(!UserDefType.get(val1Arg.getArguments().get(j).getVarName()).containsAll(UserDefType.get(val2Arg.getArguments().get(j).getVarName()))){
+										return false;
+									}
+								}else{
+									return false;
+								}
 							}
 						}else{
 							return false;
@@ -366,14 +374,19 @@ public class FixpointsSort {
 		}else {
 			if(!(t2 instanceof Composed)) return false;
 			if(((Composed)t1).getFactName().equals(((Composed)t2).getFactName()) && t1.getArguments().size() == t2.getArguments().size()){
-				for(int i=0;i<t1.getArguments().size();i++){
-					if((t1.getArguments().get(i) instanceof Composed) && (t2.getArguments().get(i) instanceof Composed)){
-						if(t1.getArguments().get(i).getFactName().equals("val") && t2.getArguments().get(i).getFactName().equals("val")){
-							if(t1.getArguments().get(i).getArguments().size() == t2.getArguments().get(i).getArguments().size())return true;
-							else return false;
+				if(((Composed)t1).getFactName().equals("val")){
+					if(t1.getArguments().size() == t2.getArguments().size())return true;
+					else return false;
+				}else{
+					for(int i=0;i<t1.getArguments().size();i++){
+						if((t1.getArguments().get(i) instanceof Composed) && (t2.getArguments().get(i) instanceof Composed)){
+							if(t1.getArguments().get(i).getFactName().equals("val") && t2.getArguments().get(i).getFactName().equals("val")){
+								if(t1.getArguments().get(i).getArguments().size() == t2.getArguments().get(i).getArguments().size())return true;
+								else return false;
+							}
 						}
+						if(!isTwoFactsHaveSameForm(t1.getArguments().get(i),t2.getArguments().get(i)))return false;
 					}
-					if(!isTwoFactsHaveSameForm(t1.getArguments().get(i),t2.getArguments().get(i)))return false;
 				}
 			}else{
 				return false;
@@ -381,5 +394,571 @@ public class FixpointsSort {
 		}
 		return true;
 	}
+	
+	public HashMap<String, Integer> getSetPosition(AST aifAST){
+  	HashMap<String, Integer> setPosition = new HashMap<String, Integer>();
+  	List<Term> sets = new ArrayList<Term>(((AIFdata)aifAST).getSets());
+  	for(int i=0;i<sets.size();i++){
+  		setPosition.put(sets.get(i).getFactName(), i);
+  	}
+  	return setPosition;
+  }
+	
+	/* haven't test yet*/
+  public Term concreteTermToAbsTerm(Term term,HashMap<String, String> varsTypes, List<Condition> conditions,HashMap<String, Integer> setPosition){
+  	if(term instanceof Composed){
+  		if(term.getArguments().isEmpty()){
+  			return term;
+  		}else{
+  			Composed absTerm = new Composed(term.getFactName());
+  			for(Term subTerm : term.getArguments()){
+  				absTerm.setArguments(concreteTermToAbsTerm(subTerm,varsTypes,conditions,setPosition));
+  			}
+  			return absTerm;
+  		}
+  	}else if(term instanceof Variable){
+  		if(varsTypes.get(term.getVarName()).equals("value")){
+  			Composed val = new Composed("val");
+  			Composed zero = new Composed("0");
+  			Composed _ = new Composed("_");
+  			for(int j=0;j<setPosition.size();j++){ // val initialize to val(_,_,_)
+  				val.setArguments(_);
+  			}
+  			for(Condition c : conditions){
+  				if(c.getVar().equals(term)){
+  					int position = setPosition.get(c.getTerm().getFactName());
+  					if(c.positive){
+  						val.getArguments().set(position, c.getTerm());
+  					}else{
+  						val.getArguments().set(position, zero);
+  					}
+  				}
+  			}
+  			return val;
+  		}
+  	}	
+  	return term;
+  }
+  
+  public HashMap<String,Term> getTimpliesFromConcreteRule(ConcreteRule concreteRule, HashMap<String, Integer> setPosition){
+  	HashMap<String,Term> timpliesMap = new HashMap<>();
+  	List<Condition> consitionLeft = new ArrayList<>(concreteRule.getSplus());
+  	consitionLeft.addAll(concreteRule.getSnega());
+  	List<Condition> consitionRS = new ArrayList<>(concreteRule.getRS());
+  	for(Condition cp : concreteRule.getSplus()){
+  		if(!consitionRS.contains(cp)){
+  			consitionRS.add(new Condition(cp.getVar(),cp.getTerm(),false));
+  		}
+  	}
+  	consitionRS.addAll(concreteRule.getSnega());
+  	for(Condition crs : concreteRule.getRS()){
+  		for(Condition cn : concreteRule.getSnega()){
+  			if(crs.getVar().equals(cn.getVar()) && crs.getTerm().getFactName().equals(cn.getTerm().getFactName())){
+  				consitionRS.remove(cn);
+  			}
+  		}
+  	}
+  	HashSet<Term> vars = new HashSet<>();
+  	for(Condition cl : consitionLeft){
+  		vars.add(cl.getVar());
+  	}
+  	if(!concreteRule.getNewFreshVars().getFreshs().isEmpty()){ // need improve later
+  		vars.addAll(concreteRule.getNewFreshVars().getFreshs());
+  	}
+  	if(!concreteRule.getRF().contains(new Composed("attack"))){
+  		for(Term var : vars){
+  			Composed val1 = new Composed("val");
+  			Composed val2 = new Composed("val");
+  			Composed zero = new Composed("0");
+  			Composed _ = new Composed("_");
+  			if(concreteRule.getNewFreshVars().getFreshs().contains(var)){
+  				for(int j=0;j<setPosition.size();j++){ // val initialize to val(0,0,0)
+    				val1.setArguments(zero);
+    				val2.setArguments(zero);
+    			}
+  			}else{
+  				for(int j=0;j<setPosition.size();j++){ // val initialize to val(_,_,_)
+    				val1.setArguments(_);
+    				val2.setArguments(_);
+    			}
+  			}
+  		
+  			for(Condition c1 : consitionLeft){
+  				if(c1.getVar().equals(var)){
+  					int position = setPosition.get(c1.getTerm().getFactName());
+  					if(c1.positive){
+  						val1.getArguments().set(position, c1.getTerm());
+  					}else{
+  						val1.getArguments().set(position, zero);
+  					}
+  				}
+  			}
+  			for(Condition c2 : consitionRS){
+  				if(c2.getVar().equals(var)){
+  					int position = setPosition.get(c2.getTerm().getFactName());
+  					if(c2.positive){
+  						val2.getArguments().set(position, c2.getTerm());
+  					}else{
+  						val2.getArguments().set(position, zero);
+  					}
+  				}
+  			}
+  			ArrayList<Term> arguments = new ArrayList<>();
+  			arguments.add(val1);
+  			arguments.add(val2);
+  			timpliesMap.put(var.toString(),new Composed("timplies",arguments));
+  		}
+  		
+  	}	
+  	return timpliesMap;
+  }
+  
+  /**/
+  public AbstractRule concreteRuleToAbsRuleConversion(AST aifAST, String conRuleName){
+  	HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
+		for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
+			concreteRules.put(cr.getRulesName(), cr);
+		}
+		if(!concreteRules.containsKey(conRuleName)){
+			System.err.println("Rule name not exsit.\n");
+  	  System.exit(-1);
+		}
+		ConcreteRule conRule = concreteRules.get(conRuleName);
+  	HashMap<String, Integer> setPosition =  getSetPosition(aifAST);
+  	AbstractRule absRule = new AbstractRule();
+  	absRule.setRulesName(conRule.getRulesName());
+  	absRule.setVarsTypes(conRule.getVarsTypes());
+  	List<Term> LF = new ArrayList<>();
+  	List<Term> freshs = new ArrayList<>();
+  	List<Term> RF = new ArrayList<>();
+  	List<Condition> conditions_left = new ArrayList<>(conRule.getSplus());
+  	conditions_left.addAll(conRule.getSnega());
+  	for(Term lf : conRule.getLF()){
+  		LF.add(concreteTermToAbsTerm(lf,conRule.getVarsTypes(),conditions_left,setPosition));
+  	}
+  	absRule.setLF(LF);
+  	List<Condition> conditions_freshVars = new ArrayList<>();
+  	for(Variable var : conRule.getNewFreshVars().getFreshs()){
+  		for(Term set :((AIFdata)aifAST).getSets()){
+  			conditions_freshVars.add(new Condition(var,set,false));
+  		}
+  	}
+  	for(Term freshVar : conRule.getNewFreshVars().getFreshs()){
+  		freshs.add(concreteTermToAbsTerm(freshVar,conRule.getVarsTypes(),conditions_freshVars,setPosition));
+  	}
+  	absRule.setFreshVars(freshs);
+  	List<Condition> conditions_rs = new ArrayList<>(conRule.getRS());
+  	for(Condition cp : conRule.getSplus()){
+			if(!conRule.getRS().contains(cp)){
+				conditions_rs.add(new Condition(cp.getVar(),cp.getTerm(),false));
+			}
+		}
+  	List<Condition> conditions_freshVarsCopy = new ArrayList<>(conditions_freshVars);
+  	for(Condition rs : conRule.getRS()){
+  		for(Condition cn : conRule.getSnega()){
+    		if(rs.getVar().equals(cn.getVar()) && !rs.getTerm().getFactName().equals(cn.getTerm().getFactName())){
+    			conditions_rs.add(cn);
+    		}
+    	}
+  		for(Condition cVarFresh : conditions_freshVars){
+  			if(rs.getVar().equals(cVarFresh.getVar()) && rs.getTerm().getFactName().equals(cVarFresh.getTerm().getFactName())){
+  				conditions_freshVarsCopy.remove(cVarFresh);
+    		}
+  		}
+  	}
+  	conditions_rs.addAll(conditions_freshVarsCopy);
+  	for(Term rf : conRule.getRF()){
+  		RF.add(concreteTermToAbsTerm(rf,conRule.getVarsTypes(),conditions_rs,setPosition));
+  	}
+  	absRule.setRF(RF);
+  	absRule.setTimplies(getTimpliesFromConcreteRule(conRule,setPosition)); 
+  	return absRule;
+  }
+  
+  public AbstractRule absRuleSubstitution(AbstractRule absRule){
+  	AbstractRule absRuleSubstituted = new AbstractRule();
+  	absRuleSubstituted.setRulesName(absRule.getRulesName());
+  	absRuleSubstituted.setVarsTypes(absRule.getVarsTypes());
+  	absRuleSubstituted.setFreshVars(absRule.getFreshVars());
+  	List<Term> LF = new ArrayList<>();
+  	for(Term lf : absRule.getLF()){
+  		LF.add(termSubs(lf,absRule.getVarsTypes()));
+  	}
+  	absRuleSubstituted.setLF(LF);
+  	
+  	List<Term> RF = new ArrayList<>();
+  	for(Term rf : absRule.getRF()){
+  		RF.add(termSubs(rf,absRule.getVarsTypes()));
+  	}
+  	absRuleSubstituted.setRF(RF);
+  	
+  	HashMap<String,Term> timplies = new HashMap<>();
+  	//for(Term timplie : absRule.getTimplies()){
+  	//	timplies.add(termSubs(timplie,absRule.getVarsTypes()));
+  	//}
+  	for(Map.Entry<String, Term> timplie : absRule.getTimplies().entrySet()){
+  		timplies.put(timplie.getKey().toString(), termSubs(timplie.getValue(),absRule.getVarsTypes()));
+  	}
+  	absRuleSubstituted.setTimplies(timplies);
+  	return absRuleSubstituted;
+  }
+  
+  public HashSet<FixedpointsWithType> applyAbsRules(AST aifAST, AST fpAST, String conRuleName,HashMap<String,List<String>> UserDefType){
+  	HashSet<FixedpointsWithType> results = new HashSet<>();
+  	//HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
+  	ConcreteRule conRule = null;
+		for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
+			if(cr.getRulesName().equals(conRuleName)){
+				conRule = cr;
+				break;
+			}
+		}
+		if(conRule == null){
+			System.err.println("Rule name not exsit.\n");
+  	  System.exit(-1);
+		}
+		AbstractRule absrule = concreteRuleToAbsRuleConversion(aifAST,conRuleName);
+		AbstractRule absruleSubstituted = absRuleSubstitution(absrule); 
+		
+		System.out.println(conRule);
+		System.out.println(absruleSubstituted);
+		
+		System.out.println("/****************************************************************/");
+		List<ArrayList<FixedpointsWithType>> fixedpointsSorted = fixedpointsSort(fpAST);
+		List<FixedpointsWithType> qqq = applyAbstractRule(absruleSubstituted, fixedpointsSorted,UserDefType);
+		
+		System.out.println("/****************************************************************/");
+		
+		
+		
+		HashMap<Variable,Term> keyValueMap = new HashMap<>();
+		for(int i=0;i<conRule.getLF().size();i++){
+			keyValueMap.putAll(getKeyMap(conRule.getLF().get(i),absruleSubstituted.getLF().get(i)));
+		}
+		
+		ArrayList<Term> setMembers = new ArrayList<>(); // need to update
+		Composed zero = new Composed("0");
+		setMembers.add(zero);
+		setMembers.add(zero);
+		setMembers.add(zero);
+		Composed val0 = new Composed("val",setMembers);
+		
+		for(Variable freshVar :conRule.getNewFreshVars().getFreshs()){
+			keyValueMap.put(freshVar, val0);
+		}
+		
+		for(Map.Entry<Variable,Term> map : keyValueMap.entrySet()){
+			System.out.println(map.getKey().toString() + " --> " + map.getValue().toString());
+		}
+		
+		List<FixedpointsWithType> timplies = getExtendedTimplies(fpAST);
+		List<FixedpointsWithType> sortedTimplies = timpliesSort(timplies);
+		
+		HashMap<Variable,HashSet<FixedpointsWithType>> keyMap = new  HashMap<>();
+		for(Map.Entry<Variable, Term> key : keyValueMap.entrySet()){
+			HashSet<FixedpointsWithType> satisfiedKeys = new HashSet<>(); 
+			for(FixedpointsWithType keyLifeCycle : sortedTimplies){
+				if(isT1SatisfyT2(keyLifeCycle.getTerm().getArguments().get(0),key.getValue(),UserDefType)){
+					satisfiedKeys.add(new FixedpointsWithType(keyLifeCycle.getvType(),keyLifeCycle.getTerm().getArguments().get(0)));
+				}
+				keyMap.put(key.getKey(), satisfiedKeys);
+			}
+		} 
+		
+		for(Map.Entry<Variable,HashSet<FixedpointsWithType>> m : keyMap.entrySet()){
+			System.out.println(m.getKey().toString() + " --> " + m.getValue().toString());
+		}
+		
+		HashMap<String, List<FixedpointsWithType>> withputDuplicateKeys = new HashMap<>();
+		HashMap<String, List<FixedpointsWithType>> KeysMap = new HashMap<>();
+		
+		for(Map.Entry<Variable,HashSet<FixedpointsWithType>> m : keyMap.entrySet()){
+			withputDuplicateKeys.put(m.getKey().getVarName(), keysWithoutDuplicate(new ArrayList<>(m.getValue()),timplies,UserDefType));
+			KeysMap.put(m.getKey().getVarName(), new ArrayList<>(m.getValue()));
+		}
+		for(Map.Entry<String,List<FixedpointsWithType>> mm : withputDuplicateKeys.entrySet()){
+			System.out.println(mm.getKey().toString() + " --> " + mm.getValue().toString());
+		}
+		
+		Set<HashMap<String,FixedpointsWithType>> expandKeyMap = userTypeSubstitution(KeysMap);  // need remove ST later.
+		
+		System.out.println("------------------------------------");
+		for(HashMap<String,FixedpointsWithType> tt : expandKeyMap){
+			for(Map.Entry<String,FixedpointsWithType> mm : tt.entrySet()){
+				System.out.println(mm.getKey().toString() + " --> " + mm.getValue().toString());
+			}
+			System.out.println("------------------------------------");
+		}
+		System.out.println("------------------------------------");
+		
+		List<AbstractRule> abstractRules =  getAllSatisfiedAbsRules(conRule,absrule,expandKeyMap,UserDefType);
+		
+		for(AbstractRule absR : abstractRules){
+			System.out.println(absR.toString());
+		}
+		System.out.println("------------------------------------");
+		for(AbstractRule absRules : abstractRules){
+			for(Term fixedpoint : absRules.getRF()){
+				results.add(new FixedpointsWithType(absRules.getVarsTypes(),fixedpoint));
+			}
+		}
+		
+  	return results;
+  }
+  
+  /**
+   * Returns all possible combination of contrate type. 
+   * @param  typeInfo e.g. {A=[a, i], S=[s]}
+   * @return e.g. [{A=i, S=s}, {A=a, S=s}]
+   */
+  public Set<HashMap<String,FixedpointsWithType>> userTypeSubstitution(HashMap<String, List<FixedpointsWithType>> typeInfo){
+    Set<HashMap<String,FixedpointsWithType>> combinations = new HashSet<>();
+    if(!typeInfo.isEmpty()){
+      Set<HashMap<String,FixedpointsWithType>> newCombinations;
+      Set<String> keySet = typeInfo.keySet();
+      List<String> keyList = new ArrayList<>(keySet);
+      int index = 0; 
+      if(!keyList.isEmpty() && typeInfo.containsKey(keyList.get(0))){
+      	for(FixedpointsWithType i: typeInfo.get(keyList.get(0))) {
+          HashMap<String,FixedpointsWithType> newMap = new HashMap<>();
+          newMap.put(keyList.get(0), i);
+          combinations.add(newMap);
+        }
+      }
+      index++;
+      while(index < keyList.size()) {
+        List<FixedpointsWithType> nextList = typeInfo.get(keyList.get(index));
+        newCombinations = new HashSet<>();
+        for(HashMap<String,FixedpointsWithType> first: combinations) {
+          for(FixedpointsWithType second: nextList) {
+            HashMap<String,FixedpointsWithType> newList = new HashMap<>();
+            newList.putAll(first);
+            newList.put(keyList.get(index),second);
+            newCombinations.add(newList);
+          }
+        }
+        combinations = newCombinations;
+        index++;
+      }
+    }
+    return combinations;
+  }
+  
+  public List<AbstractRule> getAllSatisfiedAbsRules(ConcreteRule concreteRule, AbstractRule absRule, Set<HashMap<String,FixedpointsWithType>> satisfiedKeys,HashMap<String,List<String>> UserDefType){
+  	List<AbstractRule> satisfiedAbsRules = new ArrayList<>();
+  	
+  	for(HashMap<String,FixedpointsWithType> key : satisfiedKeys){
+  		HashMap<String, HashMap<String,String>> newVarTypes = new HashMap<>();
+  		HashMap<String, Term> userType = new HashMap<>();
+  		
+  		for(Map.Entry<String, FixedpointsWithType> userDefType : key.entrySet()){
+  			HashMap<String, String> newTypes = new HashMap<>();
+  			for(Map.Entry<String, String> types : userDefType.getValue().getvType().entrySet()){
+  				String k = types.getKey().substring(0,types.getKey().indexOf("_"));
+  				newTypes.put(k, types.getValue());
+  				if(!userType.containsKey(k)){
+  					userType.put(k, new Variable(types.getValue()));
+  				}else{
+  					if(UserDefType.containsKey(userType.get(k)) && UserDefType.containsKey(types.getValue())){
+  						if(!UserDefType.get(userType.get(k)).containsAll(UserDefType.get(types.getValue()))){
+    						userType.put(k, new Variable(types.getValue()));
+    					}
+  					}			
+  				}
+  			}
+  			newVarTypes.put(userDefType.getKey(), newTypes);
+  			//System.out.println(userDefType.getKey() + "-->" + userDefType.getValue().getvType());
+  		}
+  		for(Map.Entry<String, HashMap<String,String>> hh : newVarTypes.entrySet()){
+  			System.out.println(hh.getKey() + " --> " + hh.getValue());
+  		}
+  		System.out.println("------");
+  		
+  		//ConcreteRule conRule_copy = (ConcreteRule)dClone.deepClone(concreteRule);
+  		//AbstractRule absRule_copy = (AbstractRule)dClone.deepClone(absRule);
+  		//System.out.println(absRule_copy);
+  		
+  		HashMap<String, Term> tempMap = new HashMap<>();
+  		for(Map.Entry<String, FixedpointsWithType> s : key.entrySet()){
+  			tempMap.put(s.getKey(), s.getValue().getTerm());
+    	}
+  		tempMap.putAll(userType);     
+  		AbstractRule absRule_copy = (AbstractRule)dClone.deepClone(absRule);
+  		for(int i=0;i<absRule.getLF().size();i++){
+  			absRule_copy.getLF().set(i, ST.termSubs(concreteRule.getLF().get(i), tempMap));
+  		}
+  		
+  		
+  		HashMap<String,Term> newTimpliesMap = getTimpliesMap(tempMap,absRule.getTimplies());
+  		HashMap<String,Term> newTimpliesMapSubstituted = new HashMap<>(); 
+  		
+  		for(Map.Entry<String, Term> TimpliesMap : newTimpliesMap.entrySet()){
+  			newTimpliesMapSubstituted.put(TimpliesMap.getKey(), termSubs(TimpliesMap.getValue(),newVarTypes.get(TimpliesMap.getKey())));
+  		}
+  		newTimpliesMapSubstituted.putAll(userType);
+  		for(int j=0;j<absRule.getRF().size();j++){
+  			absRule_copy.getRF().set(j, ST.termSubs(concreteRule.getRF().get(j),newTimpliesMapSubstituted));
+  		}
+  		
+  		
+  		for(Map.Entry<String, Term> timplie : absRule_copy.getTimplies().entrySet()){
+  			timplie.getValue().getArguments().set(0, tempMap.get(timplie.getKey()));
+  			timplie.getValue().getArguments().set(1, newTimpliesMapSubstituted.get(timplie.getKey()));
+  			
+  		}
+  		satisfiedAbsRules.add(absRule_copy);
+  	}	
+  	return satisfiedAbsRules;
+  }
+  
+  public HashMap<String,Term> getTimpliesMap(HashMap<String,Term> keyMap,HashMap<String, Term> timplies){
+  	HashMap<String,Term> newTimpliesMap = new HashMap<>();
+  	HashSet<Term> sets = new HashSet<>();
+  	for(Map.Entry<String, Term> key : keyMap.entrySet()){
+  		if(timplies.containsKey(key.getKey())){
+  			Term newVal2 = (Term)dClone.deepClone(timplies.get(key.getKey()).getArguments().get(1));
+    		for(int i=0;i<newVal2.getArguments().size();i++){
+    			if(newVal2.getArguments().get(i).getFactName().equals("_")){
+    				newVal2.getArguments().set(i, key.getValue().getArguments().get(i));
+    			}
+    		}
+    		newTimpliesMap.put(key.getKey(), newVal2);
+  		}
+  	}
+  	return newTimpliesMap;
+  }
+  
+  
+  
+  public List<FixedpointsWithType> keysWithoutDuplicate(List<FixedpointsWithType> key, List<FixedpointsWithType> timplies, HashMap<String,List<String>> UserDefType){
+		List<FixedpointsWithType> noDuplicatekeys = new ArrayList<FixedpointsWithType>();
+		List<FixedpointsWithType> keys = new ArrayList<>(key);
+		if(keys.size() == 1){
+			noDuplicatekeys.addAll(keys);
+		}else{				
+			FixedpointsWithType lastElementFlag = new FixedpointsWithType(new HashMap<String, String>(), new Variable("Flag"));
+			keys.add(lastElementFlag);
+			ArrayList<FixedpointsWithType> keysCopy = new ArrayList<FixedpointsWithType>(keys);
+			while(true){
+				if(keys.get(0).equals(lastElementFlag)) break;
+				FixedpointsWithType firstTerm = keys.get(0);				
+				for(FixedpointsWithType t : keys){
+					if(canVal1ImpliesVal2(firstTerm.getTerm(),t.getTerm(),timplies, UserDefType)){
+						keysCopy.remove(t);
+					}
+				}
+				keysCopy.add(firstTerm);
+				keys.clear();
+				keys.addAll(keysCopy);		
+			}		
+			keys.remove(lastElementFlag);
+			noDuplicatekeys.addAll(keys);
+		}
+		return noDuplicatekeys; 
+	}
+  
+  public boolean canVal1ImpliesVal2(Term val1, Term val2,List<FixedpointsWithType> timplies, HashMap<String,List<String>> UserDefType){
+  	if(val1.equals(val2)){
+			return true;
+		} else if((val1 instanceof Composed) && (val2 instanceof Composed) && val1.getFactName().equals("val") 
+					&& val2.getFactName().equals("val") && val1.getArguments().size() == val2.getArguments().size()){			
+			for(FixedpointsWithType timp : timplies){
+				if(isVal1GeneralThanVal2(timp.getTerm().getArguments().get(0),val1,UserDefType)){
+					HashMap<String,String> typeMap = getSubstitutionMap(timp.getTerm().getArguments().get(0),val1);
+					Term impliesFromVal1 = termSubs(timp.getTerm().getArguments().get(1),typeMap);										
+					if(isVal1GeneralThanVal2(impliesFromVal1,val2,UserDefType)){
+						return true;
+					}
+				}
+			}
+		}
+  	return false;
+  }
+  
+  private HashMap<Variable,Term> getKeyMap(Term concreteTerm, Term abstractTerm){
+  	HashMap<Variable,Term> keyValueMap = new HashMap<>();
+		if((concreteTerm instanceof Variable) && (abstractTerm instanceof Composed)){
+			if(abstractTerm.getFactName().equals("val")){
+				keyValueMap.put((Variable)concreteTerm, abstractTerm);
+			}
+		}else if((concreteTerm instanceof Composed) && (abstractTerm instanceof Composed)){
+			if(concreteTerm.getFactName().equals(abstractTerm.getFactName())){
+				if(!concreteTerm.getArguments().isEmpty()){
+					for(int i=0;i<concreteTerm.getArguments().size();i++){
+						keyValueMap.putAll(getKeyMap(concreteTerm.getArguments().get(i),abstractTerm.getArguments().get(i)));
+					}
+				}
+			}
+		}
+  	return keyValueMap;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  public List<FixedpointsWithType> applyAbstractRule(AbstractRule absRule, List<ArrayList<FixedpointsWithType>> fixedpointsSorted,HashMap<String,List<String>> UserDefType){
+  	List<FixedpointsWithType> newGegarateFixedpoints = new ArrayList<>();
+  	List<ArrayList<FixedpointsWithType>> satisfiedFixedpoints = new ArrayList<>();
+  	for(Term lf : absRule.getLF()){
+  		ArrayList<FixedpointsWithType> fixedpointsSatisfy = new ArrayList<>();
+  		for(ArrayList<FixedpointsWithType> sortFixedPoints : fixedpointsSorted){
+  			for(FixedpointsWithType fixedpoint : sortFixedPoints){
+  				if(isT1SatisfyT2(fixedpoint.getTerm(), lf, UserDefType)){
+  					fixedpointsSatisfy.add(fixedpoint);
+  				}
+  			}
+  			if(!fixedpointsSatisfy.isEmpty()){
+  				break;
+  			}
+  		}
+  		satisfiedFixedpoints.add(fixedpointsSatisfy);
+  	}
+  	
+  	for(ArrayList<FixedpointsWithType> flist : satisfiedFixedpoints){
+  		for(FixedpointsWithType f : flist){
+  			System.out.println(f.getTerm().toString());
+  		}
+  	}
+  	return newGegarateFixedpoints;
+  }
+ 
+  
+  public boolean isT1SatisfyT2(Term t1, Term t2, HashMap<String,List<String>> UserDefType){
+  	if(!isTwoFactsHaveSameForm(t1,t2)){
+  		return false;
+  	}else{
+  		if(t1 instanceof Composed){
+  			if(t1.getFactName().equals("val")){
+  				if(!isVal1GeneralThanVal2(t2,t1,UserDefType)){
+  					return false;
+  				}
+  			}else{
+  				if(!t1.getArguments().isEmpty()){
+  					for(int i=0;i<t1.getArguments().size();i++){
+  						if(!isT1SatisfyT2(t1.getArguments().get(i),t2.getArguments().get(i),UserDefType)){
+  							return false;
+  						}
+  					}
+  				}else{
+  					if(!t1.getFactName().equals(t2.getFactName())){ // constant
+  						return false;
+  					}
+  				}
+  			}
+  		}else{  // it's variable
+  			if(!UserDefType.get(t2.getVarName()).containsAll((UserDefType.get(t1.getVarName())))){
+  				return false;
+  			}
+  		}
+  	}
+  	return true;
+  }
 
 }

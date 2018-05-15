@@ -202,7 +202,7 @@ public class Main {
   	*/
   	System.out.println("---------------------------------------");
   	
-  	AbstractRuleConversion ST = new AbstractRuleConversion();
+  	FixpointsSort ST = new FixpointsSort();
 
   	System.out.println("---------------------------------------");
   	HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
@@ -213,12 +213,45 @@ public class Main {
 		AbstractRule absrules = ST.concreteRuleToAbsRuleConversion(aifAST,"serverUpdateKey");
 		System.out.println(absrules);
 		System.out.println();
-		System.out.println(ST.concreteRuleToAbsRuleConversion(absrules));
+		AbstractRule absrule = ST.absRuleSubstitution(absrules); 
+		System.out.println(absrule);
+		System.out.println("---------------------------------------");
+		/*List<ArrayList<FixedpointsWithType>> factsSort = ST.fixedpointsSort(fpAST);
+		for(ArrayList<FixedpointsWithType> ts : factsSort){
+  		for(FixedpointsWithType t : ts){
+  			System.out.println(t.getTerm().toString() + ";");
+  		}
+  		System.out.println();
+  	}
+		System.out.println("---------------------------------------");
+		ST.applyAbstractRule(absrule,factsSort,UserDefType);
+		*/
+		
+		System.out.println("---------------------------------------");
+		HashSet<FixedpointsWithType> result = ST.applyAbsRules(aifAST,fpAST,"serverUpdateKey",UserDefType);
+		for(FixedpointsWithType f : result){
+			System.out.println(f.getTerm());
+		}
+		FixpointsSort fp = new FixpointsSort();
+		List<FixedpointsWithType> timplies = fp.getExtendedTimplies(fpAST);
+		List<FixedpointsWithType> sortedTimplies = fp.timpliesSort(timplies);
+		ArrayList<FixedpointsWithType> resultWithoutDuplicate = new ArrayList<>(result);
+		List<ArrayList<FixedpointsWithType>> resultWithoutDuplicate1 = new ArrayList<>();
+		resultWithoutDuplicate1.add(resultWithoutDuplicate);
+		List<FixedpointsWithType> fixpointWithoutDuplicate = fp.fixedpointsWithoutDuplicate(resultWithoutDuplicate1, sortedTimplies, UserDefType);
+		
+		System.out.println();
+		System.out.println("Without duplicate:");
+		for(FixedpointsWithType ff : fixpointWithoutDuplicate){
+			System.out.println(ff.getTerm());
+		}
+		
+		
 		
 		
   	displayMenu();
   	invokeFunctions(aifAST,fpAST,UserType,UserDefType);
-  }
+  };
   
   public static void displayMenu(){
   	System.out.println("--------------------------------------------------------------");
@@ -306,6 +339,7 @@ public class Main {
   					List<ArrayList<FixedpointsWithType>> fixedpointsSorted = fp.fixedpointsSort(fpAST);
   					System.out.println("Key life-cycle:");
   			  	for(FixedpointsWithType t : sortedTimplies){
+  			  		//System.out.println(t.getvType().toString());
   			  		System.out.print(t.getTerm().getArguments().get(0));
   			  		System.out.print(" ---> ");
   			  		System.out.println(t.getTerm().getArguments().get(1) + ";");

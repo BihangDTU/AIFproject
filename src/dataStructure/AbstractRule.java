@@ -1,27 +1,30 @@
 package dataStructure;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class AbstractRule extends AST {
+public class AbstractRule extends AST implements Serializable{
 	private String rulesName;
   private HashMap<String, String> varsTypes = new HashMap<>();
   private List<Term> LF = new ArrayList<>();
   private List<Term> freshVars;
   private List<Term> RF = new ArrayList<>();
+  private HashMap<String,Term> timplies = new HashMap<>();
   
   public AbstractRule(){}
 	public AbstractRule(String rulesName, HashMap<String, String> varsTypes,
-			List<Term> lF, List<Term> freshVars, List<Term> rF) {
+			List<Term> lF, List<Term> rF,List<Term> freshVars, HashMap<String,Term> timplies) {
 		super();
 		this.rulesName = rulesName;
 		this.varsTypes = varsTypes;
 		this.LF = lF;
 		this.freshVars = freshVars;
 		this.RF = rF;
+		this.timplies = timplies;
 	}
 	public String getRulesName() {
 		return rulesName;
@@ -54,6 +57,13 @@ public class AbstractRule extends AST {
 		RF = rF;
 	}
   
+	public HashMap<String,Term> getTimplies() {
+		return timplies;
+	}
+	public void setTimplies(HashMap<String,Term> timplies) {
+		this.timplies = timplies;
+	}
+	
 	@Override
   public String toString(){
     String abstractRule = "";
@@ -87,7 +97,7 @@ public class AbstractRule extends AST {
       	}
       }
     }
-
+    //abstractRule += " --> ";
     for(int i=0;i<RF.size();i++){
       if(i == 0){
       	abstractRule += RF.get(i);
@@ -95,6 +105,9 @@ public class AbstractRule extends AST {
       	abstractRule += "." + RF.get(i);
       } 
     }
+  	for(Map.Entry<String, Term> tMap : timplies.entrySet()){
+  		abstractRule += "." + tMap.getValue().getArguments().get(0) + " -->> " + tMap.getValue().getArguments().get(1);
+  	}
     return abstractRule + ";";
   }
 	
@@ -108,7 +121,7 @@ public class AbstractRule extends AST {
     return Objects.equals(rulesName, abstractRule.rulesName) &&
             Objects.equals(varsTypes, abstractRule.varsTypes) &&
             Objects.equals(LF, abstractRule.LF) &&
-            Objects.equals(freshVars, abstractRule.freshVars) &&
+           // Objects.equals(freshVars, abstractRule.freshVars) &&
             Objects.equals(RF, abstractRule.RF);
   }
   
@@ -118,7 +131,7 @@ public class AbstractRule extends AST {
     hash = 19 * hash + Objects.hashCode(this.rulesName);
     hash = 19 * hash + Objects.hashCode(this.varsTypes);
     hash = 19 * hash + Objects.hashCode(this.LF);
-    hash = 19 * hash + Objects.hashCode(this.freshVars);
+   // hash = 19 * hash + Objects.hashCode(this.freshVars);
     hash = 19 * hash + Objects.hashCode(this.RF);
     return hash;
   }
