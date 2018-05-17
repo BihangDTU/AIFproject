@@ -92,161 +92,16 @@ public class Main {
   		}
   		UserDefType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(types)));
   	}
-  	
   	System.out.println(UserDefType);
-  	
-  	
-  	/*FixpointsSort fps = new FixpointsSort();
-  	List<FixedpointsWithType> tt = fps.getTimplies(fpAST);
-  	for(FixedpointsWithType f : tt){
-  		System.out.println(f.getvType().toString());
-  		System.out.println(f.getTerm().toString());
-  	}
-  	System.out.println("--------------------------------");*/
-  	/*Term t1 = tt.get(2).getTerm().getArguments().get(0);
-  	Term t2 = tt.get(3).getTerm().getArguments().get(0);
-  	System.out.println(t1);
-  	System.out.println(t2);
-  	boolean isTwoValHaveSame = fps.isTwoValHaveSameForm(t1, t2);
-  	if(isTwoValHaveSame){
-  		System.out.println("yes");
-  	}else{
-  		System.out.println("no");
-  	}*/
-  	/*ArrayList<Term> _zero = new ArrayList<>();
-  	ArrayList<Term> args_SU = new ArrayList<>();
-  	args_SU.add(new Variable("Server"));
-  	args_SU.add(new Variable("User"));
-  	ArrayList<Term> args_SH = new ArrayList<>();
-  	args_SH.add(new Variable("Server"));
-  	args_SH.add(new Variable("Honest"));
-  	
-  	ArrayList<Term> args_user = new ArrayList<>();
-  	args_user.add(new Variable("User"));
-  	
-  	ArrayList<Term> args_Honest = new ArrayList<>();
-  	args_Honest.add(new Variable("Honest"));
-  	
-  	Term zero = new Composed("0", _zero);
-  	Term ring_User = new Composed("ring", args_user);
-  	Term ring_Honest = new Composed("ring", args_Honest);
-  	Term db__valid_User = new Composed("db__valid", args_SU);
-  	Term db__valid_Honest = new Composed("db__valid", args_SH);
-  	Term db__revoked = new Composed("db__revoked", args_SU);
-  	
-  	ArrayList<Term> val1_args = new ArrayList<>();
-  	val1_args.add(ring_User);
-  	val1_args.add(db__valid_User);
-  	val1_args.add(zero);
-  	Term val1 = new Composed("val",val1_args);
-  	ArrayList<Term> val2_args = new ArrayList<>();
-  	val2_args.add(ring_Honest);
-  	val2_args.add(db__valid_Honest);
-  	val2_args.add(zero);
-  	Term val2 = new Composed("val",val2_args);
-  	System.out.println(val1);
-  	System.out.println(val2);
-  	*/
-  	//HashMap<String, String> ttmap = fps.getSubstitutionMap(val1, val2);
-  	//System.out.println(ttmap);
-  	/*if(fps.isVal1GeneralThanVal2(val1, val2, UserDefType)){
-  		System.out.println("yes");
-  	}else{
-  		System.out.println("no");
-  	}*/
-  	
-  /*	System.out.println("--------------------------------");
-  	
-  	System.out.println("---------------------------------------");
-  	List<ArrayList<FixedpointsWithType>> fSorted = fps.fixedpointsSort(fpAST);
-  	for(ArrayList<FixedpointsWithType> fs : fSorted){
-  		for(FixedpointsWithType fp : fs){
-  			//System.out.println(fp.getvType().toString());
-    		System.out.println(fp.getTerm().toString());
-  		}
-  		System.out.println();
-  	}
-  	System.out.println("--------------------------");*/
-/*  	System.out.println(fSorted.get(0).get(0).toString());
-  	System.out.println(fSorted.get(0).get(1).toString());
-  	if(fps.canT1ImpliesT2(fSorted.get(0).get(0), fSorted.get(0).get(1), tt, UserDefType)){
-  		System.out.println("yes");
-  	}else{
-  		System.out.println("no");
-  	}
-  	System.out.println("---------------------------------------");*/
- /* 	HashMap<Term,HashSet<Term>> tmap = fps.getTimpliesMap(fpAST);
-  	for(Map.Entry<Term,HashSet<Term>> entry : tmap.entrySet()){
-  		System.out.print(entry.getKey().toString());
-  		System.out.print("  ---->  ");
-  		System.out.println(entry.getValue().toString());
-  	}*/
-  	/*List<FixedpointsWithType> gggg =  fps.getExtendedTimplies(fpAST);
-  	for(FixedpointsWithType pp : gggg){
-  		System.out.print(pp.getTerm().getArguments().get(0));
-  		System.out.print(" ---->");
-  		System.out.println(pp.getTerm().getArguments().get(1));
-  	}
-  	System.out.println("---------------------------------------");
-  	List<FixedpointsWithType> timpliesSorted = fps.timpliesSort(gggg);
-  	for(FixedpointsWithType t : timpliesSorted){
-  		System.out.print(t.getTerm().getArguments().get(0));
-  		System.out.print(" ---->");
-  		System.out.println(t.getTerm().getArguments().get(1));
-  	}
-  	System.out.println("---------------------------------------");
-  	List<FixedpointsWithType> fixpointWithoutDuplicate = fps.fixedpointsWithoutDuplicate(fSorted, gggg, UserDefType);
-  	for(FixedpointsWithType fpw : fixpointWithoutDuplicate){
-  		System.out.println(fpw.getTerm().toString());
-  	}
-  	*/
-  	System.out.println("---------------------------------------");
-  	
+  	System.out.println("--------------------------------------------");
   	FixpointsSort ST = new FixpointsSort();
-
-  	System.out.println("---------------------------------------");
-  	HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
-		for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
-			concreteRules.put(cr.getRulesName(), cr);
+		List<Term> newGenerateFacts = ST.applyAbsRuleWithSatisfiedFacts(aifAST,fpAST,"userUpdateKey",UserDefType);
+		HashSet<Term> newGenerateFactsWithoutDuplicate = new HashSet<>(newGenerateFacts);
+		
+		System.out.println("Facts generated by apply rule with satisfied keys:");
+		for(Term t : newGenerateFactsWithoutDuplicate){
+			System.out.println(t.toString());
 		}
-		System.out.println(concreteRules.get("serverUpdateKey"));
-		AbstractRule absrules = ST.concreteRuleToAbsRuleConversion(aifAST,"serverUpdateKey");
-		System.out.println(absrules);
-		System.out.println();
-		AbstractRule absrule = ST.absRuleSubstitution(absrules); 
-		System.out.println(absrule);
-		System.out.println("---------------------------------------");
-		/*List<ArrayList<FixedpointsWithType>> factsSort = ST.fixedpointsSort(fpAST);
-		for(ArrayList<FixedpointsWithType> ts : factsSort){
-  		for(FixedpointsWithType t : ts){
-  			System.out.println(t.getTerm().toString() + ";");
-  		}
-  		System.out.println();
-  	}
-		System.out.println("---------------------------------------");
-		ST.applyAbstractRule(absrule,factsSort,UserDefType);
-		*/
-		
-		System.out.println("---------------------------------------");
-		HashSet<FixedpointsWithType> result = ST.applyAbsRules(aifAST,fpAST,"serverUpdateKey",UserDefType);
-		for(FixedpointsWithType f : result){
-			System.out.println(f.getTerm());
-		}
-		FixpointsSort fp = new FixpointsSort();
-		List<FixedpointsWithType> timplies = fp.getExtendedTimplies(fpAST);
-		List<FixedpointsWithType> sortedTimplies = fp.timpliesSort(timplies);
-		ArrayList<FixedpointsWithType> resultWithoutDuplicate = new ArrayList<>(result);
-		List<ArrayList<FixedpointsWithType>> resultWithoutDuplicate1 = new ArrayList<>();
-		resultWithoutDuplicate1.add(resultWithoutDuplicate);
-		List<FixedpointsWithType> fixpointWithoutDuplicate = fp.fixedpointsWithoutDuplicate(resultWithoutDuplicate1, sortedTimplies, UserDefType);
-		
-		System.out.println();
-		System.out.println("Without duplicate:");
-		for(FixedpointsWithType ff : fixpointWithoutDuplicate){
-			System.out.println(ff.getTerm());
-		}
-		
-		
 		
 		
   	displayMenu();
@@ -323,10 +178,10 @@ public class Main {
   					break;
   				case 6:
   					FixpointsSort fps = new FixpointsSort();
-  					List<ArrayList<FixedpointsWithType>> factsSort = fps.fixedpointsSort(fpAST);
+  					List<ArrayList<FactWithType>> factsSort = fps.fixedpointsSort(fpAST);
   					System.out.println("Sorted Fixpoints:");
-  			  	for(ArrayList<FixedpointsWithType> ts : factsSort){
-  			  		for(FixedpointsWithType t : ts){
+  			  	for(ArrayList<FactWithType> ts : factsSort){
+  			  		for(FactWithType t : ts){
   			  			System.out.println(t.getTerm().toString() + ";");
   			  		}
   			  		System.out.println();
@@ -334,21 +189,23 @@ public class Main {
   					break;
   				case 7:
   					FixpointsSort fp = new FixpointsSort();
-  					List<FixedpointsWithType> timplies = fp.getExtendedTimplies(fpAST);
-  					List<FixedpointsWithType> sortedTimplies = fp.timpliesSort(timplies);
-  					List<ArrayList<FixedpointsWithType>> fixedpointsSorted = fp.fixedpointsSort(fpAST);
+  					List<FactWithType> timplies = fp.getExtendedTimplies(fpAST);
+  					List<FactWithType> sortedTimplies = fp.timpliesSort(timplies);
+  					List<ArrayList<FactWithType>> fixedpointsSorted = fp.fixedpointsSort(fpAST);
   					System.out.println("Key life-cycle:");
-  			  	for(FixedpointsWithType t : sortedTimplies){
+  			  	for(FactWithType t : sortedTimplies){
   			  		//System.out.println(t.getvType().toString());
   			  		System.out.print(t.getTerm().getArguments().get(0));
   			  		System.out.print(" ---> ");
   			  		System.out.println(t.getTerm().getArguments().get(1) + ";");
   			  	}
-  			  	List<FixedpointsWithType> fixpointWithoutDuplicate = fp.fixedpointsWithoutDuplicate(fixedpointsSorted, sortedTimplies, UserDefType);
+  			  	List<ArrayList<FactWithType>> fixpointWithoutDuplicate = fp.fixedpointsWithoutDuplicate(fixedpointsSorted, sortedTimplies, UserDefType);
   			  	System.out.println();
   			  	System.out.println("Fixpoints without duplicate:");
-  			  	for(FixedpointsWithType fpw : fixpointWithoutDuplicate){
-  			  		System.out.println(fpw.getTerm().toString());
+  			  	for(ArrayList<FactWithType> fpw : fixpointWithoutDuplicate){
+  			  		for(FactWithType f : fpw){
+  			  			System.out.println(f.getTerm().toString());
+  			  		}
   			  	}	
   			  	System.out.println();
   					break;

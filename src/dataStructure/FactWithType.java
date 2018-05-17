@@ -1,13 +1,14 @@
 package dataStructure;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class FixedpointsWithType extends AST{
+public class FactWithType extends AST implements Serializable{
 	private HashMap<String, String> vType = new HashMap<>();
   private Term term;
-	public FixedpointsWithType(HashMap<String, String> vType, Term term) {
+	public FactWithType(HashMap<String, String> vType, Term term) {
 		super();
 		this.vType = vType;
 		this.term = term;
@@ -38,10 +39,10 @@ public class FixedpointsWithType extends AST{
 	@Override
   public boolean equals(Object o){
     if (o == this) return true;
-      if (!(o instanceof FixedpointsWithType)) {
+      if (!(o instanceof FactWithType)) {
         return false;
       }
-      FixedpointsWithType fp = (FixedpointsWithType) o;		
+      FactWithType fp = (FactWithType) o;		
     return Objects.equals(vType, fp.vType) &&
             Objects.equals(term, fp.term);
   }
