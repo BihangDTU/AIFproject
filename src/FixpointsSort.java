@@ -8,10 +8,10 @@ import java.util.Set;
 import dataStructure.*;
 
 public class FixpointsSort {
-	StateTransition st = new StateTransition();  // need move to new class
-	DeepClone dClone = new DeepClone();  // need move to new class
-	StateTransition ST = new StateTransition();
-	public FixpointsSort(){}
+  StateTransition st = new StateTransition();  // need move to new class
+  DeepClone dClone = new DeepClone();  // need move to new class
+  StateTransition ST = new StateTransition();
+  public FixpointsSort(){}
 	
 	 /**
    * Returns a substituted term. 
@@ -604,120 +604,7 @@ public class FixpointsSort {
   	}
   	absRuleSubstituted.setTimplies(timplies);
   	return absRuleSubstituted;
-  }
-  
-  public HashSet<FactWithType> applyAbsRules(AST aifAST, AST fpAST, String conRuleName,HashMap<String,List<String>> UserDefType){
-  	HashSet<FactWithType> results = new HashSet<>();
-  	//HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
-  	ConcreteRule conRule = null;
-		for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
-			if(cr.getRulesName().equals(conRuleName)){
-				conRule = cr;
-				break;
-			}
-		}
-		if(conRule == null){
-			System.err.println("Rule name not exsit.\n");
-  	  System.exit(-1);
-		}
-		AbstractRule absrule = concreteRuleToAbsRuleConversion(aifAST,conRuleName);
-		AbstractRule absruleSubstituted = absRuleSubstitution(absrule); 
-		
-		System.out.println(conRule);
-		System.out.println(absruleSubstituted);
-		
-		
-		System.out.println("/****************************************************************/");
-		List<ArrayList<FactWithType>> fixedpointsSorted = fixedpointsSort(fpAST);
-		List<FactWithType> timplies = getExtendedTimplies(fpAST);
-		List<FactWithType> sortedTimplies = timpliesSort(timplies);
-		
-		List<ArrayList<FactWithType>> fixpointWithoutDuplicate = fixedpointsWithoutDuplicate(fixedpointsSorted, sortedTimplies, UserDefType);
-		//List<FactWithType> qqq = findSatisfyFormFacts(absruleSubstituted, fixpointWithoutDuplicate,timplies,UserDefType);
-		
-		System.out.println("/****************************************************************/");
-
-		System.out.println("/**************************************/");
-		List<FactWithType> sss = applyAbstractRule(absruleSubstituted, fixedpointsSorted,UserDefType);
-		System.out.println("/**************************************/");
-		
-		HashMap<Variable,Term> keyValueMap = new HashMap<>();
-		for(int i=0;i<conRule.getLF().size();i++){
-			//keyValueMap.putAll(getKeyMap(conRule.getLF().get(i),absruleSubstituted.getLF().get(i)));
-		}
-		
-		ArrayList<Term> setMembers = new ArrayList<>(); // need to update
-		Composed zero = new Composed("0");
-		setMembers.add(zero);
-		setMembers.add(zero);
-		setMembers.add(zero);
-		Composed val0 = new Composed("val",setMembers);
-		
-		for(Variable freshVar :conRule.getNewFreshVars().getFreshs()){
-			keyValueMap.put(freshVar, val0);
-		}
-		
-		for(Map.Entry<Variable,Term> map : keyValueMap.entrySet()){
-			System.out.println(map.getKey().toString() + " --> " + map.getValue().toString());
-		}
-		
-		//List<FactWithType> timplies = getExtendedTimplies(fpAST);
-		//List<FactWithType> sortedTimplies = timpliesSort(timplies);
-		
-		HashMap<Variable,HashSet<FactWithType>> keyMap = new  HashMap<>();
-		for(Map.Entry<Variable, Term> key : keyValueMap.entrySet()){
-			HashSet<FactWithType> satisfiedKeys = new HashSet<>(); 
-			for(FactWithType keyLifeCycle : sortedTimplies){
-				if(isT1SatisfyT2(keyLifeCycle.getTerm().getArguments().get(0),key.getValue(),UserDefType)){
-					satisfiedKeys.add(new FactWithType(keyLifeCycle.getvType(),keyLifeCycle.getTerm().getArguments().get(0)));
-				}
-				keyMap.put(key.getKey(), satisfiedKeys);
-			}
-		} 
-		
-		for(Map.Entry<Variable,HashSet<FactWithType>> m : keyMap.entrySet()){
-			System.out.println(m.getKey().toString() + " --> " + m.getValue().toString());
-		}
-		
-		HashMap<String, List<FactWithType>> withputDuplicateKeys = new HashMap<>();
-		HashMap<String, List<FactWithType>> KeysMap = new HashMap<>();
-		
-		for(Map.Entry<Variable,HashSet<FactWithType>> m : keyMap.entrySet()){
-			withputDuplicateKeys.put(m.getKey().getVarName(), keysWithoutDuplicate(new ArrayList<>(m.getValue()),timplies,UserDefType));
-			KeysMap.put(m.getKey().getVarName(), new ArrayList<>(m.getValue()));
-		}
-		System.out.println("------------------------------------------------------------------");
-		System.out.println("without duplicate:");
-		for(Map.Entry<String,List<FactWithType>> mm : withputDuplicateKeys.entrySet()){
-			System.out.println(mm.getKey().toString() + " --> " + mm.getValue().toString());
-		}
-		
-		Set<HashMap<String,FactWithType>> expandKeyMap = userTypeSubstitution(KeysMap);  // need remove ST later.
-		
-		System.out.println("------------------------------------");
-		for(HashMap<String,FactWithType> tt : expandKeyMap){
-			for(Map.Entry<String,FactWithType> mm : tt.entrySet()){
-				System.out.println(mm.getKey().toString() + " --> " + mm.getValue().toString());
-			}
-			System.out.println("------------------------------------");
-		}
-		System.out.println("------------------------------------");
-		
-		/*List<AbstractRule> abstractRules =  getAllSatisfiedAbsRules(conRule,absrule,expandKeyMap,UserDefType);
-		
-		for(AbstractRule absR : abstractRules){
-			System.out.println(absR.toString());
-		}
-		System.out.println("------------------------------------");
-		for(AbstractRule absRules : abstractRules){
-			for(Term fixedpoint : absRules.getRF()){
-				results.add(new FactWithType(absRules.getVarsTypes(),fixedpoint));
-			}
-		}*/
-		
-  	return results;
-  }
-  
+  }  
   /**
    * Returns all possible combination of contrate type. 
    * @param  typeInfo e.g. {A=[a, i], S=[s]}
@@ -962,6 +849,8 @@ public class FixpointsSort {
 		List<ArrayList<HashMap<String,FactWithType>>> keyMapCombination = new ArrayList<>(getCombinationKeyMap(satisfiedKeys));
 		
 		HashMap<String, HashSet<Term>> satisfiedKeysMap = new HashMap<>();
+		
+		
 		// only for display
 		HashMap<String, ArrayList<FactWithType>> allPossibleKeys = new HashMap<>();
 		for(ArrayList<FactWithType> facts : satisfiedFormFacts){
@@ -1023,12 +912,6 @@ public class FixpointsSort {
 			}
 		}
 		System.out.println();
-		
-		//System.out.println(allPossibleKeys);
-		
-		
-		
-		//System.out.println(satisfiedFormFacts);
 	/*
 		for(ArrayList<HashMap<String,FactWithType>> keys : keyMapCombination){
 			for(HashMap<String,FactWithType> keymap : keys){
@@ -1039,15 +922,34 @@ public class FixpointsSort {
 			}
 		}
 	*/	
+
+		for(ArrayList<HashMap<String,FactWithType>> keyMaps : keyMapCombination){			
+			for(HashMap<String,FactWithType> keymap : keyMaps){
+				for(int i=0;i<conRule.getNewFreshVars().getFreshs().size();i++){
+					HashMap<String,String> freshVarType = new HashMap<String,String>(); 
+					for(Map.Entry<String,FactWithType> entity : keymap.entrySet()){
+						freshVarType.putAll(entity.getValue().getvType());
+						break;
+					}
+					keymap.put(conRule.getNewFreshVars().getFreshs().get(i).getVarName(), new FactWithType(freshVarType,absrule.getFreshVars().get(i)));
+				}
+			}
+		}	
+			
 		List<AbstractRule> abstractRules = new ArrayList<>();
 		for(ArrayList<HashMap<String,FactWithType>> keyMaps : keyMapCombination){			
 			abstractRules.addAll(getAllSatisfiedAbsRules(conRule,absrule,keyMaps,UserDefType));
 		}		
-		for(AbstractRule absR : abstractRules){
-			for(Term rf : absR.getRF()){
-				newGenerateFacts.add(rf);
+		if(!keyMapCombination.isEmpty()){
+			for(AbstractRule absR : abstractRules){
+				for(Term rf : absR.getRF()){
+					newGenerateFacts.add(rf);
+				}
 			}
+		}else{
+			newGenerateFacts.addAll(absrule.getRF());
 		}
+		
   	return newGenerateFacts;
   }
    
@@ -1091,7 +993,10 @@ public class FixpointsSort {
   public Set<ArrayList<HashMap<String,FactWithType>>> getCombinationKeyMap(List<ArrayList<HashMap<String,FactWithType>>> lists){
   	Set<ArrayList<HashMap<String,FactWithType>>> combinations = new HashSet<ArrayList<HashMap<String,FactWithType>>>();
 		Set<ArrayList<HashMap<String,FactWithType>>> newCombinations;
-    int index = 0;
+    if(lists.isEmpty()){
+    	return combinations;
+    }
+		int index = 0;
     // extract each of the integers in the first list
     // and add each to ints as a new list
     for(HashMap<String,FactWithType> i: lists.get(0)) {
