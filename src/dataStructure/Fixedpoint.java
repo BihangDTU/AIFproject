@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Fixedpoint extends AST {
-	private int factID;
+  private int factID;
   private HashMap<String, String> vType = new HashMap<>();
   private Term term;
   private ArrayList<Integer> leftSideConditions = new ArrayList<>(); 
@@ -18,19 +18,19 @@ public class Fixedpoint extends AST {
     this.leftSideConditions = leftSideConditions;
     this.rulesName = rulesName;
   }
-
+  
   public int getFactID() {
     return factID;
   }
-
+  
   public void setFactID(int factID) {
     this.factID = factID;
   }
-
+  
   public HashMap<String, String> getvType() {
     return vType;
   }
-
+  
   public void setvType(HashMap<String, String> vType) {
     this.vType = vType;
   }
@@ -38,19 +38,19 @@ public class Fixedpoint extends AST {
   public void addvType(String var, String type){
     this.vType.put(var,type);
   }
-
+  
   public Term getTerm() {
     return term;
   }
-
+  
   public void setTerm(Term term) {
     this.term = term;
   }
-
+  
   public ArrayList<Integer> getLeftSideConditions() {
     return leftSideConditions;
   }
-
+  
   public void setLeftSideConditions(ArrayList<Integer> leftSideConditions) {
     this.leftSideConditions = leftSideConditions;
   }
@@ -58,18 +58,18 @@ public class Fixedpoint extends AST {
   public void addLeftSideConditions(int factID){
     this.leftSideConditions.add(factID);
   }
-
+  
   public String getRulesName() {
     return rulesName;
   }
-
+  
   public void setRulesName(String rulesName) {
     this.rulesName = rulesName;
   }
   
   
   @Override
-	public String toString() {
+  public String toString() {
   	String s= "";
   	s += "(" + factID + ") ";
   	for (Map.Entry<String, String> v : vType.entrySet()) {
@@ -85,10 +85,10 @@ public class Fixedpoint extends AST {
   		}
   	}
   	s += rulesName;
-		return s;
-	}
-
-	@Override
+  	return s;
+  }
+  
+  @Override
   public boolean equals(Object o){
     if (o == this) return true;
       if (!(o instanceof Fixedpoint)) {
