@@ -47,15 +47,15 @@ public class FixpointsSort {
    * @param  fpAST   dataStructure contains fixed points from output file  
    * @return  a list of timplies fixedpoints(the variable have been substituted with user define type)
    */
-	public List<FactWithType> getTimplies(AST fpAST){
-		List<FactWithType> timplies = new ArrayList<FactWithType>();
-		for (Map.Entry<Integer, Fixedpoint> entry : ((FixedpointData)fpAST).getFixpoints().entrySet()) {
-			if(entry.getValue().getTerm().getFactName().equals("timplies")){
-				timplies.add(new FactWithType(entry.getValue().getvType(),entry.getValue().getTerm()));
-			}
-		}
-		return timplies;
-	}
+  public List<FactWithType> getTimplies(AST fpAST){
+    List<FactWithType> timplies = new ArrayList<FactWithType>();
+    for (Map.Entry<Integer, Fixedpoint> entry : ((FixedpointData)fpAST).getFixpoints().entrySet()) {
+      if(entry.getValue().getTerm().getFactName().equals("timplies")){
+        timplies.add(new FactWithType(entry.getValue().getvType(),entry.getValue().getTerm()));
+      }
+    }
+    return timplies;
+  }
 
 	/**
    * Returns a list of timplies which contains all possible implies
