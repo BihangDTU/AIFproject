@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import myException.UnificationFailedException;
+
 import dataStructure.*;
 
 public class FixpointsSort {
@@ -239,7 +241,17 @@ public class FixpointsSort {
     return noDuplicateFacts; 
   }	
 	
-  public boolean canT1ImpliesT2(FactWithType t1, FactWithType t2, List<FactWithType> timplies, HashMap<String,List<String>> UserDefType){ // need more test more cases
+  /**
+   * Giveing two facts t1 and t2 with types, checking whether the T1 can implies T2
+   * @param  t1  e.g. iknows(sign(inv(val(ring(User),db__valid(Server,User),0)),pair(User,val(ring(User),0,0))))
+   * @param  t2  e.g. iknows(sign(inv(val(0,db__valid(Server,Honest),0)),pair(Honest,val(0,db__valid(Server,Honest),0))))
+   * @param  timplies  e.g. [A:User.S:Server.timplies(val(ring(User),db__valid(Server,User),0),val(ring(User),0,0)),
+   *                         A:Honest.S:Server.timplies(val(0,db__valid(Server,Honest),0),val(0,db__valid(Server,Honest),0))),
+   *                         ...]
+   * @param  UserDefType e.g. {Agent=[Honest, Server, Dishon], Honest=[Honest], User=[Honest, Dishon], Sts=[Sts], Server=[Server], Dishon=[Dishon]}  
+   * @return boolean e.g. true
+   */
+  public boolean canT1ImpliesT2(FactWithType t1, FactWithType t2, List<FactWithType> timplies, HashMap<String,List<String>> UserDefType){ 
     if(t1.equals(t2)){
       return true;
     }
@@ -255,8 +267,6 @@ public class FixpointsSort {
               for(FactWithType timp : timplies){
                 counter ++;
                 if(isTwoValHaveSameForm(subT1, timp.getTerm().getArguments().get(0)) && isTwoValHaveSameForm(subT2, timp.getTerm().getArguments().get(1))){
-                  //System.out.println(timp.getTerm().getArguments().get(0));
-                  //System.out.println(subT1);
                   if(isVal1GeneralThanVal2(timp.getTerm().getArguments().get(0),subT1,UserDefType)){
                     HashMap<String,String> typeMap = getSubstitutionMap(timp.getTerm().getArguments().get(0),subT1);
                     Term impliesFromT1 = termSubs(timp.getTerm().getArguments().get(1),typeMap);										
@@ -279,15 +289,11 @@ public class FixpointsSort {
                   return false;
                 }
               }else{
-                if(!subT1.getFactName().equals(subT1.getFactName())){
-                  return false;
-                }
+                if(!subT1.getFactName().equals(subT1.getFactName()))return false;
               }
             }					
-          }else{
-            if(!UserDefType.get(subT1.getVarName()).containsAll(UserDefType.get(subT2.getVarName()))){
-              return false;
-            }
+          }else{ 
+            if(!UserDefType.get(subT1.getVarName()).containsAll(UserDefType.get(subT2.getVarName()))) return false;
           }					
         }
       }else{
@@ -359,22 +365,24 @@ public class FixpointsSort {
     return true;
   }
 	
+  
+  /**
+   * Check whether two facts have the same form. 
+   * @param  t1  e.g. iknows(sign(inv(val(0,db__valid(Server,Honest),0)),pair(Honest,val(ring(Honest),0,0))))
+   * @param  t2  e.g. iknows(sign(inv(val(ring(Dishon),db__valid(Server,Dishon),0)),pair(Agent,val(0,db__valid(Server,Dishon),0))));   
+   * @return boolean e.g. true
+   */
   public boolean isTwoFactsHaveSameForm(Term t1, Term t2){
     if(t1.equals(t2)){
       return true;
     }else if((t1 instanceof Variable)){
-      if(t2 instanceof Variable){
-        return true;
-      }else{
-        return false;
-      }		
-    }else if((t1 instanceof Composed) && t1.getArguments().isEmpty()){
-      if((t2 instanceof Composed) && t2.getArguments().isEmpty()){
-        return true;
-      }else{
-        return false;
-      }		
+      if(t2 instanceof Variable) return true;
+      else return false;
     }else {
+      if(t1.getArguments().isEmpty()){
+        if((t2 instanceof Composed) && t2.getArguments().isEmpty())return true;
+        else return false;
+      }
       if(!(t2 instanceof Composed)) return false;
       if(((Composed)t1).getFactName().equals(((Composed)t2).getFactName()) && t1.getArguments().size() == t2.getArguments().size()){
         if(((Composed)t1).getFactName().equals("val")){
@@ -760,28 +768,34 @@ public class FixpointsSort {
     return false;
   }
   
+  /**
+   * Returns a map, mapping variable to val(...) 
+   * @param  concreteTerm    e.g. iknows(sign(inv(PK),pair(A,NPK)))
+   * @param  abstractTerm    e.g. A:Honest.S:Server.iknows(sign(inv(val(ring(A),db_valid(S,A))),pair(A,val(ring(A),0,0))))    
+   * @return e.g. {PK=A:Honest.S:Server.val(ring(A),db_valid(S,A)), NPK=A:Honest.S:Server.val(ring(A),0,0)} 
+   */
   private HashMap<String,FactWithType> getKeyMap(Term concreteTerm, FactWithType abstractTerm){
-    HashMap<String,FactWithType> keyValueMap = new HashMap<>();
+    HashMap<String,FactWithType> keyMap = new HashMap<>();
     if((concreteTerm instanceof Variable) && (abstractTerm.getTerm() instanceof Composed)){
       if(abstractTerm.getTerm().getFactName().equals("val")){
-        keyValueMap.put(((Variable)concreteTerm).getVarName(), abstractTerm);
+        keyMap.put(((Variable)concreteTerm).getVarName(), abstractTerm);
       }
     }else if((concreteTerm instanceof Composed) && (abstractTerm.getTerm() instanceof Composed)){
       if(concreteTerm.getFactName().equals(abstractTerm.getTerm().getFactName())){
         if(!concreteTerm.getArguments().isEmpty()){
           for(int i=0;i<concreteTerm.getArguments().size();i++){
-            keyValueMap.putAll(getKeyMap(concreteTerm.getArguments().get(i), new FactWithType(abstractTerm.getvType(),abstractTerm.getTerm().getArguments().get(i))));
+            keyMap.putAll(getKeyMap(concreteTerm.getArguments().get(i), new FactWithType(abstractTerm.getvType(),abstractTerm.getTerm().getArguments().get(i))));
           }
         }
       }
     }
-    return keyValueMap;
+    return keyMap;
   }
    
-  public List<Term> applyAbsRuleWithSatisfiedFacts(AST aifAST, AST fpAST, String conRuleName,HashMap<String,List<String>> UserDefType){
-    List<Term> newGenerateFacts = new ArrayList<>();
-    ConcreteRule conRule = null;
-    for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
+  public List<FactWithType> applyAbsRuleWithSatisfiedFacts(AST aifAST, AST fpAST, String conRuleName,HashMap<String,List<String>> UserDefType){
+    List<FactWithType> newGenerateFacts = new ArrayList<>();
+    ConcreteRule conRule = getConcreteRuleByRuleName(aifAST,conRuleName);
+    /*for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
       if(cr.getRulesName().equals(conRuleName)){
         conRule = cr;
         break;
@@ -790,7 +804,7 @@ public class FixpointsSort {
     if(conRule == null){
       System.err.println("Rule name not exsit.\n");
       System.exit(-1);
-    }
+    }*/
     AbstractRule absrule = concreteRuleToAbsRuleConversion(aifAST,conRuleName);
     AbstractRule absruleSubstituted = absRuleSubstitution(absrule); 
 		
@@ -939,14 +953,17 @@ public class FixpointsSort {
     }		
     if(!keyMapCombination.isEmpty()){
       for(AbstractRule absR : abstractRules){
+        HashMap<String,String> varsType = absR.getVarsTypes();
         for(Term rf : absR.getRF()){
-          newGenerateFacts.add(rf);
+          newGenerateFacts.add(new FactWithType(varsType,rf));
         }
       }
     }else{
-      newGenerateFacts.addAll(absrule.getRF());
-    }
-		
+      HashMap<String,String> varsType = absrule.getVarsTypes();
+      for(Term rf : absrule.getRF()){
+        newGenerateFacts.add(new FactWithType(varsType,rf));
+      }
+    }	
     return newGenerateFacts;
   }
    
@@ -1215,6 +1232,77 @@ public class FixpointsSort {
       }
     }
     return combinations;
+  }
+  
+  public ConcreteFact absFactToConcreteFact(FactWithType absFact, ConcreteRule conRule){
+    ConcreteFact conFact = new ConcreteFact();
+    HashMap<Term,Variable> keyMap = new HashMap<>();
+    Mgu mgu = new Mgu();
+    for(Term rf : conRule.getRF()){
+      try{
+        Substitution vSub = mgu.mgu(rf, absFact.getTerm(), new Substitution());
+        List<Condition> rs = new ArrayList<>();
+        if(vSub.getUnifierState() && !vSub.getSubstitution().isEmpty()){
+          for(Map.Entry<String, Term> subs : vSub.getSubstitution().entrySet()){
+            keyMap.put(subs.getValue(), new Variable(subs.getKey()));
+            if(subs.getValue() instanceof Composed){
+              for(Term SetMember : subs.getValue().getArguments()){
+                if(!SetMember.getFactName().equals("0")){
+                  rs.add(new Condition(new Variable(subs.getKey()),SetMember));
+                }
+              }
+            }
+          }
+          conFact.setFact(absTermToConcreteTermSubs(absFact.getTerm(),keyMap));
+          conFact.setRS(rs);
+        }
+      }catch(UnificationFailedException e){}
+      
+    }
+    return conFact;
+  }
+  
+  /**
+   * Returns a substituted term.   // need update
+   * only substitute the variables if it occurs in the map subs
+   * @param  t    e.g. iknows(sign(inv(PK),pair(A,NPK)))
+   * @param  subs e.g. {PK=pk, A=a}
+   * @return e.g. iknows(sign(inv(pk),pair(a,NPK)))
+   */
+  public Term absTermToConcreteTermSubs(Term t, HashMap<Term,Variable> subs){
+    Term tCopy = (Term)dClone.deepClone(t);
+    if((t instanceof Composed) && t.getFactName().equals("val")){
+      if(subs.containsKey((Composed)t)){
+        return subs.get((Composed)t);    
+      }
+    }else{
+      for(int i=0;i<t.getArguments().size();i++){
+        if((t.getArguments().get(i) instanceof Composed) && t.getFactName().equals("val")){
+          Term keyT = t.getArguments().get(i);
+          if(subs.containsKey(keyT)){
+            tCopy.getArguments().set(i, subs.get(keyT));
+          }
+        }else if(t.getArguments().get(i) instanceof Composed){
+          tCopy.getArguments().set(i, absTermToConcreteTermSubs(tCopy.getArguments().get(i),subs));
+        }
+      }
+    } 
+    return tCopy;
+  }
+  
+  public ConcreteRule getConcreteRuleByRuleName(AST aifAST,String conRuleName){
+    ConcreteRule conRule = null;
+    for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
+      if(cr.getRulesName().equals(conRuleName)){
+        conRule = cr;
+        break;
+      }
+    }
+    if(conRule == null){
+      System.err.println("Rule name not exsit.\n");
+      System.exit(-1);
+    }
+    return conRule;
   }
 
 }

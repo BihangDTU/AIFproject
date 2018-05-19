@@ -8,7 +8,11 @@ import java.util.Map;
 import java.util.Objects;
 
 public class AbstractRule extends AST implements Serializable{
-	private String rulesName;
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private String rulesName;
   private HashMap<String, String> varsTypes = new HashMap<>();
   private List<Term> LF = new ArrayList<>();
   private List<Term> freshVars;
@@ -64,7 +68,7 @@ public class AbstractRule extends AST implements Serializable{
 		this.timplies = timplies;
 	}
 	
-	@Override
+  @Override
   public String toString(){
     String abstractRule = "";
     int acc = 0;
@@ -85,7 +89,7 @@ public class AbstractRule extends AST implements Serializable{
       	abstractRule += "." + LF.get(i);
       } 
     }
-    if(freshVars.isEmpty()){
+    /*if(freshVars.isEmpty()){
     	abstractRule += " => ";
     }else{
     	abstractRule += " =[";
@@ -96,8 +100,8 @@ public class AbstractRule extends AST implements Serializable{
       		abstractRule += freshVars.get(i).toString() + "]=> ";
       	}
       }
-    }
-    //abstractRule += " --> ";
+    }*/
+    abstractRule += " --> ";
     for(int i=0;i<RF.size();i++){
       if(i == 0){
       	abstractRule += RF.get(i);

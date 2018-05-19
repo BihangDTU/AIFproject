@@ -6,6 +6,10 @@ import java.util.Map;
 import java.util.Objects;
 
 public class FactWithType extends AST implements Serializable{
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
   private HashMap<String, String> vType = new HashMap<>();
   private Term term;
   public FactWithType(HashMap<String, String> vType, Term term) {

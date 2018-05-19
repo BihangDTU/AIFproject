@@ -13,11 +13,6 @@ public class ConcreteRule extends AST implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private String rulesName;
   private HashMap<String, String> varsTypes = new HashMap<>();
-    // Sebastian: I think this will not work, because variable objects
-    // are not a good key for a map (parsing the same variable
-    // different types would yield different objects), rather the
-    // variable name should be the key! Also String for the type may
-    // be optimal (but let's discuss) 
   private List<Term> LF = new ArrayList<>();
   private List<Condition> Splus = new ArrayList<>();
   private List<Condition> Snega = new ArrayList<>();

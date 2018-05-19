@@ -10,9 +10,6 @@ public class Composed extends Term implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private String factName;
   private ArrayList<Term> arguments = new ArrayList<>();
-
-    // Sebastian: There was no constructor for setting both (done
-    // myself):
     
   public Composed(String factName,ArrayList<Term> arguments ) {
   	this.factName = factName;

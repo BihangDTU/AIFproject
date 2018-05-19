@@ -9,8 +9,6 @@ public class Condition extends AST implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 	public Boolean positive = true;
-  // Sebastian: I added this, because I would like to distinguish
-  // positive and negative conditions in the parser, I added also a corresponding constructor
     
   private Term var;
   private Term term;
