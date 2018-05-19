@@ -451,8 +451,8 @@ public class FixpointsSort {
     return term;
   }
   
-  public HashMap<String,Term> getTimpliesFromConcreteRule(ConcreteRule concreteRule, HashMap<String, Integer> setPosition){
-    HashMap<String,Term> timpliesMap = new HashMap<>();
+  public HashMap<String,Timplies> getTimpliesFromConcreteRule(ConcreteRule concreteRule, HashMap<String, Integer> setPosition){
+    HashMap<String,Timplies> timpliesMap = new HashMap<>();
     List<Condition> consitionLeft = new ArrayList<>(concreteRule.getSplus());
     consitionLeft.addAll(concreteRule.getSnega());
     List<Condition> consitionRS = new ArrayList<>(concreteRule.getRS());
@@ -517,7 +517,11 @@ public class FixpointsSort {
         ArrayList<Term> arguments = new ArrayList<>();
         arguments.add(val1);
         arguments.add(val2);
-        timpliesMap.put(var.toString(),new Composed("timplies",arguments));
+        if(concreteRule.getNewFreshVars().getFreshs().contains(var)){
+          timpliesMap.put(var.toString(),new Timplies(false,new Composed("timplies",arguments)));
+        }else{
+          timpliesMap.put(var.toString(),new Timplies(new Composed("timplies",arguments)));
+        }
       }
     }	
     return timpliesMap;
@@ -602,12 +606,16 @@ public class FixpointsSort {
     }
     absRuleSubstituted.setRF(RF);
   	
-    HashMap<String,Term> timplies = new HashMap<>();
+    HashMap<String,Timplies> timplies = new HashMap<>();
     //for(Term timplie : absRule.getTimplies()){
     //	timplies.add(termSubs(timplie,absRule.getVarsTypes()));
     //}
-    for(Map.Entry<String, Term> timplie : absRule.getTimplies().entrySet()){
-      timplies.put(timplie.getKey().toString(), termSubs(timplie.getValue(),absRule.getVarsTypes()));
+    for(Map.Entry<String, Timplies> timplie : absRule.getTimplies().entrySet()){
+      if(timplie.getValue().isTimplies()){
+        timplies.put(timplie.getKey().toString(), new Timplies(termSubs(timplie.getValue().getTimplies(),absRule.getVarsTypes())));
+      }else{
+        timplies.put(timplie.getKey().toString(), new Timplies(false,termSubs(timplie.getValue().getTimplies(),absRule.getVarsTypes())));
+      }
     }
     absRuleSubstituted.setTimplies(timplies);
     return absRuleSubstituted;
@@ -698,20 +706,19 @@ public class FixpointsSort {
     for(int j=0;j<absRule.getRF().size();j++){
       absRule_copy.getRF().set(j, ST.termSubs(concreteRule.getRF().get(j),newTimpliesMapSubstituted));
     }	
-    for(Map.Entry<String, Term> timplie : absRule_copy.getTimplies().entrySet()){
-      timplie.getValue().getArguments().set(0, tempMap.get(timplie.getKey()));
-      timplie.getValue().getArguments().set(1, newTimpliesMapSubstituted.get(timplie.getKey()));		
+    for(Map.Entry<String, Timplies> timplie : absRule_copy.getTimplies().entrySet()){
+      timplie.getValue().getTimplies().getArguments().set(0, tempMap.get(timplie.getKey()));
+      timplie.getValue().getTimplies().getArguments().set(1, newTimpliesMapSubstituted.get(timplie.getKey()));		
     }
     satisfiedAbsRules.add(absRule_copy); 		
     return satisfiedAbsRules;
   }
   
-  public HashMap<String,Term> getTimpliesMap(HashMap<String,Term> keyMap,HashMap<String, Term> timplies){
+  public HashMap<String,Term> getTimpliesMap(HashMap<String,Term> keyMap,HashMap<String, Timplies> timplies){
     HashMap<String,Term> newTimpliesMap = new HashMap<>();
-    HashSet<Term> sets = new HashSet<>();
     for(Map.Entry<String, Term> key : keyMap.entrySet()){
       if(timplies.containsKey(key.getKey())){
-        Term newVal2 = (Term)dClone.deepClone(timplies.get(key.getKey()).getArguments().get(1));
+        Term newVal2 = (Term)dClone.deepClone(timplies.get(key.getKey()).getTimplies().getArguments().get(1));
         for(int i=0;i<newVal2.getArguments().size();i++){
           if(newVal2.getArguments().get(i).getFactName().equals("_")){
             newVal2.getArguments().set(i, key.getValue().getArguments().get(i));
