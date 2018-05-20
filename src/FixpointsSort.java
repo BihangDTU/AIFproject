@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +16,7 @@ public class FixpointsSort {
   StateTransition ST = new StateTransition();
   public FixpointsSort(){}
 	
-	 /**
+  /**
    * Returns a substituted term. 
    * only substitute the variables if it occurs in the map subs
    * @param  t    e.g. iknows(sign(inv(PK),pair(A,NPK)))
@@ -45,7 +46,7 @@ public class FixpointsSort {
     return t_copy;
   }
   /**
-   * Returns a list of timplies from output file.
+   * Returns a list of timplies from fixed-points output file.
    * @param  fpAST   dataStructure contains fixed points from output file  
    * @return  a list of timplies fixedpoints(the variable have been substituted with user define type)
    */
@@ -60,41 +61,47 @@ public class FixpointsSort {
   }
 
   /**
-   * Returns a list of timplies which contains all possible implies
+   * Returns a list of timplies which contains all possible timplies
    * @param  fpAST   dataStructure contains fixed points from output file  
    * @return  a list of all possible implies (the variable have been substituted with user define type)
    */
-  /*extend timplies, the type are considered here
-   * (1) timpies(val(ring(Agent),0,0),val(ring(Agent),valid(Server,Agent),0))
-   * (2) timpies(val(ring(User),valid(Server,User),0),val(0,valid(Server,User),0))
-   * (3) timpies(val(0,valid(Server,User),0),val(0,0,revoked(Server,User)))
+  /*extend timplies, the types are considered here
+   * (1) timpies(val(ring(Honest),0,0),val(ring(Honest),valid(Server,Honest),0))
+   * (2) timpies(val(ring(Honest),valid(Server,Honest),0),val(0,valid(Server,Honest),0))
+   * (3) timpies(val(0,valid(Server,Honest),0),val(0,0,revoked(Server,Honest)))
    *  
-   *       Agent      User       Honest
+   *       Honest      Honest       Honest
    * (1,0,0) -> (1,1,0) -> (0,1,0) -> (0,0,1)
    * 
-   * (1) timpies(val(ring(Agent),0,0),val(ring(Agent),valid(Server,Agent),0))
-   * (2) timpies(val(ring(User),0,0),val(ring(User),valid(Server,User),0))
+   * (1) timpies(val(ring(Honest),0,0),val(ring(Honest),valid(Server,Honest),0))
+   * (2) timpies(val(ring(Honest),0,0),val(0,valid(Server,Honest),0))
    * (3) timpies(val(ring(Honest),0,0)),0,0,revoked(Server,Honest)))
-   * (4) timpies(val(ring(User),valid(Server,User),0),val(0,valid(Server,User),0))
-   * (5) timpies(val(ring(Honest),valid(Server,Honest),0),val(0,valid(Server,Honest),0))
-   * (7) timpies(val(0,valid(Server,User),0),val(0,0,revoked(Server,User)))
+   * (4) timpies(val(ring(Honest),valid(Server,Honest),0),val(0,valid(Server,Honest),0))
+   * (5) timpies(val(ring(Honest),valid(Server,Honest),0),val(0,0,revoked(Server,Honest)))
+   * (7) timpies(val(0,valid(Server,Honest),0),val(0,0,revoked(Server,Honest)))
    */
-  public List<FactWithType> getExtendedTimplies(AST fpAST){
+  public List<FactWithType> getExtendedTimplies(AST fpAST,HashMap<String,List<String>> UserDefType){
     HashMap<Term,HashSet<Term>> timpliesMap = new HashMap<Term,HashSet<Term>>(); 
     List<FactWithType> timplies = getTimplies(fpAST);
+    /*substituted variable into user define types*/
+    for(FactWithType timplie : timplies){
+      timplie.setTerm(termSubs(timplie.getTerm(),timplie.getvType()));
+    }
     for(FactWithType t : timplies){
       if(!timpliesMap.containsKey(t.getTerm().getArguments().get(0))){
-        /*if the key is not in map then put left val(...) as new key and right val(...) as value srote in to Map*/
+        /*         (1)                  (2)                                     */
+        /*timpies(val(ring(Honest),0,0),val(ring(Honest),valid(Server,Honest),0))*/
+        /*if the key is not in map then put (1)val(...) as new key and (2)val(...) as value srore in to Map*/
         HashSet<Term> subVal = new HashSet<Term>();
         subVal.add(t.getTerm().getArguments().get(1));
         timpliesMap.put(t.getTerm().getArguments().get(0), subVal);
       }else{
-        /*if the key already exists in the map then just append the new value into the value list*/
+        /*if the key already exists in the map then just append the (2)val(...) into the value list*/
         timpliesMap.get(t.getTerm().getArguments().get(0)).add(t.getTerm().getArguments().get(1));
       }
     }
     /*check whether each key corresponding value list contains the other keys in the map,
-    if so, then also add the key's corresponding values into the the list, not consider variable type yet*/
+    if so, then also add the key's corresponding values into the the list*/
     int counter = 0;
     for(Map.Entry<Term,HashSet<Term>> tMap : timpliesMap.entrySet()){
       while(true){
@@ -114,31 +121,118 @@ public class FixpointsSort {
         }
       }
     }		
+    /*if any val(...) exist in the timpliesMap value list and can apply to the timplies then new timplies 
+     * add into the extendedTimplies*/
     HashSet<FactWithType> extendedTimplies = new HashSet<>();
     for(Map.Entry<Term,HashSet<Term>> ts : timpliesMap.entrySet()){
       for(Term t : ts.getValue()){
         for(FactWithType fp : timplies){
-          //if(t.equals(fp.getTerm().getArguments().get(0))){
           if(isTwoValHaveSameForm(t,fp.getTerm().getArguments().get(0))){
-            ArrayList<Term> vals = new ArrayList<>();
-            vals.add(ts.getKey());
-            vals.add(fp.getTerm().getArguments().get(1));
-            extendedTimplies.add(new FactWithType(fp.getvType(), new Composed("timplies",vals)));
+            if(isVal1GeneralThanVal2(fp.getTerm().getArguments().get(0),t,UserDefType)){
+              ArrayList<Term> vals = new ArrayList<>();
+              vals.add(ts.getKey());
+              vals.add(fp.getTerm().getArguments().get(1));
+              extendedTimplies.add(new FactWithType(fp.getvType(), new Composed("timplies",vals)));
+            }
           }
         }
       }
     }
     extendedTimplies.addAll(timplies);
-    List<FactWithType> extendedTimpliesSubstituted = new ArrayList<>();
-    for(FactWithType fpw: extendedTimplies){
-      extendedTimpliesSubstituted.add(new FactWithType(fpw.getvType(),termSubs(fpw.getTerm(),fpw.getvType())));
+    List<FactWithType> extendedTimpliesList = new ArrayList<>(extendedTimplies);
+    return extendedTimpliesList;
+  }
+ 
+  /**
+   * Returns a list of lists, each inner list contains list of timplies with same types.
+   * @param  extendedTimplies  list of timplies with types from fixed points.
+   *                           e.g. [A:Honest.S:Server.timplies(val(ring(Honest),db__valid(Server,Honest),0),val(0,db__valid(Server,Honest),0)),
+   *                                 A:Dishon.S:Server.timplies(val(ring(Dishon),db__valid(Server,Dishon),0),val(ring(Dishon),0,db__revoked(Server,Dishon))),
+   *                                 A:Honest.S:Server.timplies(val(ring(Honest),db__valid(Server,Honest),0),val(0,0,db__revoked(Server,Honest))),
+   *                                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(0,0,0)),
+   *                                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(ring(Honest),db__valid(Server,Honest),0)),
+   *                                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(0,db__valid(Server,Honest),0)),
+   *                                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(0,0,db__revoked(Server,Honest))),
+   *                                 A:Honest.S:Server.timplies(val(0,0,0),val(0,db__valid(Server,Honest),0)),
+   *                                 A:Honest.S:Server.timplies(val(0,0,0),val(0,0,db__revoked(Server,Honest))),
+   *                                 A:Honest.S:Server.timplies(val(0,db__valid(Server,Honest),0),val(0,0,db__revoked(Server,Honest))),
+   *                                 A:Honest.S:Server.timplies(val(ring(Honest),0,db__revoked(Server,Honest)),val(0,0,db__revoked(Server,Honest))),]
+   * @return  e.g. [[A:Honest.S:Server.timplies(val(ring(Honest),db__valid(Server,Honest),0),val(0,db__valid(Server,Honest),0)),
+   *                 A:Honest.S:Server.timplies(val(ring(Honest),db__valid(Server,Honest),0),val(0,0,db__revoked(Server,Honest))),
+   *                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(0,0,0)),
+   *                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(ring(Honest),db__valid(Server,Honest),0)),
+   *                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(0,db__valid(Server,Honest),0)),
+   *                 A:Honest.S:Server.timplies(val(ring(Honest),0,0),val(0,0,db__revoked(Server,Honest))),
+   *                 A:Honest.S:Server.timplies(val(0,0,0),val(0,db__valid(Server,Honest),0)),
+   *                 A:Honest.S:Server.timplies(val(0,0,0),val(0,0,db__revoked(Server,Honest))),
+   *                 A:Honest.S:Server.timplies(val(0,db__valid(Server,Honest),0),val(0,0,db__revoked(Server,Honest))),
+   *                 A:Honest.S:Server.timplies(val(ring(Honest),0,db__revoked(Server,Honest)),val(0,0,db__revoked(Server,Honest))),],
+   *                 [A:Dishon.S:Server.timplies(val(ring(Dishon),db__valid(Server,Dishon),0),val(ring(Dishon),0,db__revoked(Server,Dishon)))]]
+   */
+  public List<List<FactWithType>> classifyTimpliesInTypes(List<FactWithType> extendedTimplies){
+    List<List<FactWithType>> classifiedTimplies = new ArrayList<>();
+    List<FactWithType> unClassifyTimplies = new ArrayList<>(extendedTimplies);
+    List<FactWithType> remainTimplies = new ArrayList<>(extendedTimplies);
+    while(true){
+      if(unClassifyTimplies.isEmpty()) break;
+      ArrayList<FactWithType> timpliesClassified = new ArrayList<>();
+      HashMap<String, String> vType = unClassifyTimplies.get(0).getvType();
+      for(FactWithType t : unClassifyTimplies){
+        if(vType.equals(t.getvType())){
+          timpliesClassified.add(t);
+          remainTimplies.remove(t);
+        }
+      }
+      classifiedTimplies.add(timpliesClassified);
+      unClassifyTimplies.clear();
+      unClassifyTimplies.addAll(remainTimplies);
     }
-    return extendedTimpliesSubstituted;
+    return classifiedTimplies;
+  }
+  
+  /**
+   * Display timplies in orders. 
+   * @param  classifiedTimplies   expended timplies have been classified into different list according to types
+   * @param  timplies             list of timplies with types from fixed points file.
+   */
+  public void timpliesOrdered(List<List<FactWithType>> classifiedTimplies,List<FactWithType> timplies){
+    List<List<ArrayList<FactWithType>>> classifiedTimpliesSorted = new ArrayList<>();
+    for(List<FactWithType> tList : classifiedTimplies){
+      classifiedTimpliesSorted.add(timpliesSort(tList));
+    }
+    
+    for(List<ArrayList<FactWithType>> t : classifiedTimpliesSorted){
+      Collections.sort(t, new SortbyListSize());
+    }
+    
+    for(FactWithType timplie : timplies){
+      timplie.setTerm(termSubs(timplie.getTerm(),timplie.getvType()));
+    }
+    
+    List<FactWithType> timpliesOrdered = new ArrayList<>();
+    for(List<ArrayList<FactWithType>> ts : classifiedTimpliesSorted){
+      for(ArrayList<FactWithType> t : ts){
+        Term firstVal = t.get(0).getTerm().getArguments().get(0);
+        for(FactWithType timplie : timplies){
+          if(firstVal.equals(timplie.getTerm().getArguments().get(0))){
+            timpliesOrdered.add(timplie);
+          } 
+        }
+      }
+    }
+    
+    for(FactWithType t : timpliesOrdered){
+      System.out.println(t.getTerm().getArguments().get(0) + " -->> " + t.getTerm().getArguments().get(1));
+    }
   }
 	
-	
-  public List<FactWithType> timpliesSort(List<FactWithType> timplies){
-    List<FactWithType> timpliesSorted = new ArrayList<FactWithType>();
+  /**
+   * 
+   * @param  timplies   list of timplies with types from fixed points. 
+   * @return return a list of lists, each inner list contains the timplies which has the same form.
+   */
+  public List<ArrayList<FactWithType>> timpliesSort(List<FactWithType> timplies){
+    List<ArrayList<FactWithType>> timpliesSorted = new ArrayList<>();
     List<FactWithType> timpliesUnsort = new ArrayList<FactWithType>(timplies);
     List<FactWithType> factsUnsortCopy = new ArrayList<FactWithType>(timpliesUnsort);
     while(true){
@@ -146,12 +240,14 @@ public class FixpointsSort {
         break;
       }else{
         FactWithType firstTimplies = timpliesUnsort.get(0);
+        ArrayList<FactWithType> subTimpliesSorted = new ArrayList<>();
         for(FactWithType t : timpliesUnsort){
           if(isTwoValHaveSameForm(firstTimplies.getTerm().getArguments().get(0),t.getTerm().getArguments().get(0))){
-            timpliesSorted.add(t);
+            subTimpliesSorted.add(t);
             factsUnsortCopy.remove(t);
           }
         }
+        timpliesSorted.add(subTimpliesSorted);
       }
       timpliesUnsort.clear();
       timpliesUnsort.addAll(factsUnsortCopy);
@@ -210,9 +306,16 @@ public class FixpointsSort {
     return factsSortedSubs;
   }
 	
-  public List<ArrayList<FactWithType>> fixedpointsWithoutDuplicate(List<ArrayList<FactWithType>> factsSorted, List<FactWithType> timplies, HashMap<String,List<String>> UserDefType){
+  
+  /**
+   * @param  fixedPointsSorted   facts in the fixed-points file have been sorted into different Arraylist according to the same form fact.
+   * @param  extendedTimplies    a list of extended timplies
+   * @param  UserDefType         user define types, using for compare types
+   * @return A list of lists, each inner list contains the same form fact (all facts which can be generate by timplies are removed from the list).
+   */
+  public List<ArrayList<FactWithType>> fixedpointsWithoutDuplicate(List<ArrayList<FactWithType>> fixedPointsSorted, List<FactWithType> extendedTimplies, HashMap<String,List<String>> UserDefType){
     List<ArrayList<FactWithType>> noDuplicateFacts = new ArrayList<>();
-    List<ArrayList<FactWithType>> factsSorted_copy = (List<ArrayList<FactWithType>>)dClone.deepClone(factsSorted);
+    List<ArrayList<FactWithType>> factsSorted_copy = (List<ArrayList<FactWithType>>)dClone.deepClone(fixedPointsSorted);
     for(ArrayList<FactWithType> facts : factsSorted_copy){
       if(facts.size() == 1){
         noDuplicateFacts.add(facts);
@@ -226,7 +329,7 @@ public class FixpointsSort {
           if(facts.get(0).equals(lastElementFlag)) break;
           FactWithType firstTerm = facts.get(0);				
           for(FactWithType t : facts){
-            if(canT1ImpliesT2(firstTerm,t,timplies, UserDefType)){
+            if(canT1ImpliesT2(firstTerm,t,extendedTimplies, UserDefType)){
               factsCopy.remove(t);
             }
           }
@@ -668,7 +771,12 @@ public class FixpointsSort {
       for(Map.Entry<String, FactWithType> userDefType : key.entrySet()){
         HashMap<String, String> newTypes = new HashMap<>();
         for(Map.Entry<String, String> types : userDefType.getValue().getvType().entrySet()){
-          String k = types.getKey().substring(0,types.getKey().indexOf("_"));
+          String k = "";
+          if(types.getKey().contains("_")){
+            k = types.getKey().substring(0,types.getKey().indexOf("_"));
+          }else{
+            k = types.getKey();
+          }
           newTypes.put(k, types.getValue());
           if(!userType.containsKey(k)){
             userType.put(k, new Variable(types.getValue()));
@@ -686,9 +794,11 @@ public class FixpointsSort {
         tempMap.put(s.getKey(), s.getValue().getTerm());
       }
       for(Map.Entry<String, Term> uType : userType.entrySet()){
-        if(!UserDefType.get(userType.get(uType.getKey()).getVarName()).containsAll(UserDefType.get(uType.getValue().getVarName()))){
-          tempMap.put(uType.getKey(), uType.getValue());
-        }
+        if(UserDefType.containsKey(userType.get(uType.getKey()).getVarName()) && UserDefType.containsKey(uType.getValue().getVarName())){
+          if(!UserDefType.get(userType.get(uType.getKey()).getVarName()).containsAll(UserDefType.get(uType.getValue().getVarName()))){
+            tempMap.put(uType.getKey(), uType.getValue());
+          }
+        }  
       } 
     }
     AbstractRule absRule_copy = (AbstractRule)dClone.deepClone(absRule);
@@ -702,7 +812,7 @@ public class FixpointsSort {
     for(Map.Entry<String, Term> TimpliesMap : newTimpliesMap.entrySet()){
       newTimpliesMapSubstituted.put(TimpliesMap.getKey(), termSubs(TimpliesMap.getValue(),newVarTypes.get(TimpliesMap.getKey())));
     }
-    newTimpliesMapSubstituted.putAll(userType);
+    //newTimpliesMapSubstituted.putAll(userType);
     for(int j=0;j<absRule.getRF().size();j++){
       absRule_copy.getRF().set(j, ST.termSubs(concreteRule.getRF().get(j),newTimpliesMapSubstituted));
     }	
@@ -802,26 +912,16 @@ public class FixpointsSort {
   public List<FactWithType> applyAbsRuleWithSatisfiedFacts(AST aifAST, AST fpAST, String conRuleName,HashMap<String,List<String>> UserDefType){
     List<FactWithType> newGenerateFacts = new ArrayList<>();
     ConcreteRule conRule = getConcreteRuleByRuleName(aifAST,conRuleName);
-    /*for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
-      if(cr.getRulesName().equals(conRuleName)){
-        conRule = cr;
-        break;
-      }
-    }
-    if(conRule == null){
-      System.err.println("Rule name not exsit.\n");
-      System.exit(-1);
-    }*/
     AbstractRule absrule = concreteRuleToAbsRuleConversion(aifAST,conRuleName);
     AbstractRule absruleSubstituted = absRuleSubstitution(absrule); 
 		
     List<ArrayList<FactWithType>> fixedpointsSorted = fixedpointsSort(fpAST);
-    List<FactWithType> timplies = getExtendedTimplies(fpAST);
-    List<FactWithType> sortedTimplies = timpliesSort(timplies);
-    List<ArrayList<FactWithType>> fixpointWithoutDuplicate = fixedpointsWithoutDuplicate(fixedpointsSorted, sortedTimplies, UserDefType);
+    List<FactWithType> timplies = getExtendedTimplies(fpAST,UserDefType);
+    //List<FactWithType> sortedTimplies = timpliesSort(timplies);
+    List<ArrayList<FactWithType>> fixpointWithoutDuplicate = fixedpointsWithoutDuplicate(fixedpointsSorted, timplies, UserDefType);
 		
     List<ArrayList<FactWithType>> satisfiedFormFacts = findSatisfyFormFacts(absruleSubstituted, fixpointWithoutDuplicate);
-    List<ArrayList<FactWithType>> satisfiedFacts = getSatisfyFacts(absruleSubstituted,satisfiedFormFacts,sortedTimplies,UserDefType);
+    List<ArrayList<FactWithType>> satisfiedFacts = getSatisfyFacts(absruleSubstituted,satisfiedFormFacts,timplies,UserDefType);
 		
     List<ArrayList<HashMap<String,FactWithType>>> keyMapToValList = new ArrayList<>();
     List<ArrayList<HashMap<String,FactWithType>>> concreteKeyMapList = new ArrayList<>();
@@ -978,8 +1078,9 @@ public class FixpointsSort {
     List<ArrayList<HashMap<String,FactWithType>>> satisfiedKeys = (List<ArrayList<HashMap<String,FactWithType>>>)dClone.deepClone(keyList);
     for(int i=0;i<keyList.size();i++){
       for(int j=0;j<keyList.get(i).size();j++){
-        for(Map.Entry<String,FactWithType> entity : keys.get(i).get(0).entrySet()){
-          if(!isVal1GeneralThanVal2(entity.getValue().getTerm(),keyList.get(i).get(j).get(entity.getKey()).getTerm(),UserDefType)){
+        for(Map.Entry<String,FactWithType> entity : keys.get(i).get(0).entrySet()){// need more test here
+          if(!(isVal1GeneralThanVal2(keyList.get(i).get(j).get(entity.getKey()).getTerm(),entity.getValue().getTerm(),UserDefType)
+               || isVal1GeneralThanVal2(entity.getValue().getTerm(),keyList.get(i).get(j).get(entity.getKey()).getTerm(),UserDefType))){
             satisfiedKeys.get(i).remove(keyList.get(i).get(j));
           }
         }
@@ -1091,7 +1192,7 @@ public class FixpointsSort {
     }else{
       if(t1 instanceof Composed){
         if(t1.getFactName().equals("val")){
-          if(!isVal1GeneralThanVal2(t2,t1,UserDefType)){
+          if(!((isVal1GeneralThanVal2(t1,t2,UserDefType)) || isVal1GeneralThanVal2(t2,t1,UserDefType))){  // need more test here
             return false;
           }
         }else{
