@@ -247,6 +247,7 @@ public class Main {
         System.out.println(t.getTerm().toString());
       }
       System.out.println();
+      System.out.println("Contrete Facts:");
       ConcreteRule concreteRule =  ST.getConcreteRuleByRuleName(aifAST,ruleName);
       
       for(FactWithType t : newGenerateFactsWithoutDuplicate){

@@ -423,7 +423,14 @@ public class FixpointsSort {
     }
     return map;
   }
-	
+  
+  /**
+   * Return true if val1 is general than val2, otherwise return false.
+   * @param  val1  key set membership e.g. val(...)
+   * @param  val2  key set membership e.g. val(...)
+   * @param  UserDefType   user define types, using for compare types
+   * @return boolean
+   */
   private boolean isVal1GeneralThanVal2(Term val1, Term val2, HashMap<String,List<String>> UserDefType){
     if(val1.getFactName().equals("val") && val2.getFactName().equals("val")){
       for(int i=0;i<val1.getArguments().size();i++){
@@ -433,13 +440,56 @@ public class FixpointsSort {
           if(!val1Arg.equals(val2Arg)){
             if(val1Arg.getFactName().equals(val2Arg.getFactName())){
               for(int j=0;j<val1Arg.getArguments().size();j++){
-                if(UserDefType.containsKey(val1Arg.getArguments().get(j).getVarName()) && UserDefType.containsKey(val2Arg.getArguments().get(j).getVarName())){
-                  if(!UserDefType.get(val1Arg.getArguments().get(j).getVarName()).containsAll(UserDefType.get(val2Arg.getArguments().get(j).getVarName()))){
-                    return false;
-                   }
-                  }else{
+                String varType1 = val1Arg.getArguments().get(j).getVarName();
+                String varType2 = val2Arg.getArguments().get(j).getVarName();
+                if(UserDefType.containsKey(varType1) && UserDefType.containsKey(varType2)){
+                  if(!UserDefType.get(varType1).containsAll(UserDefType.get(varType2))){
                     return false;
                   }
+                }else{
+                  return false;
+                }
+              }
+            }else{
+              return false;
+            }
+          }
+        }
+      }
+    }else{
+      return false;
+    }
+    return true;
+  }
+    
+  /**
+   * Return true if two vals have intersection, otherwise return false.
+   * @param  val1  key set membership e.g. val(...)
+   * @param  val2  key set membership e.g. val(...)
+   * @param  UserDefType   user define types, using for compare types
+   * @return boolean
+   */
+  private boolean isVal1IntersectWithVal2(Term val1, Term val2, HashMap<String,List<String>> UserDefType){
+    if(val1.getFactName().equals("val") && val2.getFactName().equals("val")){
+      for(int i=0;i<val1.getArguments().size();i++){
+        Term val1Arg = val1.getArguments().get(i);
+        Term val2Arg = val2.getArguments().get(i);
+        if(!(val1Arg.getFactName().equals("_") || val2Arg.getFactName().equals("_"))){ // need test
+          if(!val1Arg.equals(val2Arg)){
+            if(val1Arg.getFactName().equals(val2Arg.getFactName())){
+              for(int j=0;j<val1Arg.getArguments().size();j++){
+                String varType1 = val1Arg.getArguments().get(j).getVarName();
+                String varType2 = val2Arg.getArguments().get(j).getVarName();
+                if(UserDefType.containsKey(varType1) && UserDefType.containsKey(varType2)){
+                  List<String> typeList1= new ArrayList<>(UserDefType.get(varType1));
+                  List<String> typeList2= new ArrayList<>(UserDefType.get(varType2));
+                  typeList1.retainAll(typeList2);
+                  if(typeList1.isEmpty()){
+                    return false;
+                  }
+                }else{
+                  return false;
+                }
               }
             }else{
               return false;
@@ -763,6 +813,8 @@ public class FixpointsSort {
   
   public List<AbstractRule> getAllSatisfiedAbsRules(ConcreteRule concreteRule, AbstractRule absRule, ArrayList<HashMap<String,FactWithType>> satisfiedKeys,HashMap<String,List<String>> UserDefType){
     List<AbstractRule> satisfiedAbsRules = new ArrayList<>();
+    
+    AbstractRule absruleSubstituted = absRuleSubstitution(absRule);
   	
     HashMap<String, Term> tempMap = new HashMap<>();
     HashMap<String, Term> userType = new HashMap<>();
@@ -801,8 +853,48 @@ public class FixpointsSort {
         }  
       } 
     }
-    AbstractRule absRule_copy = (AbstractRule)dClone.deepClone(absRule);
-    for(int i=0;i<absRule.getLF().size();i++){
+    
+    HashMap<String,String> leastGeneralType = new HashMap<>();  // need test, differe user define variable name may cause problem 
+    boolean isFirstTime = true;;
+    for(Map.Entry<String, HashMap<String,String>> varmap : newVarTypes.entrySet()){
+      if(isFirstTime){
+        isFirstTime = false;
+        leastGeneralType.putAll(varmap.getValue());
+      }else{
+        for(Map.Entry<String, String> entity : leastGeneralType.entrySet()){
+          if(varmap.getValue().containsKey(entity.getKey())){
+            if(!UserDefType.get(varmap.getValue().get(entity.getKey())).containsAll(UserDefType.get(entity.getValue()))){
+              leastGeneralType.putAll(varmap.getValue());
+            }
+          }else{
+            leastGeneralType.put(entity.getKey(), entity.getValue());
+          }
+        }
+      } 
+    }
+    
+    for(Map.Entry<String,String> entity : leastGeneralType.entrySet()){
+      if(!tempMap.containsKey(entity.getKey())){
+        tempMap.put(entity.getKey(), new Variable(entity.getValue()));
+      }
+    }
+    
+    AbstractRule absRule_copy = (AbstractRule)dClone.deepClone(absruleSubstituted);
+    
+    for(int i=0;i<absruleSubstituted.getLF().size();i++){
+      Term lfSubs = ST.termSubs(concreteRule.getLF().get(i), tempMap);
+      if(!isFact1GeneralThanFact2(absruleSubstituted.getLF().get(i),lfSubs,UserDefType)){
+        HashMap<String,Term> map = getFactSubstitutiondMap(lfSubs,absruleSubstituted.getLF().get(i));
+        HashMap<String,Term> newm = new HashMap<> ();
+        for(Map.Entry<String, Term> entity : tempMap.entrySet()){
+          newm.put(entity.getKey(), ST.termSubs(entity.getValue(),map));
+        }
+        tempMap.putAll(newm);
+      }
+    }
+
+    
+    for(int i=0;i<absruleSubstituted.getLF().size();i++){
       absRule_copy.getLF().set(i, ST.termSubs(concreteRule.getLF().get(i), tempMap));
     }
 		
@@ -834,7 +926,8 @@ public class FixpointsSort {
             newVal2.getArguments().set(i, key.getValue().getArguments().get(i));
           }
         }
-        newTimpliesMap.put(key.getKey(), newVal2);
+        Term newVal2Substituted = ST.termSubs(newVal2, keyMap); // may have problem if user define variables have different name
+        newTimpliesMap.put(key.getKey(), newVal2Substituted);
       }
     }
     return newTimpliesMap;
@@ -1066,9 +1159,11 @@ public class FixpointsSort {
         }
       }
     }else{
-      HashMap<String,String> varsType = absrule.getVarsTypes();
-      for(Term rf : absrule.getRF()){
-        newGenerateFacts.add(new FactWithType(varsType,rf));
+      HashMap<String,String> varsType = absruleSubstituted.getVarsTypes();
+      for(Term rf : absruleSubstituted.getRF()){
+        if(!rf.getFactName().equals("attack")){
+          newGenerateFacts.add(new FactWithType(varsType,rf)); 
+        }
       }
     }	
     return newGenerateFacts;
@@ -1076,11 +1171,13 @@ public class FixpointsSort {
    
   public List<ArrayList<HashMap<String,FactWithType>>> removeUnsatisfyKeys(List<ArrayList<HashMap<String,FactWithType>>> keyList,List<ArrayList<HashMap<String,FactWithType>>> keys,HashMap<String,List<String>> UserDefType){
     List<ArrayList<HashMap<String,FactWithType>>> satisfiedKeys = (List<ArrayList<HashMap<String,FactWithType>>>)dClone.deepClone(keyList);
+    //List<ArrayList<HashMap<String,FactWithType>>> satisfiedKeys = new ArrayList<>(keyList);
     for(int i=0;i<keyList.size();i++){
       for(int j=0;j<keyList.get(i).size();j++){
         for(Map.Entry<String,FactWithType> entity : keys.get(i).get(0).entrySet()){// need more test here
-          if(!(isVal1GeneralThanVal2(keyList.get(i).get(j).get(entity.getKey()).getTerm(),entity.getValue().getTerm(),UserDefType)
-               || isVal1GeneralThanVal2(entity.getValue().getTerm(),keyList.get(i).get(j).get(entity.getKey()).getTerm(),UserDefType))){
+          Term val1 = keyList.get(i).get(j).get(entity.getKey()).getTerm();
+          Term val2 = entity.getValue().getTerm();
+          if(!isVal1IntersectWithVal2(val1,val2,UserDefType)){  
             satisfiedKeys.get(i).remove(keyList.get(i).get(j));
           }
         }
@@ -1209,8 +1306,10 @@ public class FixpointsSort {
           }
         }
       }else{  // it's variable
-        if(!UserDefType.get(t2.getVarName()).containsAll((UserDefType.get(t1.getVarName())))){
-          return false;
+        if(UserDefType.containsKey(t2.getVarName()) && UserDefType.containsKey(t1.getVarName())){
+          if(!UserDefType.get(t2.getVarName()).containsAll((UserDefType.get(t1.getVarName())))){
+            return false;
+          }
         }
       }
     }
@@ -1412,5 +1511,68 @@ public class FixpointsSort {
     }
     return conRule;
   }
+  
+  public boolean isFact1GeneralThanFact2(Term fact1, Term fact2,HashMap<String,List<String>> UserDefType){
+    if(fact1.equals(fact2)){
+      return true;
+    }
+    else if((fact1 instanceof Composed) && (fact2 instanceof Composed)){
+      if(fact1.getFactName().equals(fact2.getFactName()) && fact1.getArguments().size() == fact2.getArguments().size()){
+        int argumentsSize = fact1.getArguments().size();
+        for(int i=0;i<argumentsSize;i++){
+          Term subT1 = fact1.getArguments().get(i);
+          Term subT2 = fact2.getArguments().get(i);
+          if((subT1 instanceof Composed) && (subT2 instanceof Composed)){
+            if((subT1.getFactName().equals("val")) && (subT2.getFactName().equals("val"))){
+              if(!isVal1GeneralThanVal2(subT1,subT2,UserDefType)){
+                return false;
+              }
+            }else{
+              if(!subT1.getArguments().isEmpty() && !subT2.getArguments().isEmpty()){
+                if(!isFact1GeneralThanFact2(subT1, subT2, UserDefType)){
+                  return false;
+                }
+              }else{
+                if(!subT1.getFactName().equals(subT1.getFactName())){
+                  return false;
+                }
+              }
+            }         
+          }else{
+            if(UserDefType.containsKey(subT1.getVarName()) && UserDefType.containsKey(subT2.getVarName())){
+              if(!UserDefType.get(subT1.getVarName()).containsAll(UserDefType.get(subT2.getVarName()))){
+                return false;
+              } 
+            }
+          }         
+        }
+      }else{
+        return false;
+      }   
+    }else{
+      return false;
+    }
+    return true;
+  }
+  
+  public HashMap<String,Term> getFactSubstitutiondMap(Term f1, Term f2){
+    HashMap<String,Term> subsMap = new HashMap<>();
+    if(f1.equals(f2)){
+      return subsMap;
+    }else if(f1 instanceof Variable && f2 instanceof Variable){
+      if(!f1.equals(f2)){
+        subsMap.put(f1.getVarName(), f2);
+      }
+    }else if(f1 instanceof Composed && f2 instanceof Composed){
+      if(f1.getArguments().size() == f2.getArguments().size()){
+        for(int i=0;i<f1.getArguments().size();i++){
+          subsMap.putAll(getFactSubstitutiondMap(f1.getArguments().get(i), f2.getArguments().get(i)));
+        }
+      }
+    }
+    return subsMap;
+  }
+  
+  
 
 }
