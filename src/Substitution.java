@@ -1,4 +1,5 @@
 import dataStructure.*;
+
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -7,6 +8,13 @@ public class Substitution {
   private HashMap<String, Term> substitution = new HashMap<>();
 
   public Substitution(){}
+  
+
+  public Substitution(HashMap<String, Term> substitution) {
+    super();
+    this.substitution = substitution;
+  }
+
 
   public void setUnifierState(boolean unifierState){
     this.unifierState = unifierState;
@@ -28,6 +36,14 @@ public class Substitution {
     return substitution;
   }
   
+  
+  @Override
+  public String toString() {
+    return "Substitution [unifierState=" + unifierState + ", substitution="
+        + substitution + "]";
+  }
+
+
   @Override
   public boolean equals(Object o){
     if (o == this) return true;

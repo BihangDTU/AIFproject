@@ -14,6 +14,7 @@ public class FixpointsSort {
   StateTransition st = new StateTransition();  // need move to new class
   DeepClone dClone = new DeepClone();  // need move to new class
   StateTransition ST = new StateTransition();
+  Mgu mgu = new Mgu();
   public FixpointsSort(){}
 	
   /**
@@ -127,19 +128,28 @@ public class FixpointsSort {
     for(Map.Entry<Term,HashSet<Term>> ts : timpliesMap.entrySet()){
       for(Term t : ts.getValue()){
         for(FactWithType fp : timplies){
-          if(isTwoValHaveSameForm(t,fp.getTerm().getArguments().get(0))){
+          //if(isTwoValsHaveSameForm(t,fp.getTerm().getArguments().get(0))){
             if(isVal1GeneralThanVal2(fp.getTerm().getArguments().get(0),t,UserDefType)){
               ArrayList<Term> vals = new ArrayList<>();
               vals.add(ts.getKey());
               vals.add(fp.getTerm().getArguments().get(1));
               extendedTimplies.add(new FactWithType(fp.getvType(), new Composed("timplies",vals)));
             }
-          }
+          //}
         }
       }
     }
     extendedTimplies.addAll(timplies);
     List<FactWithType> extendedTimpliesList = new ArrayList<>(extendedTimplies);
+    
+    for(FactWithType fact : extendedTimpliesList){
+      HashMap<String, String> vType = new HashMap<>();
+      for(Map.Entry<String, String> entity : fact.getvType().entrySet()){
+        vType.put(entity.getValue(), entity.getKey());
+      }
+      fact.setTerm(termSubs(fact.getTerm(),vType));
+    }
+      
     return extendedTimpliesList;
   }
  
@@ -177,8 +187,16 @@ public class FixpointsSort {
       if(unClassifyTimplies.isEmpty()) break;
       ArrayList<FactWithType> timpliesClassified = new ArrayList<>();
       HashMap<String, String> vType = unClassifyTimplies.get(0).getvType();
+      List<String> ran_vType = new ArrayList<>();
+      for(Map.Entry<String, String> entity : vType.entrySet()){
+        ran_vType.add(entity.getValue());
+      }
       for(FactWithType t : unClassifyTimplies){
-        if(vType.equals(t.getvType())){
+        List<String> ran_t = new ArrayList<>();
+        for(Map.Entry<String, String> entity : t.getvType().entrySet()){
+          ran_t.add(entity.getValue());
+        }
+        if(ran_vType.containsAll(ran_t) && ran_vType.size() == ran_t.size()){
           timpliesClassified.add(t);
           remainTimplies.remove(t);
         }
@@ -190,42 +208,6 @@ public class FixpointsSort {
     return classifiedTimplies;
   }
   
-  /**
-   * Display timplies in orders. 
-   * @param  classifiedTimplies   expended timplies have been classified into different list according to types
-   * @param  timplies             list of timplies with types from fixed points file.
-   */
-  public void timpliesOrdered(List<List<FactWithType>> classifiedTimplies,List<FactWithType> timplies){
-    List<List<ArrayList<FactWithType>>> classifiedTimpliesSorted = new ArrayList<>();
-    for(List<FactWithType> tList : classifiedTimplies){
-      classifiedTimpliesSorted.add(timpliesSort(tList));
-    }
-    
-    for(List<ArrayList<FactWithType>> t : classifiedTimpliesSorted){
-      Collections.sort(t, new SortbyListSize());
-    }
-    
-    for(FactWithType timplie : timplies){
-      timplie.setTerm(termSubs(timplie.getTerm(),timplie.getvType()));
-    }
-    
-    List<FactWithType> timpliesOrdered = new ArrayList<>();
-    for(List<ArrayList<FactWithType>> ts : classifiedTimpliesSorted){
-      for(ArrayList<FactWithType> t : ts){
-        Term firstVal = t.get(0).getTerm().getArguments().get(0);
-        for(FactWithType timplie : timplies){
-          if(firstVal.equals(timplie.getTerm().getArguments().get(0))){
-            timpliesOrdered.add(timplie);
-          } 
-        }
-      }
-    }
-    
-    for(FactWithType t : timpliesOrdered){
-      System.out.println(t.getTerm().getArguments().get(0) + " -->> " + t.getTerm().getArguments().get(1));
-    }
-  }
-	
   /**
    * 
    * @param  timplies   list of timplies with types from fixed points. 
@@ -242,7 +224,9 @@ public class FixpointsSort {
         FactWithType firstTimplies = timpliesUnsort.get(0);
         ArrayList<FactWithType> subTimpliesSorted = new ArrayList<>();
         for(FactWithType t : timpliesUnsort){
-          if(isTwoValHaveSameForm(firstTimplies.getTerm().getArguments().get(0),t.getTerm().getArguments().get(0))){
+          if(isTwoValsHaveSameForm(firstTimplies.getTerm().getArguments().get(0),t.getTerm().getArguments().get(0))){
+          //if(mgu.isT1GreatOrEqualT2(new FactWithType(firstTimplies.getvType(),firstTimplies.getTerm().getArguments().get(0)), new FactWithType(t.getvType(),t.getTerm().getArguments().get(0)), UserDefType)
+          //    || mgu.isT1GreatOrEqualT2(new FactWithType(t.getvType(),t.getTerm().getArguments().get(0)),new FactWithType(firstTimplies.getvType(),firstTimplies.getTerm().getArguments().get(0)), UserDefType)){
             subTimpliesSorted.add(t);
             factsUnsortCopy.remove(t);
           }
@@ -251,9 +235,56 @@ public class FixpointsSort {
       }
       timpliesUnsort.clear();
       timpliesUnsort.addAll(factsUnsortCopy);
-    }	
+    } 
     return timpliesSorted;
   }
+  
+  /**
+   * Display timplies in orders. 
+   * @param  classifiedTimplies   expended timplies have been classified into different list according to types
+   * @param  timplies             list of timplies with types from fixed points file.
+   */
+  public void printKeyLifeCycle(List<List<FactWithType>> classifiedTimplies,List<FactWithType> timplieslist){
+    List<List<ArrayList<FactWithType>>> classifiedTimpliesSorted = new ArrayList<>();
+    List<List<FactWithType>> classifiedTimpliesCopy = (List<List<FactWithType>>)dClone.deepClone(classifiedTimplies);
+    List<FactWithType> timplies = (List<FactWithType>)dClone.deepClone(timplieslist);
+    
+    for(List<FactWithType> cts : classifiedTimpliesCopy){
+      for(FactWithType ct : cts){
+        ct.setTerm(termSubs(ct.getTerm(),ct.getvType()));
+      }
+    }
+    for(FactWithType timplie : timplies){
+      timplie.setTerm(termSubs(timplie.getTerm(),timplie.getvType()));
+    }
+    
+    for(List<FactWithType> tList : classifiedTimpliesCopy){
+      classifiedTimpliesSorted.add(timpliesSort(tList));
+    }
+ 
+    for(List<ArrayList<FactWithType>> t : classifiedTimpliesSorted){
+      Collections.sort(t, new SortbyListSize());
+    }
+
+    //List<FactWithType> timpliesOrdered = new ArrayList<>();
+    for(List<ArrayList<FactWithType>> ts : classifiedTimpliesSorted){
+      for(ArrayList<FactWithType> t : ts){
+        Term firstVal = t.get(0).getTerm().getArguments().get(0);
+        for(FactWithType timplie : timplies){
+          if(firstVal.equals(timplie.getTerm().getArguments().get(0))){
+            //timpliesOrdered.add(timplie);
+            System.out.println(timplie.getTerm().getArguments().get(0) + " -->> " + timplie.getTerm().getArguments().get(1));
+          } 
+        }
+      }
+    }
+    
+    /*for(FactWithType t : timpliesOrdered){
+      System.out.println(t.getTerm().getArguments().get(0) + " -->> " + t.getTerm().getArguments().get(1));
+    }*/
+  }
+	
+  
 	
   /**
    * Returns a list which contains sorted fixed points in each lists. (timplies and occurs are removed)
@@ -269,9 +300,9 @@ public class FixpointsSort {
     }		
     List<FactWithType> factsUnsortCopy = new ArrayList<FactWithType>(factsUnsort);
     /*remove timplies and occurs from fixed points*/
-    for(FactWithType Fixedpoint : factsUnsort){
-      if(Fixedpoint.getTerm().getFactName().equals("timplies") || Fixedpoint.getTerm().getFactName().equals("occurs")){
-        factsUnsortCopy.remove(Fixedpoint);
+    for(FactWithType f : factsUnsort){
+      if(f.getTerm().getFactName().equals("timplies") || f.getTerm().getFactName().equals("occurs")){
+        factsUnsortCopy.remove(f);
       }
     }
     factsUnsort.clear();
@@ -359,7 +390,7 @@ public class FixpointsSort {
       return true;
     }
     else if((t1.getTerm() instanceof Composed) && (t2.getTerm() instanceof Composed)){
-      if(t1.getTerm().getFactName().equals(t2.getTerm().getFactName()) && t1.getTerm().getArguments().size() == t2.getTerm().getArguments().size()){
+      if(t1.getTerm().getFactName().equals(t2.getTerm().getFactName())){
         int argumentsSize = t1.getTerm().getArguments().size();
         for(int i=0;i<argumentsSize;i++){
           Term subT1 = t1.getTerm().getArguments().get(i);
@@ -369,7 +400,7 @@ public class FixpointsSort {
               int counter = 0;
               for(FactWithType timp : timplies){
                 counter ++;
-                if(isTwoValHaveSameForm(subT1, timp.getTerm().getArguments().get(0)) && isTwoValHaveSameForm(subT2, timp.getTerm().getArguments().get(1))){
+                if(isTwoValsHaveSameForm(subT1, timp.getTerm().getArguments().get(0)) && isTwoValsHaveSameForm(subT2, timp.getTerm().getArguments().get(1))){
                   if(isVal1GeneralThanVal2(timp.getTerm().getArguments().get(0),subT1,UserDefType)){
                     HashMap<String,String> typeMap = getSubstitutionMap(timp.getTerm().getArguments().get(0),subT1);
                     Term impliesFromT1 = termSubs(timp.getTerm().getArguments().get(1),typeMap);										
@@ -410,7 +441,7 @@ public class FixpointsSort {
 
   private HashMap<String,String> getSubstitutionMap(Term val1, Term val2){
     HashMap<String,String> map = new HashMap<String,String>();
-    if(isTwoValHaveSameForm(val1,val2) && (val1.getArguments().size() == val2.getArguments().size())){
+    if(isTwoValsHaveSameForm(val1,val2) && (val1.getArguments().size() == val2.getArguments().size())){
       for(int i=0;i<val1.getArguments().size();i++){
         if(!val1.getArguments().get(i).getFactName().equals("0")){
           for(int j=0;j<val1.getArguments().get(i).getArguments().size();j++){
@@ -503,7 +534,7 @@ public class FixpointsSort {
     return true;
   }
 	
-  public boolean isTwoValHaveSameForm(Term t1, Term t2){
+  public boolean isTwoValsHaveSameForm(Term t1, Term t2){
     if(!(t1 instanceof Composed) || !(t2 instanceof Composed) || (t1.getArguments().size() != t2.getArguments().size())){
       return false;
     }else {
@@ -1358,7 +1389,7 @@ public class FixpointsSort {
               int counter = 0;
               for(FactWithType timp : timplies){
                 counter ++;
-                if(isTwoValHaveSameForm(subT1, timp.getTerm().getArguments().get(0)) && isTwoValHaveSameForm(subT2, timp.getTerm().getArguments().get(1))){
+                if(isTwoValsHaveSameForm(subT1, timp.getTerm().getArguments().get(0)) && isTwoValsHaveSameForm(subT2, timp.getTerm().getArguments().get(1))){
                   //System.out.println(timp.getTerm().getArguments().get(0));
                   //System.out.println(subT1);
                   if(isVal1GeneralThanVal2(timp.getTerm().getArguments().get(0),subT1,UserDefType)){

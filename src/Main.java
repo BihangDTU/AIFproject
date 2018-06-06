@@ -2,6 +2,8 @@ import aifParser.*;
 import fixedpointParser.*;
 import dataStructure.*;
 
+import myException.UnificationFailedException;
+
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import org.antlr.v4.runtime.CharStreams;
@@ -60,7 +62,7 @@ public class Main {
   HashMap<String,List<Term>> UserType = new HashMap<>();
   for(Type ty : ((AIFdata)aifAST).getTypes()){
     List<Term> agents = new ArrayList<Term>();
-    if(!ty.getAgents().isEmpty()){
+    //if(!ty.getAgents().isEmpty()){
       for(String agent : ty.getAgents()){
         if(Character.isLowerCase(agent.charAt(0))){
           agents.add(new Composed(agent));
@@ -70,7 +72,7 @@ public class Main {
           agents.addAll(UserType.get(agent));
         }
       }
-    }
+    //}
     //remove duplicate agents in agent List 
     UserType.put(ty.getUserType(), new ArrayList<>(new HashSet<>(agents)));
   }
@@ -96,8 +98,150 @@ public class Main {
   System.out.println("--------------------------------------------");
   
   
-  displayMenu();
-  invokeFunctions(aifAST,fpAST,UserType,UserDefType);
+  ArrayList<Term> arg1 = new ArrayList<>();
+  arg1.add(new Variable("Z"));
+  arg1.add(new Variable("Z"));
+  Composed f1 = new Composed("f",arg1);
+  
+  ArrayList<Term> arg2 = new ArrayList<>();
+  arg2.add(new Variable("X"));
+  arg2.add(new Variable("Y"));
+  Composed f2 = new Composed("f",arg2);
+  
+  Mgu mgu = new Mgu();
+  try{
+    Substitution vSub = mgu.mgu(f1,f2,new Substitution());
+    System.out.println(vSub.getSubstitution().toString());
+  }catch(UnificationFailedException e){}
+  
+  TermPair tPair = new TermPair(f1,f2);
+  List<TermPair> tPairs = new ArrayList<>();
+  tPairs.add(tPair);
+  Substitution subs = new Substitution();
+  try{
+    mgu.mgu2(tPairs,subs);
+  }catch(UnificationFailedException e){}
+  
+  System.out.println(subs.getSubstitution().toString());
+  
+  List<FactWithType> factsUnsort = new ArrayList<FactWithType>();
+  for (Map.Entry<Integer, Fixedpoint> entry : ((FixedpointData)fpAST).getFixpoints().entrySet()) {
+    factsUnsort.add(new FactWithType(entry.getValue().getvType(),entry.getValue().getTerm()));
+  } 
+  
+  //System.out.println(mgu.renameTermVars(factsUnsort.get(2)));
+  
+  FactWithType g1 = factsUnsort.get(6);
+  FactWithType g2 = factsUnsort.get(7);
+  FactWithType timplies1 = factsUnsort.get(8);
+  FactWithType timplies2 = factsUnsort.get(9);
+  
+  //FactWithType gg1 = new FactWithType(g1.getvType(),g1.getTerm().getArguments().get(0));
+  //FactWithType gg2 = new FactWithType(g2.getvType(),g2.getTerm().getArguments().get(0));
+  FactWithType gg1 = new FactWithType(g1.getvType(),g1.getTerm());
+  FactWithType gg2 = new FactWithType(g2.getvType(),g2.getTerm());
+  System.out.println(gg1);
+  System.out.println(gg2);
+  System.out.println(timplies1);
+  
+  //System.out.println();
+  //System.out.println(mgu.renameTermVars(g1));
+  //System.out.println(mgu.renameTermVars(g2));
+  FactsSort fs = new FactsSort();
+  if(mgu.isT1GreaterOrEqualT2(gg1, gg2, UserDefType, new RenamingInfo())){
+    System.out.println("yes");
+  }else{
+    System.out.println("no");
+  }
+  
+  List<FactWithType> timplies = new ArrayList<>();
+  timplies.add(timplies1);
+  timplies.add(timplies2);
+  
+  if(fs.canT1impliesT2(gg1, gg2,timplies,UserDefType)){
+    System.out.println("yes");
+  }else{
+    System.out.println("no");
+  }
+  System.out.println("-------------------------");
+  if(fs.isTwoFactsHaveSameForm(gg1.getTerm(), gg2.getTerm())){
+    System.out.println("yes");
+  }else{
+    System.out.println("no");
+  }
+  
+  FixpointsSort fp = new FixpointsSort();
+  List<FactWithType> extentedtimplies = fp.getExtendedTimplies(fpAST,UserDefType);
+  for(FactWithType timplie : extentedtimplies){
+    System.out.println(timplie.toString());
+  }
+  
+  System.out.println();
+  System.out.println();
+  System.out.println();
+  List<List<FactWithType>> gg = fp.classifyTimpliesInTypes(extentedtimplies);
+  for(List<FactWithType> g : gg){
+    for(FactWithType f : g){
+      System.out.println(f.toString());
+    }
+    System.out.println();
+  }
+  System.out.println("-----------------------------------------");
+  for(List<FactWithType> tList : gg){
+    for(ArrayList<FactWithType> hs : fp.timpliesSort(tList)){
+      for(FactWithType h : hs){
+        System.out.println(h);
+      }
+      System.out.println();
+    }
+    System.out.println();
+    System.out.println();
+  }
+ 
+  System.out.println("-----------------------------------------");
+  List<FactWithType> timps = fp.getTimplies(fpAST);
+  for(FactWithType t : timps){
+    System.out.println(t);
+  }
+  System.out.println("-----------------------------------------");
+  fp.printKeyLifeCycle(gg,timps);
+  
+  System.out.println("-----------------------------------------");
+  List<FactWithTypeRuleName> facts = fs.getAllFactsFromFixedPoint(fpAST);
+  for(FactWithTypeRuleName f : facts){
+    System.out.println(f);
+  }
+  System.out.println("-----------------------------------------");
+  List<ArrayList<FactWithTypeRuleName>> factsSorted = fs.fixedpointsSort(facts);
+  for(ArrayList<FactWithTypeRuleName> fss : factsSorted){
+    for(FactWithTypeRuleName ff : fss){
+      System.out.println(ff);
+    }
+    System.out.println();
+  }
+  System.out.println("-----------------------------------------");
+  List<ArrayList<FactWithTypeRuleName>> reductedfacts = fs.fixedpointsWithoutDuplicate(factsSorted,extentedtimplies,UserDefType);
+  for(ArrayList<FactWithTypeRuleName> gss : reductedfacts){
+    for(FactWithTypeRuleName ggg : gss){
+      System.out.println(ggg);
+    }
+    System.out.println();
+  }
+  System.out.println("-----------------------------------------");
+  List<ArrayList<FactWithType>> reductedfactsNoRuleName = fs.fixedpointsWithoutDuplicateRuleName(reductedfacts);
+  for(ArrayList<FactWithType> gsss : reductedfactsNoRuleName){
+    for(FactWithType gggg : gsss){
+      System.out.println(gggg);
+    }
+    System.out.println();
+  }
+  
+  System.out.println("-----------------------------------------");
+  HashSet<String> ruleNames = fs.getRuleNamesHaveValueType(aifAST);
+  System.out.println(ruleNames);
+  System.out.println("-----------------------------------------");
+  //displayMenu();
+  //invokeFunctions(aifAST,fpAST,UserType,UserDefType);
   };
   
   public static void displayMenu(){
@@ -170,6 +314,7 @@ public class Main {
           	System.out.println();
           	System.out.println();
           	node1.printAttackPath(node1);
+          	//node1.printTree(node1, "  ");
           	break;
           case 6:
           	FixpointsSort fps = new FixpointsSort();
@@ -186,12 +331,12 @@ public class Main {
           	FixpointsSort fp = new FixpointsSort();
           	List<FactWithType> timps = fp.getTimplies(fpAST);
           	List<FactWithType> timplies = fp.getExtendedTimplies(fpAST,UserDefType);
-          	List<ArrayList<FactWithType>> sortedTimplies = fp.timpliesSort(timplies);
+          	//List<ArrayList<FactWithType>> sortedTimplies = fp.timpliesSort(timplies);
           	List<ArrayList<FactWithType>> fixedpointsSorted = fp.fixedpointsSort(fpAST);
           	List<List<FactWithType>> timpliesClassified = fp.classifyTimpliesInTypes(timplies);
           	          	
           	System.out.println("Key life-cycle:");
-          	fp.timpliesOrdered(timpliesClassified,timps);
+          	fp.printKeyLifeCycle(timpliesClassified,timps);
           	System.out.println();
           	//for(ArrayList<FactWithType> ts : sortedTimplies){
           	//  for(FactWithType t : ts){
@@ -247,7 +392,7 @@ public class Main {
         System.out.println(t.getTerm().toString());
       }
       System.out.println();
-      System.out.println("Contrete Facts:");
+      System.out.println("Abstract facts to contrete Facts:");
       ConcreteRule concreteRule =  ST.getConcreteRuleByRuleName(aifAST,ruleName);
       
       for(FactWithType t : newGenerateFactsWithoutDuplicate){

@@ -32,6 +32,7 @@ public class AttackTrace {
       fmt.format("\n");
       fmt.format("{empty}");
     }
+    fmt.close();  
     return sbuf.toString();
   }
   
@@ -92,6 +93,7 @@ public class AttackTrace {
       fmt.format("\n");
       fmt.format("{empty}");
     }
+    fmt.close();
     return sbuf.toString();
   }
   
@@ -154,6 +156,7 @@ public class AttackTrace {
       fmt.format("\n");
       fmt.format("{empty}");
     }
+    fmt.close();
     return sbuf.toString();
   }
   
