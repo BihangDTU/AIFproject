@@ -15,13 +15,13 @@ public class AbstractRule extends AST implements Serializable{
   private String rulesName;
   private HashMap<String, String> varsTypes = new HashMap<>();
   private List<Term> LF = new ArrayList<>();
-  private List<Term> freshVars;
+  private HashMap<String,Term> freshVars;
   private List<Term> RF = new ArrayList<>();
   private HashMap<String,Timplies> timplies = new HashMap<>();
   
   public AbstractRule(){}
 	public AbstractRule(String rulesName, HashMap<String, String> varsTypes,
-			List<Term> lF, List<Term> rF,List<Term> freshVars, HashMap<String,Timplies> timplies) {
+			List<Term> lF, List<Term> rF,HashMap<String,Term> freshVars, HashMap<String,Timplies> timplies) {
 		super();
 		this.rulesName = rulesName;
 		this.varsTypes = varsTypes;
@@ -48,10 +48,10 @@ public class AbstractRule extends AST implements Serializable{
 	public void setLF(List<Term> lF) {
 		LF = lF;
 	}
-	public List<Term> getFreshVars() {
+	public HashMap<String,Term> getFreshVars() {
 		return freshVars;
 	}
-	public void setFreshVars(List<Term> freshVars) {
+	public void setFreshVars(HashMap<String,Term> freshVars) {
 		this.freshVars = freshVars;
 	}
 	public List<Term> getRF() {

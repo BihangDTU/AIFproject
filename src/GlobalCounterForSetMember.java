@@ -1,7 +1,7 @@
 
-public class GlobalCounter {
+public class GlobalCounterForSetMember {
   private static int counter = 0;
-  public GlobalCounter(){};
+  public GlobalCounterForSetMember(){};
   public void increaseCounter(){
     counter++;
   }

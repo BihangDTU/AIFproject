@@ -15,6 +15,7 @@ public class Timplies implements Serializable{
     this.isTimplies = isTimplies;
     this.timplies = timplies;
   }
+  
   public Timplies(Term timplies) {
     super();
     this.timplies = timplies;

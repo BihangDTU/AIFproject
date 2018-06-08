@@ -207,12 +207,18 @@ public class Main {
   fp.printKeyLifeCycle(gg,timps);
   
   System.out.println("-----------------------------------------");
-  List<FactWithTypeRuleName> facts = fs.getAllFactsFromFixedPoint(fpAST);
+  List<FactWithTypeRuleName> fixedpoint = fs.getAllFactsFromFixedPoint(fpAST);
+  for(FactWithTypeRuleName f : fixedpoint){
+    System.out.println(f);
+  }
+  List<FactWithTypeRuleName> facts = fs.getReductedFixedpointWithRuleName(fixedpoint);
+  System.out.println("fixed-point without timplies:");
   for(FactWithTypeRuleName f : facts){
     System.out.println(f);
   }
   System.out.println("-----------------------------------------");
-  List<ArrayList<FactWithTypeRuleName>> factsSorted = fs.fixedpointsSort(facts);
+  System.out.println("factsSorted:");
+  List<ArrayList<FactWithTypeRuleName>> factsSorted = fs.sortFacts(facts);
   for(ArrayList<FactWithTypeRuleName> fss : factsSorted){
     for(FactWithTypeRuleName ff : fss){
       System.out.println(ff);
@@ -220,7 +226,8 @@ public class Main {
     System.out.println();
   }
   System.out.println("-----------------------------------------");
-  List<ArrayList<FactWithTypeRuleName>> reductedfacts = fs.fixedpointsWithoutDuplicate(factsSorted,extentedtimplies,UserDefType);
+  System.out.println("reductedfacts:");
+  List<ArrayList<FactWithTypeRuleName>> reductedfacts = fs.reduceDuplicateFacts(factsSorted,extentedtimplies,UserDefType);
   for(ArrayList<FactWithTypeRuleName> gss : reductedfacts){
     for(FactWithTypeRuleName ggg : gss){
       System.out.println(ggg);
@@ -228,18 +235,43 @@ public class Main {
     System.out.println();
   }
   System.out.println("-----------------------------------------");
-  List<ArrayList<FactWithType>> reductedfactsNoRuleName = fs.fixedpointsWithoutDuplicateRuleName(reductedfacts);
-  for(ArrayList<FactWithType> gsss : reductedfactsNoRuleName){
+  //System.out.println("reductedfacts without rule name:");
+  //List<ArrayList<FactWithType>> reductedfactsNoRuleName = fs.fixedpointsWithoutDuplicateRuleName(reductedfacts);
+  /*for(ArrayList<FactWithType> gsss : reductedfactsNoRuleName){
     for(FactWithType gggg : gsss){
       System.out.println(gggg);
     }
     System.out.println();
-  }
-  
+  }*/
   System.out.println("-----------------------------------------");
   HashSet<String> ruleNames = fs.getRuleNamesHaveValueType(aifAST);
   System.out.println(ruleNames);
   System.out.println("-----------------------------------------");
+  fs.printReductedFacts(reductedfacts);
+  System.out.println("-----------------------------------------");
+  fp.printKeyLifeCycle(gg,timps);
+  System.out.println();
+  fs.printReductedFacts(reductedfacts,ruleNames);
+  System.out.println("-----------------------------------------");
+  //fs.printReductedFacts(reductedfacts,ruleNames);
+  
+  System.out.println("-----------------------------------------");
+  /*List<ArrayList<FactWithType>> ddds =  fs.getReductedFixedpoint(factsSorted);
+  for(ArrayList<FactWithType> ddd : ddds){
+   for(FactWithType dd : ddd){
+     System.out.println(dd);
+   } 
+   System.out.println();
+  }*/
+  
+  VerifyFixedpoint vf = new VerifyFixedpoint(); 
+  vf.applyAbsRuleWithSatisfiedFacts(aifAST,fpAST,"serverUpdateKey",UserDefType);
+  //AbstractRule absr = vf.concreteRuleToAbsRuleConversion(aifAST, "userUpdateKey");
+  //System.out.println(absr.toString());
+ 
+
+  
+  
   //displayMenu();
   //invokeFunctions(aifAST,fpAST,UserType,UserDefType);
   };

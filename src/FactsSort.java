@@ -96,6 +96,9 @@ public class FactsSort {
     }else if((t1 instanceof Variable)){
       if(t2 instanceof Variable) return true;
       else return false;
+    }else if(t2 instanceof Variable){
+      if(t1 instanceof Variable) return true;
+      else return false;
     }else {
       if(!((Composed)t1).getFactName().equals(((Composed)t2).getFactName())){
         return false;
@@ -125,16 +128,16 @@ public class FactsSort {
    * @param  fpAST   dataStructure contains fixed points from output file  
    * @return  a list which contains sorted fixed points in each lists
    */
-  public List<ArrayList<FactWithTypeRuleName>> fixedpointsSort(List<FactWithTypeRuleName> facts){
+  public List<ArrayList<FactWithTypeRuleName>> sortFacts(List<FactWithTypeRuleName> facts){
     List<ArrayList<FactWithTypeRuleName>> factsSorted = new ArrayList<>();
     List<FactWithTypeRuleName> factsUnsort = new ArrayList<>(facts);
     List<FactWithTypeRuleName> factsUnsortCopy = new ArrayList<>();
     /*remove timplies and occurs from fixed points*/
-    for(FactWithTypeRuleName f : facts){
+    /*for(FactWithTypeRuleName f : facts){
       if((f.getTerm().getFactName().equals("timplies") || f.getTerm().getFactName().equals("occurs"))){
         factsUnsort.remove(f);
       }
-    }
+    }*/
     factsUnsortCopy.addAll(factsUnsort);
     /*sort facts into different lists then add to one list which contains lists of sorted facts.*/
     while(true){
@@ -163,9 +166,11 @@ public class FactsSort {
    * @param  UserDefType         user define types, using for compare types
    * @return A list of lists, each inner list contains the same form fact (all facts which can be generate by timplies are removed from the list).
    */
-  public List<ArrayList<FactWithTypeRuleName>> fixedpointsWithoutDuplicate(List<ArrayList<FactWithTypeRuleName>> fixedPointsSorted, List<FactWithType> extendedTimplies, HashMap<String,List<String>> UserDefType){
+  public List<ArrayList<FactWithTypeRuleName>> reduceDuplicateFacts(List<ArrayList<FactWithTypeRuleName>> factsSorted, List<FactWithType> extendedTimplies, HashMap<String,List<String>> UserDefType){
     List<ArrayList<FactWithTypeRuleName>> reducedFacts = new ArrayList<>();
-    for(ArrayList<FactWithTypeRuleName> facts : fixedPointsSorted){
+
+    for(ArrayList<FactWithTypeRuleName> factList : factsSorted){
+      ArrayList<FactWithTypeRuleName> facts = new ArrayList<>(factList);
       if(facts.size() == 1){
         reducedFacts.add(facts);
       }else{        
@@ -219,9 +224,47 @@ public class FactsSort {
     return ruleNames;
   }
   
-  public void printReductedFacts(List<ArrayList<FactWithType>> facts){
-    
+  public void printReductedFacts(List<ArrayList<FactWithTypeRuleName>> facts, HashSet<String> ruleNames){
+    for(ArrayList<FactWithTypeRuleName> subList : facts){
+      for(FactWithTypeRuleName fact : subList){
+        if(ruleNames.contains(fact.getRuleName())){
+          System.out.println(mgu.termSubs(fact.getTerm(), fact.getvType()) + "   "+ fact.getRuleName());
+        }
+      }
+    }
   }
   
+  public void printReductedFacts(List<ArrayList<FactWithTypeRuleName>> facts){
+    for(ArrayList<FactWithTypeRuleName> subList : facts){
+      for(FactWithTypeRuleName fact : subList){
+        System.out.println(mgu.termSubs(fact.getTerm(), fact.getvType()) + "   "+ fact.getRuleName());  
+      }
+    }
+  }
+  
+  
+  public List<ArrayList<FactWithType>> getReductedFixedpoint(List<ArrayList<FactWithTypeRuleName>> facts){
+    List<ArrayList<FactWithType>> reductedFixedpoint = new ArrayList<>();
+    for(ArrayList<FactWithTypeRuleName> subList : facts){
+      ArrayList<FactWithType> reducctedSubList = new ArrayList<>();
+      for(FactWithTypeRuleName fact : subList){
+        if(!fact.getRuleName().equals("timplies")){
+          reducctedSubList.add(new FactWithType(fact.getvType(),fact.getTerm()));
+        }
+      }
+      reductedFixedpoint.add(reducctedSubList);
+    }
+    return reductedFixedpoint;
+  }
+  
+  public List<FactWithTypeRuleName> getReductedFixedpointWithRuleName(List<FactWithTypeRuleName> facts){
+    List<FactWithTypeRuleName> FixedpointWithTimplies = new ArrayList<>();
+    for(FactWithTypeRuleName fact : facts){
+      if(!fact.getRuleName().equals("timplies") && !fact.getTerm().getFactName().equals("timplies") && !fact.getTerm().getFactName().equals("occurs")){
+        FixedpointWithTimplies.add(fact);
+      }
+    }
+    return FixedpointWithTimplies;
+  }  
 
 }

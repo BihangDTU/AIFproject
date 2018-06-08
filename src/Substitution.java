@@ -1,9 +1,14 @@
 import dataStructure.*;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class Substitution {
+public class Substitution implements Serializable{
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
   private boolean unifierState = true;
   private HashMap<String, Term> substitution = new HashMap<>();
 

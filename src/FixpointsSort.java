@@ -1090,9 +1090,7 @@ public class FixpointsSort {
     List<ArrayList<HashMap<String,FactWithType>>>  satisfiedKeys = removeUnsatisfyKeys(keyMapToValList,concreteKeyMapList,UserDefType);	
     List<ArrayList<HashMap<String,FactWithType>>> keyMapCombination = new ArrayList<>(getCombinationKeyMap(satisfiedKeys));
 		
-    HashMap<String, HashSet<Term>> satisfiedKeysMap = new HashMap<>();
-		
-		
+    HashMap<String, HashSet<Term>> satisfiedKeysMap = new HashMap<>();	
     // only for display
     HashMap<String, ArrayList<FactWithType>> allPossibleKeys = new HashMap<>();
     for(ArrayList<FactWithType> facts : satisfiedFormFacts){
