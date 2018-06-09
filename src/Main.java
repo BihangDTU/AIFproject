@@ -265,7 +265,7 @@ public class Main {
   }*/
   
   VerifyFixedpoint vf = new VerifyFixedpoint(); 
-  vf.applyAbsRuleWithSatisfiedFacts(aifAST,fpAST,"serverUpdateKey",UserDefType);
+  vf.applyAbsRuleWithSatisfiedFacts(aifAST,fpAST,"keyReg",UserDefType);
   //AbstractRule absr = vf.concreteRuleToAbsRuleConversion(aifAST, "userUpdateKey");
   //System.out.println(absr.toString());
  

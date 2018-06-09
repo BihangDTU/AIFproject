@@ -27,7 +27,7 @@ public class FactsSort {
     if(mgu.termSubs(val1.getTerm(),val1.getvType()).equals(mgu.termSubs(val2.getTerm(),val2.getvType()))){
       return true;
     }
-    if(val1.getTerm().getFactName()!="val" || val2.getTerm().getFactName()!="val"){
+    if(!val1.getTerm().getFactName().equals("val") || !val2.getTerm().getFactName().equals("val")){
       return false;
     }
     RenamingInfo renameInfo = new RenamingInfo(); 

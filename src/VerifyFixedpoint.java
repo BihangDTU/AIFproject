@@ -51,18 +51,18 @@ public class VerifyFixedpoint {
     //  System.out.println(f);
     //}
     List<ArrayList<FactWithTypeRuleName>> factsSorted = fs.sortFacts(reducedFacts);
-    /*for(ArrayList<FactWithTypeRuleName> fss : factsSorted){
+    for(ArrayList<FactWithTypeRuleName> fss : factsSorted){
       for(FactWithTypeRuleName ff : fss){
         System.out.println(ff);
       }
       System.out.println();
-    }*/
+    }
     List<FactWithType> extendedTimplies = fp.getExtendedTimplies(fpAST,UserDefType);
     //for(FactWithType exted : extendedTimplies){
     //  System.out.println(exted);
     //}
-    List<ArrayList<FactWithTypeRuleName>> reductedfactsWithRuleName = fs.reduceDuplicateFacts(factsSorted,extendedTimplies,UserDefType);
-    List<ArrayList<FactWithType>> reductedfacts = fs.fixedpointsWithoutDuplicateRuleName(reductedfactsWithRuleName);
+    //List<ArrayList<FactWithTypeRuleName>> reductedfactsWithRuleName = fs.reduceDuplicateFacts(factsSorted,extendedTimplies,UserDefType);
+    List<ArrayList<FactWithType>> reductedfacts = fs.fixedpointsWithoutDuplicateRuleName(factsSorted);
     /*for(ArrayList<FactWithType> gss : reductedfacts){
       for(FactWithType ggg : gss){
         System.out.println(ggg);
@@ -70,12 +70,12 @@ public class VerifyFixedpoint {
       System.out.println();
     }*/
     List<ArrayList<FactWithType>> satisfiedFormFacts = findSatisfyFormFacts(absrule, reductedfacts);
-    /*System.out.println();
+    System.out.println();
     for(ArrayList<FactWithType> sfgs : satisfiedFormFacts){
       for(FactWithType sfg : sfgs){
         System.out.println(sfg);
       }
-    }*/
+    }
     List<ArrayList<FactWithType>> satisfiedFacts = getSatisfyFacts(absrule,satisfiedFormFacts,UserDefType);
     System.out.println();
     for(ArrayList<FactWithType> sfgs : satisfiedFacts){
@@ -99,6 +99,7 @@ public class VerifyFixedpoint {
       concreteKeyMapList.add(concreteKeyMapToVal);
     }
     
+    Set<HashMap<String,FactWithType>> newDerivedKeyMap = new HashSet<>();  
     int keyMapToValListSize = keyMapToValList.size();
     for(int i=0;i<keyMapToValListSize;i++){
       int keyMapSize = keyMapToValList.get(i).size();
@@ -109,31 +110,17 @@ public class VerifyFixedpoint {
         for(Map.Entry<String,ArrayList<FactWithType>> ddd : derivedKeyMap.entrySet()){
           System.out.println(ddd);
         }
-        List<ArrayList<HashMap<String,FactWithType>>> keyMapToValListCopy = (List<ArrayList<HashMap<String,FactWithType>>>)dClone.deepClone(keyMapToValList);
-        // add new derived vals to keyMapToValList
-        for(Map.Entry<String,ArrayList<FactWithType>> newDeriveVals : derivedKeyMap.entrySet()){
-          for(FactWithType val : newDeriveVals.getValue()){
-            int counter = 0;
-            for(HashMap<String,FactWithType> element : keyMapToValListCopy.get(i)){
-              for(Map.Entry<String,FactWithType> entity : element.entrySet()){
-                Term t1 = mgu.termSubs(entity.getValue().getTerm(), entity.getValue().getvType());
-                Term t2 = mgu.termSubs(val.getTerm(), val.getvType());
-                if(!t1.equals(t2)){
-                  counter ++;
-                  if(counter == keyMapToValListCopy.get(i).size()){
-                    HashMap<String,FactWithType> newValmap = new HashMap<>();
-                    newValmap.put(newDeriveVals.getKey(), val);
-                    keyMapToValList.get(i).add(newValmap);
-                  }
-                }
-              }
-            }
-          }
-        }
+               
+        Set<HashMap<String,FactWithType>> newDerivedKeyMapsub = getAllCombinationMaps(derivedKeyMap);
+        newDerivedKeyMap.addAll(newDerivedKeyMapsub);
+     /*   for(HashMap<String,FactWithType> kk : gggg){
+          System.out.println(kk);
+        }*/
       }
-
+      keyMapToValList.get(i).addAll(newDerivedKeyMap);
     }     
     
+    //keyMapToValList.add(new ArrayList<HashMap<String,FactWithType>>(newDerivedKeyMap));
     System.out.println();
     System.out.println("keyMapToValList");
     for(ArrayList<HashMap<String,FactWithType>> gggg : keyMapToValList){
@@ -143,8 +130,12 @@ public class VerifyFixedpoint {
     }
     List<ArrayList<HashMap<String,FactWithType>>>  satisfiedKeys = removeUnsatisfyKeys(keyMapToValList,concreteKeyMapList,UserDefType); 
     System.out.println(satisfiedKeys);
+    System.out.println();
+    List<ArrayList<HashMap<String,FactWithType>>> reductedSatisfiedKeys = reduceDuplicateMaps(satisfiedKeys,extendedTimplies,UserDefType);
+    System.out.println(reductedSatisfiedKeys);
+    System.out.println();
     
-    List<ArrayList<HashMap<String,FactWithType>>> keyMapCombination = new ArrayList<>(getCombinationKeyMap(satisfiedKeys));
+    List<ArrayList<HashMap<String,FactWithType>>> keyMapCombination = new ArrayList<>(getCombinationKeyMap(reductedSatisfiedKeys));
     System.out.println(keyMapCombination);
     
     HashMap<String, HashSet<Term>> satisfiedKeysMap = new HashMap<>();  
@@ -225,12 +216,16 @@ public class VerifyFixedpoint {
       }
     }
     
-    List<AbstractRule> abstractRules = new ArrayList<>();
+    //List<AbstractRule> abstractRules = new ArrayList<>();
+    if(keyMapCombination.isEmpty() && absrule.getLF().isEmpty()){
+      applySatisifyKeysToAbsRulesNew(conRule,absrule,new ArrayList<HashMap<String,FactWithType>>(),UserDefType);
+    }
     for(ArrayList<HashMap<String,FactWithType>> keyMaps : keyMapCombination){ 
       applySatisifyKeysToAbsRulesNew(conRule,absrule,keyMaps,UserDefType);
       //applySatisifyKeysToAbsRules(conRule,absrule,keyMaps,UserDefType);
       //abstractRules.addAll(getAllSatisfiedAbsRules(conRule,absrule,keyMaps,UserDefType));
     }   
+    
  /*   if(!keyMapCombination.isEmpty()){
       for(AbstractRule absR : abstractRules){
         HashMap<String,String> varsType = absR.getVarsTypes();
@@ -361,40 +356,6 @@ public class VerifyFixedpoint {
     return setPosition;
   }
   
-  /*public Term concreteTermToAbsTerm(Term term,HashMap<String, String> varsTypes, List<Condition> conditions,HashMap<String, Integer> setPosition){
-    if(term instanceof Composed){
-      if(term.getArguments().isEmpty()){
-        return term;
-      }else{
-        Composed absTerm = new Composed(term.getFactName());
-        for(Term subTerm : term.getArguments()){
-          absTerm.setArguments(concreteTermToAbsTerm(subTerm,varsTypes,conditions,setPosition));
-        }
-        return absTerm;
-      }
-    }else if(term instanceof Variable){
-      if(varsTypes.get(term.getVarName()).equals("value")){
-        Composed val = new Composed("val");
-        Composed zero = new Composed("0");
-        Composed _ = new Composed("_");
-        for(int j=0;j<setPosition.size();j++){ // val initialize to val(_,_,_)
-          val.setArguments(_);
-        }
-        for(Condition c : conditions){
-          if(c.getVar().equals(term)){
-            int position = setPosition.get(c.getTerm().getFactName());
-            if(c.positive){
-              val.getArguments().set(position, c.getTerm());
-            }else{
-              val.getArguments().set(position, zero);
-            }
-          }
-        }
-        return val;
-      }
-    } 
-    return term;
-  }*/
   
   public Term cFactToAbsFact(Term term,HashMap<String, String> varsTypes, List<Condition> conditions,HashMap<String, Integer> setPosition){
     if(term instanceof Variable){
@@ -434,81 +395,6 @@ public class VerifyFixedpoint {
     }
   }
   
- /* public HashMap<String,Timplies> getTimpliesFromConcreteRule(ConcreteRule concreteRule, HashMap<String, Integer> setPosition){
-    HashMap<String,Timplies> timpliesMap = new HashMap<>();
-    List<Condition> consitionLeft = new ArrayList<>(concreteRule.getSplus());
-    consitionLeft.addAll(concreteRule.getSnega());
-    List<Condition> consitionRS = new ArrayList<>(concreteRule.getRS());
-    for(Condition cp : concreteRule.getSplus()){
-      if(!consitionRS.contains(cp)){
-        consitionRS.add(new Condition(cp.getVar(),cp.getTerm(),false));
-      }
-    }
-    consitionRS.addAll(concreteRule.getSnega());
-    for(Condition crs : concreteRule.getRS()){
-      for(Condition cn : concreteRule.getSnega()){
-        if(crs.getVar().equals(cn.getVar()) && crs.getTerm().getFactName().equals(cn.getTerm().getFactName())){
-          consitionRS.remove(cn);
-        }
-      }
-    }
-    HashSet<Term> vars = new HashSet<>();
-    for(Condition cl : consitionLeft){
-      vars.add(cl.getVar());
-    }
-    if(!concreteRule.getNewFreshVars().getFreshs().isEmpty()){ // need improve later
-      vars.addAll(concreteRule.getNewFreshVars().getFreshs());
-    }
-    if(!concreteRule.getRF().contains(new Composed("attack"))){
-      for(Term var : vars){
-        Composed val1 = new Composed("val");
-        Composed val2 = new Composed("val");
-        Composed zero = new Composed("0");
-        Composed _ = new Composed("_");
-        if(concreteRule.getNewFreshVars().getFreshs().contains(var)){
-          for(int j=0;j<setPosition.size();j++){ // val initialize to val(0,0,0)
-            val1.setArguments(zero);
-            val2.setArguments(zero);
-          }
-        }else{
-          for(int j=0;j<setPosition.size();j++){ // val initialize to val(_,_,_)
-            val1.setArguments(_);
-            val2.setArguments(_);
-          }
-        }
-      
-        for(Condition c1 : consitionLeft){
-          if(c1.getVar().equals(var)){
-            int position = setPosition.get(c1.getTerm().getFactName());
-            if(c1.positive){
-              val1.getArguments().set(position, c1.getTerm());
-            }else{
-              val1.getArguments().set(position, zero);
-            }
-          }
-        }
-        for(Condition c2 : consitionRS){
-          if(c2.getVar().equals(var)){
-            int position = setPosition.get(c2.getTerm().getFactName());
-            if(c2.positive){
-              val2.getArguments().set(position, c2.getTerm());
-            }else{
-              val2.getArguments().set(position, zero);
-            }
-          }
-        }
-        ArrayList<Term> arguments = new ArrayList<>();
-        arguments.add(val1);
-        arguments.add(val2);
-        if(concreteRule.getNewFreshVars().getFreshs().contains(var)){
-          timpliesMap.put(var.toString(),new Timplies(false,new Composed("timplies",arguments)));
-        }else{
-          timpliesMap.put(var.toString(),new Timplies(new Composed("timplies",arguments)));
-        }
-      }
-    } 
-    return timpliesMap;
-  }*/
   
   public AbstractRule absRuleSubstitution(AbstractRule absRule){
     AbstractRule absRuleSubstituted = new AbstractRule();
@@ -651,10 +537,12 @@ public class VerifyFixedpoint {
     for(int i=0;i<keyList.size();i++){
       for(int j=0;j<keyList.get(i).size();j++){
         for(Map.Entry<String,FactWithType> entity : keys.get(i).get(0).entrySet()){// need more test here
-          FactWithType val1 = keyList.get(i).get(j).get(entity.getKey());
-          FactWithType val2 = entity.getValue();
-          if(!mgu.isT1GreaterOrEqualT2(val1, val2, UserDefType, new RenamingInfo())){  
-            satisfiedKeys.get(i).remove(keyList.get(i).get(j));
+          if(keyList.get(i).get(j).containsKey(entity.getKey())){
+            FactWithType val1 = keyList.get(i).get(j).get(entity.getKey());
+            FactWithType val2 = entity.getValue();
+            if(!mgu.isT1GreaterOrEqualT2(val2, val1, UserDefType, new RenamingInfo())){  
+              satisfiedKeys.get(i).remove(keyList.get(i).get(j));
+            }
           }
         }
       }
@@ -701,113 +589,7 @@ public class VerifyFixedpoint {
     return combinations;
   }
   
-  /*public List<AbstractRule> getAllSatisfiedAbsRules(ConcreteRule concreteRule, AbstractRule absRule, ArrayList<HashMap<String,FactWithType>> satisfiedKeys,HashMap<String,List<String>> UserDefType){
-    List<AbstractRule> satisfiedAbsRules = new ArrayList<>();
-    
-    AbstractRule absruleSubstituted = absRuleSubstitution(absRule);
-    
-    HashMap<String, Term> tempMap = new HashMap<>();
-    HashMap<String, Term> userType = new HashMap<>();
-    HashMap<String, HashMap<String,String>> newVarTypes = new HashMap<>();
-    for(HashMap<String,FactWithType> key : satisfiedKeys){
-      for(Map.Entry<String, FactWithType> userDefType : key.entrySet()){
-        HashMap<String, String> newTypes = new HashMap<>();
-        for(Map.Entry<String, String> types : userDefType.getValue().getvType().entrySet()){
-          String k = "";
-          if(types.getKey().contains("_")){
-            k = types.getKey().substring(0,types.getKey().indexOf("_"));
-          }else{
-            k = types.getKey();
-          }
-          newTypes.put(k, types.getValue());
-          if(!userType.containsKey(k)){
-            userType.put(k, new Variable(types.getValue()));
-          }else{
-            if(UserDefType.containsKey(userType.get(k).getVarName()) && UserDefType.containsKey(types.getValue())){
-              if(!UserDefType.get((userType.get(k)).getVarName()).containsAll(UserDefType.get(types.getValue()))){
-                userType.put(k, new Variable(types.getValue()));
-                }
-              }     
-            }
-          }
-        newVarTypes.put(userDefType.getKey(), newTypes);
-        }
-      for(Map.Entry<String, FactWithType> s : key.entrySet()){
-        tempMap.put(s.getKey(), s.getValue().getTerm());
-      }
-      for(Map.Entry<String, Term> uType : userType.entrySet()){
-        if(UserDefType.containsKey(userType.get(uType.getKey()).getVarName()) && UserDefType.containsKey(uType.getValue().getVarName())){
-          if(!UserDefType.get(userType.get(uType.getKey()).getVarName()).containsAll(UserDefType.get(uType.getValue().getVarName()))){
-            tempMap.put(uType.getKey(), uType.getValue());
-          }
-        }  
-      } 
-    }
-    
-    HashMap<String,String> leastGeneralType = new HashMap<>();  // need test, differe user define variable name may cause problem 
-    boolean isFirstTime = true;;
-    for(Map.Entry<String, HashMap<String,String>> varmap : newVarTypes.entrySet()){
-      if(isFirstTime){
-        isFirstTime = false;
-        leastGeneralType.putAll(varmap.getValue());
-      }else{
-        for(Map.Entry<String, String> entity : leastGeneralType.entrySet()){
-          if(varmap.getValue().containsKey(entity.getKey())){
-            if(!UserDefType.get(varmap.getValue().get(entity.getKey())).containsAll(UserDefType.get(entity.getValue()))){
-              leastGeneralType.putAll(varmap.getValue());
-            }
-          }else{
-            leastGeneralType.put(entity.getKey(), entity.getValue());
-          }
-        }
-      } 
-    }
-    
-    for(Map.Entry<String,String> entity : leastGeneralType.entrySet()){
-      if(!tempMap.containsKey(entity.getKey())){
-        tempMap.put(entity.getKey(), new Variable(entity.getValue()));
-      }
-    }
-    
-    AbstractRule absRule_copy = (AbstractRule)dClone.deepClone(absruleSubstituted);
-    
-    for(int i=0;i<absruleSubstituted.getLF().size();i++){
-      Term lfSubs = ST.termSubs(concreteRule.getLF().get(i), tempMap);
-      FactWithType lfSubss = new FactWithType(concreteRule.getVarsTypes(),lfSubs);
-      FactWithType abslf = new FactWithType(absruleSubstituted.getVarsTypes(),absruleSubstituted.getLF().get(i));
-      if(!mgu.isT1GreaterOrEqualT2(abslf, lfSubss, UserDefType, new RenamingInfo())){
-        HashMap<String,Term> map = getFactSubstitutiondMap(lfSubs,absruleSubstituted.getLF().get(i));
-        HashMap<String,Term> newm = new HashMap<> ();
-        for(Map.Entry<String, Term> entity : tempMap.entrySet()){
-          newm.put(entity.getKey(), ST.termSubs(entity.getValue(),map));
-        }
-        tempMap.putAll(newm);
-      }
-    }
-
-    
-    for(int i=0;i<absruleSubstituted.getLF().size();i++){
-      absRule_copy.getLF().set(i, ST.termSubs(concreteRule.getLF().get(i), tempMap));
-    }
-    
-    HashMap<String,Term> newTimpliesMap = getTimpliesMap(tempMap,absRule.getTimplies());
-    HashMap<String,Term> newTimpliesMapSubstituted = new HashMap<>(); 
-    
-    for(Map.Entry<String, Term> TimpliesMap : newTimpliesMap.entrySet()){
-      newTimpliesMapSubstituted.put(TimpliesMap.getKey(), mgu.termSubs(TimpliesMap.getValue(),newVarTypes.get(TimpliesMap.getKey())));
-    }
-    //newTimpliesMapSubstituted.putAll(userType);
-    for(int j=0;j<absRule.getRF().size();j++){
-      absRule_copy.getRF().set(j, ST.termSubs(concreteRule.getRF().get(j),newTimpliesMapSubstituted));
-    } 
-    for(Map.Entry<String, Timplies> timplie : absRule_copy.getTimplies().entrySet()){
-      timplie.getValue().getTimplies().getArguments().set(0, tempMap.get(timplie.getKey()));
-      timplie.getValue().getTimplies().getArguments().set(1, newTimpliesMapSubstituted.get(timplie.getKey()));    
-    }
-    satisfiedAbsRules.add(absRule_copy);    
-    return satisfiedAbsRules;
-  }*/
-  
+   
   public HashMap<String,Term> getFactSubstitutiondMap(Term f1, Term f2){
     HashMap<String,Term> subsMap = new HashMap<>();
     if(f1.equals(f2)){
@@ -826,22 +608,7 @@ public class VerifyFixedpoint {
     return subsMap;
   }
   
- /* public HashMap<String,Term> getTimpliesMap(HashMap<String,Term> keyMap,HashMap<String, Timplies> timplies){
-    HashMap<String,Term> newTimpliesMap = new HashMap<>();
-    for(Map.Entry<String, Term> key : keyMap.entrySet()){
-      if(timplies.containsKey(key.getKey())){
-        Term newVal2 = (Term)dClone.deepClone(timplies.get(key.getKey()).getTimplies().getArguments().get(1));
-        for(int i=0;i<newVal2.getArguments().size();i++){
-          if(newVal2.getArguments().get(i).getFactName().equals("_")){
-            newVal2.getArguments().set(i, key.getValue().getArguments().get(i));
-          }
-        }
-        Term newVal2Substituted = ST.termSubs(newVal2, keyMap); // may have problem if user define variables have different name
-        newTimpliesMap.put(key.getKey(), newVal2Substituted);
-      }
-    }
-    return newTimpliesMap;
-  }*/
+
   public List<FactWithType> applySatisifyKeysToAbsRulesNew(ConcreteRule concreteRule, AbstractRule absRule, ArrayList<HashMap<String,FactWithType>> satisfiedKeys,HashMap<String,List<String>> UserDefType){
     List<FactWithType> newGenerateFacts = new ArrayList<>();
     //AbstractRule absRuleCopy = (AbstractRule)dClone.deepClone(absRule);
@@ -856,6 +623,11 @@ public class VerifyFixedpoint {
             vType.put(varmap.getKey(), varmap.getValue());
           }
         } 
+      }
+      for(Map.Entry<String, String> varmap : absRule.getVarsTypes().entrySet()){
+        if(fv.contains(varmap.getKey()) && !vType.containsKey(varmap.getKey())){
+          vType.put(varmap.getKey(), varmap.getValue());
+        }
       }
       FactWithType subTermWithType = new FactWithType(vType,subTerm);
       lfFacts.add(subTermWithType);
@@ -877,6 +649,12 @@ public class VerifyFixedpoint {
           }
         } 
       }
+      for(Map.Entry<String, String> varmap : absRule.getVarsTypes().entrySet()){
+        if(fv.contains(varmap.getKey()) && !vType.containsKey(varmap.getKey())){
+          vType.put(varmap.getKey(), varmap.getValue());
+        }
+      } 
+      
       FactWithType abslfFact = new FactWithType(vType,abslfFactSubs);
       
       //FactWithType abslfFact = new FactWithType(absRule.getVarsTypes(),absRule.getLF().get(i));
@@ -900,53 +678,92 @@ public class VerifyFixedpoint {
     
     return newGenerateFacts;
   }
-  public List<FactWithType> applySatisifyKeysToAbsRules(ConcreteRule concreteRule, AbstractRule absRule, ArrayList<HashMap<String,FactWithType>> satisfiedKeys,HashMap<String,List<String>> UserDefType){
-    List<FactWithType> newGenerateFacts = new ArrayList<>();
-    AbstractRule absRuleCopy = (AbstractRule)dClone.deepClone(absRule);
-    List<FactWithType> lfFacts = new ArrayList<>();
-    for(int i=0; i<concreteRule.getLF().size();i++){
-      Term subTerm = mgu.termSubsWithType(concreteRule.getLF().get(i), satisfiedKeys.get(i));
-      HashMap<String,String> vType = new HashMap<>(); 
-      ArrayList<String> fv = mgu.vars(subTerm);
-      for(Map.Entry<String,FactWithType> entity : satisfiedKeys.get(i).entrySet()){
-        for(Map.Entry<String, String> varmap : entity.getValue().getvType().entrySet()){
-          if(fv.contains(varmap.getKey()) && !vType.containsKey(varmap.getKey())){
-            vType.put(varmap.getKey(), varmap.getValue());
-          }
-        } 
-      }
-      FactWithType subTermWithType = new FactWithType(vType,subTerm);
-      lfFacts.add(subTermWithType);
-      //concreteRuleCopy.getLF().set(i, subTerm);
-      //lfFacts.add(new FactWithType());
-    }
-    HashMap<String,Term> timpliesVal2Map = new HashMap<>();
-    for(int i=0;i<lfFacts.size();i++){
-      FactWithType abslfFact = new FactWithType(absRule.getVarsTypes(),absRule.getLF().get(i));
-      RenamingInfo renameInfo = new RenamingInfo();
-      Substitution subs = new Substitution();
-      if(mgu.unifyTwoFacts(abslfFact,lfFacts.get(i), subs, renameInfo, UserDefType)){
-        lfFacts.get(i).setvType(renameInfo.getvType());
-        lfFacts.get(i).setTerm(mgu.termSubs(lfFacts.get(i).getTerm(),renameInfo.getSubs()));
-        for(Map.Entry<String, Timplies> entity :  absRuleCopy.getTimplies().entrySet()){
-          Term timpliesVal2 = mgu.termSubstituted(entity.getValue().getTimplies().getArguments().get(0), subs);
-          timpliesVal2Map.put(entity.getKey(), timpliesVal2);
+  
+  /**
+   * Returns all possible combination of contrate type. 
+   * @param  typeInfo e.g. {A=[a, i], S=[s]}
+   * @return e.g. [{A=i, S=s}, {A=a, S=s}]
+   */
+  public Set<HashMap<String,FactWithType>> getAllCombinationMaps(HashMap<String, ArrayList<FactWithType>> keyMaptoList){
+    Set<HashMap<String,FactWithType>> combinations = new HashSet<>();
+    if(!keyMaptoList.isEmpty()){
+      Set<HashMap<String,FactWithType>> newCombinations;
+      Set<String> keySet = keyMaptoList.keySet();
+      List<String> keyList = new ArrayList<>(keySet);
+      int index = 0; 
+      if(!keyList.isEmpty() && keyMaptoList.containsKey(keyList.get(0))){
+        for(FactWithType i: keyMaptoList.get(keyList.get(0))) {
+          HashMap<String,FactWithType> newMap = new HashMap<>();
+          newMap.put(keyList.get(0), i);
+          combinations.add(newMap);
         }
-        TermPair termpair = new TermPair(concreteRule.getLF().get(i),lfFacts.get(i).getTerm());
-        List<TermPair> tpairs = new ArrayList<>(); 
-        tpairs.add(termpair);
-        Substitution sub = new Substitution();
-        try{
-          mgu.mgu2(tpairs,sub);
-        }catch(UnificationFailedException e){}
-        
+      }
+      index++;
+      while(index < keyList.size()) {
+        List<FactWithType> nextList = keyMaptoList.get(keyList.get(index));
+        newCombinations = new HashSet<>();
+        for(HashMap<String,FactWithType> first: combinations) {
+          for(FactWithType second: nextList) {
+            HashMap<String,FactWithType> newList = new HashMap<>();
+            newList.putAll(first);
+            newList.put(keyList.get(index),second);
+            newCombinations.add(newList);
+          }
+        }
+        combinations = newCombinations;
+        index++;
       }
     }
-    
-    
-    HashMap<String,Term> val2Map = new HashMap<>();
-    
-    
-    return newGenerateFacts;
-  } 
+    return combinations;
+  }
+  
+  public boolean doesMap1impliesMap2(HashMap<String,FactWithType> map1, HashMap<String,FactWithType>map2,List<FactWithType> extendedTimplies,HashMap<String,List<String>> UserDefType){
+    if(map1.size() != map2.size()){return false;} // if two map have different size return false
+    HashSet<String> map1keys = new HashSet<>(map1.keySet());
+    HashSet<String> map2keys = new HashSet<>(map2.keySet());
+    if(!map1keys.equals(map2keys)){return false;} // if two map have different keys then return false
+    // if every entity in map2 can be implies by corresponding entity in map1, then return true
+    for(Map.Entry<String,FactWithType> entity : map1.entrySet()){
+      if(!fs.canT1impliesT2(entity.getValue(), map2.get(entity.getKey()), extendedTimplies, UserDefType)){
+        return false;
+      }
+    }  
+    return true;
+  }
+  
+  public List<ArrayList<HashMap<String,FactWithType>>> reduceDuplicateMaps(List<ArrayList<HashMap<String,FactWithType>>> mapsDuplicate, List<FactWithType> extendedTimplies, HashMap<String,List<String>> UserDefType){
+    List<ArrayList<HashMap<String,FactWithType>>> reducedmaps = new ArrayList<>();
+
+    for(ArrayList<HashMap<String,FactWithType>> mapsList : mapsDuplicate){
+      ArrayList<HashMap<String,FactWithType>> maps = new ArrayList<>(mapsList);
+      if(maps.size() == 1){
+        reducedmaps.add(maps);
+      }else{        
+        HashMap<String, String> vType = new HashMap<>();
+        Term flag = new Variable("EndFlag");
+        FactWithType endFlag = new FactWithType(vType,flag);
+        HashMap<String,FactWithType> endFlagMap = new HashMap<>();
+        endFlagMap.put("flag", endFlag);
+        maps.add(endFlagMap);
+        ArrayList<HashMap<String,FactWithType>> mapsCopy = new ArrayList<HashMap<String,FactWithType>>(maps);
+        while(true){
+          if(maps.get(0).equals(endFlagMap)) break;
+          HashMap<String,FactWithType> firstMap = maps.get(0);  
+          for(HashMap<String,FactWithType> m : maps){
+            if(!m.equals(endFlagMap)){
+              if(doesMap1impliesMap2(firstMap, m,extendedTimplies,UserDefType)){
+                mapsCopy.remove(m);
+              }
+            }
+          }
+          mapsCopy.add(firstMap);
+          maps.clear();
+          maps.addAll(mapsCopy);    
+        }   
+        maps.remove(endFlagMap);
+        reducedmaps.add(maps);
+      }
+    } 
+    return reducedmaps; 
+  }
 }
