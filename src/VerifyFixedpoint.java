@@ -307,10 +307,10 @@ public class VerifyFixedpoint {
       freshs.put(freshVar.getVarName(), freshVal);
     }
     absRule.setFreshVars(freshs);
+    Substitution subsCopy = (Substitution)dClone.deepClone(subs);
     subs.getSubstitution().putAll(freshs);
     List<Condition> conditions_rs = new ArrayList<>(conRule.getRS()); 
     
-    Substitution subsCopy = (Substitution)dClone.deepClone(subs);
     /*if the positive condition in the left hand side but not in right hand side then set it to 0*/
     Composed zero = new Composed("0");
     for(Condition sp : splus){
@@ -333,15 +333,15 @@ public class VerifyFixedpoint {
     }
     absRule.setRF(RF);
     HashMap<String,Timplies> timplies = new HashMap<>();
-    for(Map.Entry<String, Term> sub : subs.getSubstitution().entrySet()){
-      if(!conRule.getNewFreshVars().getFreshs().contains(new Variable(sub.getKey()))){
-        Composed t = new Composed("timplies");
-        t.setArguments(sub.getValue());
-        t.setArguments(subsCopy.getSubstitution().get(sub.getKey()));
+    for(Map.Entry<String, Term> sub : subsCopy.getSubstitution().entrySet()){
+      //if(!conRule.getNewFreshVars().getFreshs().contains(new Variable(sub.getKey()))){
+      Composed t = new Composed("timplies");
+      t.setArguments(sub.getValue());
+      t.setArguments(subsCopy.getSubstitution().get(sub.getKey()));
 
-        Timplies timplie = new Timplies(t); 
-        timplies.put(sub.getKey(), timplie);
-      }
+      Timplies timplie = new Timplies(t); 
+      timplies.put(sub.getKey(), timplie);
+     // }
     }
     absRule.setTimplies(timplies); 
     return absRule;
