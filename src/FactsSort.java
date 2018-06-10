@@ -200,6 +200,31 @@ public class FactsSort {
     return reducedFacts; 
   }
   
+  public List<FactWithType> reduceDuplicateFactsNew(List<FactWithType> facts, List<FactWithType> extendedTimplies, HashMap<String,List<String>> UserDefType){
+    List<FactWithType> reducedFacts = new ArrayList<>(facts);
+    List<FactWithType> factsCopy = new ArrayList<>(facts);
+    if(reducedFacts.size() == 1){
+      return reducedFacts;
+    }else{        
+      FactWithType flag = new FactWithType(new HashMap<String, String>(),new Variable("EndFlag"));
+      factsCopy.add(flag);
+      while(true){
+        if(factsCopy.get(0).equals(flag)) break;
+        FactWithType firstFact = factsCopy.get(0);  
+        for(FactWithType f : reducedFacts){
+          if(canT1impliesT2(firstFact,f,extendedTimplies,UserDefType)){
+            factsCopy.remove(f);
+          }
+        }
+        factsCopy.add(firstFact);
+        reducedFacts.clear();
+        reducedFacts.addAll(factsCopy);    
+      }   
+      reducedFacts.remove(flag);
+    }
+    return reducedFacts; 
+  }
+  
   public List<ArrayList<FactWithType>> fixedpointsWithoutDuplicateRuleName(List<ArrayList<FactWithTypeRuleName>> facts){
     List<ArrayList<FactWithType>> factsWithRuleName = new ArrayList<>();
     for(ArrayList<FactWithTypeRuleName> fs : facts){

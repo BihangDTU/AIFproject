@@ -374,9 +374,14 @@ public class Mgu {
             subs.setUnifierState(false);
             throw new UnificationFailedException();
           }else{ // may need update here
-            termPairs.remove(0);
-            subs.getSubstitution().put(s.getTerm().getVarName(), t.getTerm());
-            mguWithTypesPKDB(termPairs,UserDefType,subs);
+            if(((Variable)s.getTerm()).getVarName().matches(".*PKDB.*")){
+              termPairs.remove(0);
+              subs.getSubstitution().put(s.getTerm().getVarName(), t.getTerm());
+              mguWithTypesPKDB(termPairs,UserDefType,subs);
+            }else{
+              subs.setUnifierState(false);
+              throw new UnificationFailedException();
+            }
           }                      
         }else{
           /*update subs*/
@@ -430,9 +435,14 @@ public class Mgu {
             subs.setUnifierState(false);
             throw new UnificationFailedException();
           }else{ // may need update here
-            termPairs.remove(0);
-            subs.getSubstitution().put(t.getTerm().getVarName(), s.getTerm());
-            mguWithTypesPKDB(termPairs,UserDefType,subs);
+            if(((Variable)t.getTerm()).getVarName().matches(".*PKDB.*")){
+              termPairs.remove(0);
+              subs.getSubstitution().put(t.getTerm().getVarName(), s.getTerm());
+              mguWithTypesPKDB(termPairs,UserDefType,subs);
+            }else{
+              subs.setUnifierState(false);
+              throw new UnificationFailedException();
+            }
           }
         }else{
           /*update subs*/
@@ -581,20 +591,6 @@ public class Mgu {
     return subs.getUnifierState();
   }
   
-  public boolean unifyTwoFacts(Term t1,Term t2, Substitution subs){
-    Term t1copy = (Term)dClone.deepClone(t1);
-    Term t2copy = (Term)dClone.deepClone(t2);
-    TermPair termPair = new TermPair(t1copy,t2copy);
-    List<TermPair> termPairs = new ArrayList<>();
-    termPairs.add(termPair);
-    try{
-      mgu2(termPairs,subs);
-    }catch(UnificationFailedException e){
-      return false;
-    }   
-    return subs.getUnifierState();
-  }
-  
   public boolean unifyTwoFactsPKDB(FactWithType t1, FactWithType t2, Substitution subs,RenamingInfo renameInfo, HashMap<String,List<String>> UserDefType){
     FactWithType t1copy = (FactWithType)dClone.deepClone(t1);
     FactWithType t2Renamed = renameTermVars(t2,renameInfo);
@@ -604,6 +600,20 @@ public class Mgu {
     termPairs.add(termPair);
     try{
       mguWithTypesPKDB(termPairs,UserDefType,subs);
+    }catch(UnificationFailedException e){
+      return false;
+    }   
+    return subs.getUnifierState();
+  }
+  
+  public boolean unifyTwoFacts(Term t1,Term t2, Substitution subs){
+    Term t1copy = (Term)dClone.deepClone(t1);
+    Term t2copy = (Term)dClone.deepClone(t2);
+    TermPair termPair = new TermPair(t1copy,t2copy);
+    List<TermPair> termPairs = new ArrayList<>();
+    termPairs.add(termPair);
+    try{
+      mgu2(termPairs,subs);
     }catch(UnificationFailedException e){
       return false;
     }   
