@@ -253,7 +253,7 @@ public class FactsSort {
     for(ArrayList<FactWithTypeRuleName> subList : facts){
       for(FactWithTypeRuleName fact : subList){
         if(ruleNames.contains(fact.getRuleName())){
-          System.out.println(mgu.termSubs(fact.getTerm(), fact.getvType()) + "   "+ fact.getRuleName());
+          System.out.println(mgu.termSubs(fact.getTerm(), fact.getvType()) + ";      "+ fact.getRuleName());
         }
       }
     }

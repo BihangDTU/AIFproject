@@ -80,6 +80,7 @@ public class Mgu {
     return t_copy;
   }
   
+  
   /**
    * Returns a substituted term. 
    * only substitute the variables if it occurs in the map subs
@@ -111,52 +112,14 @@ public class Mgu {
     }
     return t_copy;
   }
-  
-  public Substitution mgu(Term s, Term t, Substitution subs) throws UnificationFailedException{
-    if(s.equals(t)){
-      return subs;
-    }
-    if(s instanceof Variable){
-      if(vars(t).contains(((Variable)s).getVarName())){
-        subs.setUnifierState(false);
-        throw new UnificationFailedException();
-      }else{
-        subs.addSubstitution(((Variable)s).getVarName(), t);			
-      }		
-    }else if(t instanceof Variable){
-      if(vars(s).contains(((Variable)t).getVarName())){
-        subs.setUnifierState(false);
-        throw new UnificationFailedException();
-      }else{
-        subs.addSubstitution(((Variable)t).getFactName(), s);
-      }
-    }else{
-      if(((Composed)s).getFactName().equals(((Composed)t).getFactName()) && s.getArguments().size() == t.getArguments().size()){
-        for(int i=0; i < s.getArguments().size(); i++){
-          Term s_substitued = termSubstituted(s.getArguments().get(i),subs);
-          Term t_substitued = termSubstituted(t.getArguments().get(i),subs);
-          subs.addAllSubstitution(mgu(s_substitued,t_substitued,subs).getSubstitution());
-        }
-      }else{
-        subs.setUnifierState(false);
-        throw new UnificationFailedException();
-      }
-    }
-    /*substitued Variables in Subtitution map if applicable*/
-    for(Map.Entry<String, Term> sub : subs.getSubstitution().entrySet()){
-      Term term = termSubstituted((Term)(sub.getValue()),subs);
-      subs.addSubstitution(sub.getKey(), term);    
-    }
-    return subs;
-  }
-  
-  public void mgu2(List<TermPair> termPairs, Substitution subs) throws UnificationFailedException{
+    
+  public void mgu(List<TermPair> termPairs, Substitution subs) throws UnificationFailedException{
     if(!termPairs.isEmpty()){
       Term s = termPairs.get(0).gets();
       Term t = termPairs.get(0).gett();
       if(s.equals(t)){
         termPairs.remove(0);
-        mgu2(termPairs,subs);
+        mgu(termPairs,subs);
       }
       else if(s instanceof Variable){
         if(vars(t).contains(((Variable)s).getVarName())){
@@ -180,9 +143,8 @@ public class Mgu {
             Term t1 = termSubstituted(tp.gett(),subs);
             TermPair tpsubstituted = new TermPair(s1,t1);
             termPairsSubstituted.add(tpsubstituted);           
-          }
-          //subs.addSubstitution(((Variable)s).getVarName(), t);    
-          mgu2(termPairsSubstituted,subs);
+          }    
+          mgu(termPairsSubstituted,subs);
         }   
       }else if(t instanceof Variable){
         if(vars(s).contains(((Variable)t).getVarName())){
@@ -206,9 +168,8 @@ public class Mgu {
             Term t1 = termSubstituted(tp.gett(),subs);
             TermPair tpsubstituted = new TermPair(s1,t1);
             termPairsSubstituted.add(tpsubstituted);           
-          }
-          //subs.addSubstitution(((Variable)t).getVarName(), s);    
-          mgu2(termPairsSubstituted,subs);
+          }  
+          mgu(termPairsSubstituted,subs);
         }
       }else{
         if(!((Composed)s).getFactName().equals(((Composed)t).getFactName())){
@@ -220,7 +181,7 @@ public class Mgu {
             TermPair newTermPair = new TermPair(s.getArguments().get(i),t.getArguments().get(i));
             termPairs.add(newTermPair);
           }
-          mgu2(termPairs,subs);
+          mgu(termPairs,subs);
         }      
       }
     }
@@ -557,16 +518,7 @@ public class Mgu {
     Term newTerm = termSubs(tcopy.getTerm(),subs);
     return new FactWithType(tcopy.getvType(),newTerm);
   }
-  
-  /**
-   * Returns a substituted term. 
-   * only substitute the variables if it occurs in the map subs
-   * @param  t    e.g. iknows(sign(inv(PK),pair(A,NPK)))
-   * @param  subs e.g. {PK=pk, A=a}
-   * @return e.g. iknows(sign(inv(pk),pair(a,NPK)))
-   */
-  
-  
+   
   public boolean isV1GreateOrEqualV2(FactWithType V1, FactWithType V2, HashMap<String,List<String>> UserDefType){
     if(UserDefType.containsKey(V1.getvType().get(V1.getTerm().getVarName())) && UserDefType.containsKey(V2.getvType().get(V2.getTerm().getVarName()))){
       if(UserDefType.get(V1.getvType().get(V1.getTerm().getVarName())).containsAll(UserDefType.get(V2.getvType().get(V2.getTerm().getVarName())))){
@@ -574,6 +526,20 @@ public class Mgu {
       }
     }
     return false;
+  }
+  
+  public boolean unifyTwoFacts(Term t1,Term t2, Substitution subs){
+    Term t1copy = (Term)dClone.deepClone(t1);
+    Term t2copy = (Term)dClone.deepClone(t2);
+    TermPair termPair = new TermPair(t1copy,t2copy);
+    List<TermPair> termPairs = new ArrayList<>();
+    termPairs.add(termPair);
+    try{
+      mgu(termPairs,subs);
+    }catch(UnificationFailedException e){
+      return false;
+    }   
+    return subs.getUnifierState();
   }
   
   public boolean unifyTwoFacts(FactWithType t1, FactWithType t2, Substitution subs,RenamingInfo renameInfo, HashMap<String,List<String>> UserDefType){
@@ -594,26 +560,11 @@ public class Mgu {
   public boolean unifyTwoFactsPKDB(FactWithType t1, FactWithType t2, Substitution subs,RenamingInfo renameInfo, HashMap<String,List<String>> UserDefType){
     FactWithType t1copy = (FactWithType)dClone.deepClone(t1);
     FactWithType t2Renamed = renameTermVars(t2,renameInfo);
-    //System.out.println(t2Renamed);
     TermPairWithTypes termPair = new TermPairWithTypes(t1copy,t2Renamed);
     List<TermPairWithTypes> termPairs = new ArrayList<>();
     termPairs.add(termPair);
     try{
       mguWithTypesPKDB(termPairs,UserDefType,subs);
-    }catch(UnificationFailedException e){
-      return false;
-    }   
-    return subs.getUnifierState();
-  }
-  
-  public boolean unifyTwoFacts(Term t1,Term t2, Substitution subs){
-    Term t1copy = (Term)dClone.deepClone(t1);
-    Term t2copy = (Term)dClone.deepClone(t2);
-    TermPair termPair = new TermPair(t1copy,t2copy);
-    List<TermPair> termPairs = new ArrayList<>();
-    termPairs.add(termPair);
-    try{
-      mgu2(termPairs,subs);
     }catch(UnificationFailedException e){
       return false;
     }   

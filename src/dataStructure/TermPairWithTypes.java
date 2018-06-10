@@ -1,3 +1,5 @@
+package dataStructure;
+
 import dataStructure.FactWithType;
 
 

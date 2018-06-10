@@ -26,13 +26,13 @@ public class VerifyFixedpoint {
   
   Mgu mgu = new Mgu();
   FactsSort fs = new FactsSort();
-  FixpointsSort fp = new FixpointsSort();
+  TimpliesSort fp = new TimpliesSort();
   StateTransition ST = new StateTransition();
   GlobalCounterForSetMember gcsm = new GlobalCounterForSetMember();
   DeepClone dClone = new DeepClone();
   public VerifyFixedpoint(){}
   
-  public void verifyFixedpoint(AST aifAST, AST fpAST, String conRuleName,HashMap<String,List<String>> UserDefType){
+  public void verifyFixedpoint(AST aifAST, AST fpAST,HashMap<String,List<String>> UserDefType){
     List<FactWithTypeRuleName> facts = fs.getAllFactsFromFixedPoint(fpAST);
     List<FactWithTypeRuleName> reducedFacts = fs.getReductedFixedpointWithRuleName(facts);
     List<ArrayList<FactWithTypeRuleName>> factsSorted = fs.sortFacts(reducedFacts);
@@ -242,7 +242,8 @@ public class VerifyFixedpoint {
           }
         }
       }else{
-        for(Substitution sub : stisfySubtitutions){
+        List<Substitution> stisfySubtitutionsCopy = (List<Substitution>)dClone.deepClone(stisfySubtitutions);
+        for(Substitution sub : stisfySubtitutionsCopy){
           Substitution subsCopy = (Substitution)dClone.deepClone(sub);
           FactWithType lfWithTypeSubs = new FactWithType(varsType ,mgu.termSubstituted(lf, sub));
           for(FactWithType fact : facts){
@@ -256,18 +257,18 @@ public class VerifyFixedpoint {
               stisfiedKeys.add(getKeyMap(conRule.getLF().get(counter-1), lfsubstitutedWithType));
             }
           }
+          stisfySubtitutions.remove(sub);
         }
-        /*remove substitution which the size of substitution maps are less then the size of LF*/
-        List<Substitution> stisfySubtitutionMapsCopy = (List<Substitution>)dClone.deepClone(stisfySubtitutions);
-        for(Substitution s : stisfySubtitutionMapsCopy){
-          if(s.getSubstitution().size() != counter){
-            stisfySubtitutions.remove(s);
+        // need test here
+        int mapSize=0;
+        for(HashMap<String,FactWithType> keymaps : stisfiedKeys){
+          if(keymaps.size()>mapSize){
+            mapSize = keymaps.size();
           }
         }
-        /*remove key maps which the size of key maps are less then the size of LF*/
-        List<HashMap<String,Term>> stisfiedKeysCopy = (List<HashMap<String,Term>>)dClone.deepClone(stisfiedKeys);
-        for(HashMap<String,Term> keymap : stisfiedKeysCopy){
-          if(keymap.size() != counter){
+        List<HashMap<String,FactWithType>> stisfiedKeysCopy = (List<HashMap<String,FactWithType>>)dClone.deepClone(stisfiedKeys);
+        for(HashMap<String,FactWithType> keymap : stisfiedKeysCopy){
+          if(keymap.size() < mapSize){
             stisfiedKeys.remove(keymap);
           }
         }
@@ -409,25 +410,23 @@ public class VerifyFixedpoint {
     HashMap<Term,Variable> keyMap = new HashMap<>();
     Mgu mgu = new Mgu();
     for(Term rf : conRule.getRF()){
-      try{
-        Substitution vSub = mgu.mgu(rf, absFact, new Substitution());
-        List<Condition> rs = new ArrayList<>();
-        if(vSub.getUnifierState() && !vSub.getSubstitution().isEmpty()){
-          for(Map.Entry<String, Term> subs : vSub.getSubstitution().entrySet()){
-            keyMap.put(subs.getValue(), new Variable(subs.getKey()));
-            if(subs.getValue() instanceof Composed){
-              for(Term SetMember : subs.getValue().getArguments()){
-                if(!SetMember.getFactName().equals("0")){
-                  rs.add(new Condition(new Variable(subs.getKey()),SetMember));
-                }
+      Substitution vSub = new Substitution();
+      mgu.unifyTwoFacts(rf, absFact, vSub);
+      List<Condition> rs = new ArrayList<>();
+      if(vSub.getUnifierState() && !vSub.getSubstitution().isEmpty()){
+        for(Map.Entry<String, Term> subs : vSub.getSubstitution().entrySet()){
+          keyMap.put(subs.getValue(), new Variable(subs.getKey()));
+          if(subs.getValue() instanceof Composed){
+            for(Term SetMember : subs.getValue().getArguments()){
+              if(!SetMember.getFactName().equals("0")){
+                rs.add(new Condition(new Variable(subs.getKey()),SetMember));
               }
             }
           }
-          conFact.setFact(absTermToConcreteTermSubs(absFact,keyMap));
-          conFact.setRS(rs);
         }
-      }catch(UnificationFailedException e){}
-      
+        conFact.setFact(absTermToConcreteTermSubs(absFact,keyMap));
+        conFact.setRS(rs);
+      }
     }
     return conFact;
   }

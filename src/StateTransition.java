@@ -60,60 +60,7 @@ public class StateTransition {
       }
     }
     return combinations;
-  }
-  
-  /**
-   * Returns list of variables. 
-   * @param  term e.g. iknows(sign(inv(PK),pair(A,NPK)))
-   * @return e.g. [PK, A, NPK]
-   */
-  public List<Variable> getVars(Term term){    
-    List<Variable> var = new ArrayList<>();
-    if(term instanceof Variable){
-      var.add(((Variable)term));
-      return var;
-    }else if(term instanceof Composed){
-      for(int i=0; i < term.getArguments().size(); i++){
-        if(term.getArguments().get(i) instanceof Variable){
-          var.add(((Variable)term.getArguments().get(i)));
-        }else if(term.getArguments().get(i) instanceof Composed){
-          var.addAll(getVars(term.getArguments().get(i)));
-        }
-      }
-      return var;
-    }		
-    return var;
-  }
-    
-  /**
-   * Returns a substituted term. 
-   * only substitute the variables if it occurs in the map subs
-   * @param  t    e.g. iknows(sign(inv(PK),pair(A,NPK)))
-   * @param  subs e.g. {PK=pk, A=a}
-   * @return e.g. iknows(sign(inv(pk),pair(a,NPK)))
-   */
-  public Term termSubs(Term t, HashMap<String,Term> subs){
-    Term t_copy = (Term)dClone.deepClone(t);
-    if(!getVars(t).isEmpty()){
-      if(t instanceof Variable){
-        if(subs.containsKey(((Variable)t).getVarName())){
-          return subs.get(((Variable)t).getVarName());		
-        }
-      }else{
-        for(int i=0; i < t.getArguments().size(); i++){
-          if(t.getArguments().get(i) instanceof Variable){
-            String var = ((Variable)(t.getArguments().get(i))).getVarName();
-            if(subs.containsKey(var)){
-              t_copy.getArguments().set(i, subs.get(var));
-            }
-          }else{
-            t_copy.getArguments().set(i, termSubs(t_copy.getArguments().get(i),subs));
-          }
-        }
-      }
-    }
-    return t_copy;
-  }
+  }  
   
   /**
    * Returns a new ConcreteRules which the variable have been substituted if the variable occurs in the map subs 
@@ -143,39 +90,7 @@ public class StateTransition {
     }
     return rule;
   }
-  /**
-   * Return true if there is at least one variable in the rule
-   * @param  rule  a concrete rule   
-   * @return boolean  
-   */
-  public boolean isRuleContainsVar(ConcreteRule rule){
-    for(Term lf : rule.getLF()){
-      if(!getVars(lf).isEmpty()){
-        return true;
-      }
-    }
-    for(Term rf : rule.getRF()){
-      if(!getVars(rf).isEmpty()){
-        return true;
-      }
-    }
-    for(Condition sp : rule.getSplus()){
-      if(!(getVars(sp.getVar()).isEmpty()) || !(getVars(sp.getTerm()).isEmpty())){
-        return true;
-      }
-    }
-    for(Condition sn : rule.getSnega()){
-      if(!(getVars(sn.getVar()).isEmpty()) || !(getVars(sn.getTerm()).isEmpty())){
-        return true;
-      }
-    }
-    for(Condition rs : rule.getRS()){
-      if(!(getVars(rs.getVar()).isEmpty()) || !(getVars(rs.getTerm()).isEmpty())){
-        return true;
-      }
-    }
-    return false;
-  }
+  
   /**
    * Return true if there exist a negative condition occurs in the state 
    * @param  sn  a concrete rule
@@ -187,9 +102,17 @@ public class StateTransition {
       return false;
     }
     for(Condition c : sn){
-    	if(state.getPositiveConditins().contains(c)){
-    		return true;
-    	}
+      if(isArbitrayType(c)){
+        for(Condition splus : state.getPositiveConditins()){
+          if(c.getVar().equals(splus.getVar()) && c.getTerm().getFactName().equals(splus.getTerm().getFactName())){
+            return true;
+          }
+        }
+      }else{
+        if(state.getPositiveConditins().contains(c)){
+          return true;
+        }
+      }
     }
     return false;
   }
@@ -215,7 +138,7 @@ public class StateTransition {
    * @param  condition  e.g. (PK,db_valid(_,_))
    * @return boolean
    */
-  public boolean needExpandCondition(Condition condition){
+  public boolean isArbitrayType(Condition condition){
     Variable c = new Variable("_");
     for(int i=0;i<condition.getTerm().getArguments().size();i++){
       if(condition.getTerm().getArguments().get(i).equals(c)){
@@ -226,93 +149,15 @@ public class StateTransition {
   }
   
   /**
-   *
-   * @param condition  e.g. (PK,db_valid(User, Server))
-   * @param subs       e.g. {User=a, Server=s}
-   * @return (PK,db_valid(a,s))
-   */
-  public Condition conditionSubs(Condition condition, HashMap<String,Term> subs){
-    Condition cond = new Condition();
-    cond = (Condition)dClone.deepClone(condition);
-    for(int i=0;i<condition.getTerm().getArguments().size();i++){
-      if(subs.containsKey(condition.getTerm().getArguments().get(i).getVarName())){
-        cond.getTerm().getArguments().set(i, subs.get(condition.getTerm().getArguments().get(i).getVarName()));
-      }
-    }
-    return cond;
-  }
-  /*ring(User),db_valid(User,Server),db_revoked(User,Server)*/
-  /*{ring->[User],db_valid->[User,Server],db_revoked->[User,Server]}*/
-  
-  /**
-   *
-   * @param condition         e.g. (PK,db_valid(_,_))
-   * @param concreteTypeInfo  e.g. {Agent=[a, i, s], Honest=[a], User=[a, i], Server=[s], Dishon=[i]}
-   * @param dbSet             e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
-   * @return  [(PK,db_valid(a,s)), (PK,db_valid(i,s))]
-   */
-  public List<Condition> expandConditions(Condition condition,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
-    List<Condition> conditions = new ArrayList<>();
-    Condition cond = new Condition();
-    cond = (Condition)dClone.deepClone(condition);
-    HashMap<String,List<Term>> types = new HashMap<>();
-    for (Map.Entry<String,List<Term>> entry : concreteTypeInfo.entrySet()) {
-      //Variable var = new Variable(entry.getKey());
-      types.put(entry.getKey(), entry.getValue());
-    }
-    //System.out.println("concreteTypeInfo:" + concreteTypeInfo);
-    //System.out.println("types:" + types);
-    //Set<HashMap<Variable,Term>> expandTypes = userTypeSubstitution(types);
-    HashMap<String,List<Term>> dbMap = new HashMap<>();
-    for(Term db : dbSet){
-      List<Term> users = new ArrayList<>();
-      for(Term user : db.getArguments()){
-        users.add(user);
-      }
-      dbMap.put(db.getFactName(), users);
-    }
-    if(needExpandCondition(condition)){
-      //Set<HashMap<Variable,Term>> expandTypes = new HashSet<>();
-      HashMap<String,List<Term>> subTypes = new HashMap<>();
-      for(Map.Entry<String,List<Term>> entry : dbMap.entrySet()){
-        if(condition.getTerm().getFactName().equals(entry.getKey())){
-          for(int i=0; i<entry.getValue().size();i++){
-            //if(condition.getTerm().getArguments().get(i).getFactName().equals("_")){
-          	if(condition.getTerm().getArguments().get(i).getVarName().equals("_")){
-              cond.getTerm().getArguments().set(i, entry.getValue().get(i));
-              //Variable var = new Variable(entry.getValue().get(i).getVarName());
-              String var = entry.getValue().get(i).getVarName();
-              subTypes.put(var, types.get(var));
-            }
-          }
-        }
-      }
-      //System.out.println("subTypes: " + subTypes);
-      Set<HashMap<String,Term>> expandTypes = userTypeSubstitution(subTypes);
-      //System.out.println("expandTypes: " + expandTypes);
-      for(HashMap<String,Term> type : expandTypes){
-        Condition c = conditionSubs(cond,type);
-        conditions.add(c);
-      }
-    }else{
-      conditions.add(cond);
-    }
-    //System.out.println(dbMap);
-    //System.out.println(cond.getVar().toString() + " in " + cond.getTerm().toString());
-    return conditions;
-  }
-  
-  /**
    * Returns a list of states after apply a AIF rule. 
    * apply the AIF rule for the state can add some new facts and positive condition 
    * to the current state or remove positive condition from the current sate.
    * @param  state  current state
    * @param  rule   one of concreteRyles from AIF specification
    * @param  concreteTypeInfo e.g. {Agent=[a, i, s], Honest=[a], User=[a, i], Server=[s], Dishon=[i]}
-   * @param  dbSet  e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return list of possible states
    */
-  public List<State> ruleApply(State state, ConcreteRule rule,HashMap<String,List<Term>> concreteTypeInfo, List<Term> dbSet){
+  public List<State> cRuleApply(State state, ConcreteRule rule,HashMap<String,List<Term>> concreteTypeInfo){
     List<State> newStates = new ArrayList<>();
     HashMap<String, String> varsTypes = new HashMap<>();
     HashMap<String, List<Term>> cTypeInfo = new HashMap<>();
@@ -320,139 +165,74 @@ public class StateTransition {
     for (Map.Entry<String, String> e : varsTypes.entrySet()) {
       cTypeInfo.put(e.getKey(), concreteTypeInfo.get(e.getValue()));
     }
-    //System.out.println("cTypeInfo: " + cTypeInfo);
     /*get all prossible combination of user define types for substitution*/
-    Set<HashMap<String,Term>> concreteTypeSubs = userTypeSubstitution(cTypeInfo); 
-    //System.out.println("concreteTypeValue: " + concreteTypeSubs);
-    Set<ConcreteRule> contreteRules = new HashSet();
-    /* instantiate AIF rule with contrete instance of user define type */
-    if(concreteTypeSubs.isEmpty()){
-      contreteRules.add(rule);
-    }else{
-      for(HashMap<String,Term> ctype : concreteTypeSubs){ // need to update to multiple fresh variables
-        if(!rule.getNewFreshVars().getFreshs().isEmpty()){ //check whether exist new generate variable.
-        	String newConcreteVarStr;
-        	Term newConcreteVar;
-        	for(int i=0;i<rule.getNewFreshVars().getFreshs().size();i++){
-        		new_var_counter ++;
-        		newConcreteVarStr = rule.getNewFreshVars().getFreshs().get(i).getVarName().toLowerCase() + "_" + new_var_counter;
-        		newConcreteVar = new Composed(newConcreteVarStr);
-        		ctype.put(rule.getNewFreshVars().getFreshs().get(i).getVarName(), newConcreteVar);
-        	}
-          //new_var_counter ++;
-          //String newConcreteVarStr = rule.getNewFreshVars().getFreshs().get(0).getVarName().toLowerCase() + "_" + new_var_counter;
-          //Term newConcreteVar = new Composed(newConcreteVarStr);
-          //ctype.put(rule.getNewFreshVars().getFreshs().get(0).getVarName(), newConcreteVar);
-        }
-        /*substitute contrete type values to the rule*/
-        /*After substitution, contreteRules will contaions all rules which have been substituted with concrete user type value*/
-        contreteRules.add(ConcreteRulesSubstitution(rule,ctype));
-      }   
-      // System.out.println("contreteRules: " + contreteRules.size());
-    }
-    List<ConcreteRule> contreteRulesList = new ArrayList<>(contreteRules);
-    List<ConcreteRule> contreteRulesList_copy = (List<ConcreteRule>)dClone.deepClone(contreteRulesList);
-    for(int i=0;i<contreteRulesList_copy.size();i++){
-      /*if the database b set in position condition contains any types with "_"*/
-      /* then remove that database and add all expanded database */
-      for(Condition crp : contreteRulesList.get(i).getSplus()){
-        if(needExpandCondition(crp)){
-          contreteRulesList_copy.get(i).getSplus().addAll(expandConditions(crp,concreteTypeInfo,dbSet));
-          contreteRulesList_copy.get(i).getSplus().remove(crp);
+    Set<HashMap<String,Term>> cTypesubstitutions = userTypeSubstitution(cTypeInfo); 
+    for(HashMap<String,Term> ctype : cTypesubstitutions){ 
+      if(!rule.getNewFreshVars().getFreshs().isEmpty()){ //check whether exist new generate variable.
+        String newConcreteVarStr;
+        Term newConcreteVar;
+        for(int i=0;i<rule.getNewFreshVars().getFreshs().size();i++){
+          new_var_counter ++;
+          newConcreteVarStr = rule.getNewFreshVars().getFreshs().get(i).getVarName().toLowerCase() + "_" + new_var_counter;
+          newConcreteVar = new Composed(newConcreteVarStr);
+          ctype.put(rule.getNewFreshVars().getFreshs().get(i).getVarName(), newConcreteVar);
         }
       }
-      /*if the database b set in negative condition contains any types with "_"*/
-      /* then remove that database and add all expanded database */
-      for(Condition crn : contreteRulesList.get(i).getSnega()){
-        if(needExpandCondition(crn)){
-          contreteRulesList_copy.get(i).getSnega().addAll(expandConditions(crn,concreteTypeInfo,dbSet));
-          contreteRulesList_copy.get(i).getSnega().remove(crn);
-        }
-      }
-      //System.out.println(contreteRulesList_copy.get(i).toString());
     }
-    /*apply each substituded rule to the current state*/
-    for(ConcreteRule cr : contreteRulesList_copy){
-      /* no prerequest condition*/
-      if(cr.getLF().isEmpty() && cr.getSplus().isEmpty() && cr.getSnega().isEmpty()){
-        State newState = (State)dClone.deepClone(state);
-        for(Term rf : cr.getRF()){
-          newState.getFacts().add(rf);
-        }   
-        for(Condition rs : cr.getRS()){
-          newState.getPositiveConditins().add(rs);
-        }
-        newStates.add(newState);
-      }else{
-        /* left hand side is not empty */
-        List<ConcreteRule> contreteR_satisfy = new ArrayList<>();
-        List<ConcreteRule> contreteR_satisfy_copy = new ArrayList<>();
-        boolean isFirstFact = true;
-        for(int j=0;j<cr.getLF().size();j++){
+    
+    List<List<Substitution>> substitutions = new ArrayList<>(); 
+    for(HashMap<String,Term> cTypeSubstitution : cTypesubstitutions){
+      List<Substitution> subList = new ArrayList<>();
+      if(rule.getLF().isEmpty()){
+        subList.add(new Substitution(cTypeSubstitution));
+        substitutions.add(subList);
+      }
+      for(Term lf : rule.getLF()){
+        if(subList.isEmpty()){
+          Term lfSubstituted = mgu.termSubstituted(lf, new Substitution(cTypeSubstitution)); 
           for(Term fact : state.getFacts()){
-            /* check all facts in the state which can be unified */
-            try{
-              Substitution valueSub = mgu.mgu(cr.getLF().get(j), fact, new Substitution());
-              if(valueSub.getUnifierState()){
-                if(isFirstFact){
-                  contreteR_satisfy.add(ConcreteRulesSubstitution(cr,valueSub.getSubstitution()));
-                  contreteR_satisfy_copy.add(ConcreteRulesSubstitution(cr,valueSub.getSubstitution()));
-                }else{
-                  for(int i=0;i<contreteR_satisfy.size();i++){
-                    try{
-                      Substitution vSub = mgu.mgu(contreteR_satisfy.get(i).getLF().get(j), fact, new Substitution());
-                      if(vSub.getUnifierState() && !vSub.getSubstitution().isEmpty()){
-                        //contreteR_satisfy_copy.remove(i);
-                        contreteR_satisfy_copy.add(ConcreteRulesSubstitution(contreteR_satisfy.get(i),vSub.getSubstitution()));
-                        //break;
-                      }
-                    }catch(UnificationFailedException e){}
-                  }
-                  contreteR_satisfy.clear();
-                  contreteR_satisfy.addAll(contreteR_satisfy_copy);
-                }  
+            Substitution subs = new Substitution();
+            if(mgu.unifyTwoFacts(lfSubstituted,fact,subs)){
+              subs.getSubstitution().putAll(cTypeSubstitution);
+              subList.add(subs);
+            }
+          }
+        }else{
+          List<Substitution> subListCopy = (List<Substitution>)dClone.deepClone(subList);
+          for(Substitution subs : subListCopy){
+            Substitution subsCopy = (Substitution)dClone.deepClone(subs);
+            Term lfSubstituted = mgu.termSubstituted(lf, subs);
+            for(Term fact : state.getFacts()){
+              if(mgu.unifyTwoFacts(lfSubstituted,fact,subsCopy)){
+                subList.add(subsCopy);
               }
-            }catch(UnificationFailedException e){/*do nothing*/}   
-          }
-          isFirstFact = false;
-        }
-        contreteR_satisfy_copy.clear();
-        contreteR_satisfy_copy.addAll(contreteR_satisfy);
-        /*for(ConcreteRules r_c : contreteR_satisfy_copy){
-          System.out.println("rc: "+r_c.toString());
-        }*/        
-        for(ConcreteRule r_copy : contreteR_satisfy_copy){
-          if(isRuleContainsVar(r_copy)){
-            contreteR_satisfy.remove(r_copy);
-          }
-        }
-        /*for(ConcreteRules r_c : contreteR_satisfy){
-          System.out.println("rc: "+r_c.toString());
-        }*/ 
-        /* if the left hand side rule satisfy the state transform condition then we add RF
-           and RS to the state, and remove positive condition from the state.
-        */
-        for(ConcreteRule r_satisfy : contreteR_satisfy){
-          if(state.getPositiveConditins().containsAll(r_satisfy.getSplus()) 
-                  && state.getFacts().containsAll(r_satisfy.getLF())
-                  && !isSnegaInState(r_satisfy.getSnega(),state)){
-            State newState = (State)dClone.deepClone(state);
-            for(Term rf : r_satisfy.getRF()){
-              newState.getFacts().add(rf);
-            }   
-            for(Condition rs : r_satisfy.getRS()){
-              newState.getPositiveConditins().add(rs);
             }
-            for(Condition sp : r_satisfy.getSplus()){
-              newState.getPositiveConditins().remove(sp);
-            }
-            newStates.add(newState);
+            subList.remove(subs);
           }
+        } 
+      }
+      substitutions.add(subList);
+    }
+    
+    for(List<Substitution> subsList : substitutions){
+      for(Substitution subs : subsList){
+        ConcreteRule cRuleSubstituted = ConcreteRulesSubstitution(rule,subs.getSubstitution());
+        if(state.getFacts().containsAll(cRuleSubstituted.getLF())
+            && state.getPositiveConditins().containsAll(cRuleSubstituted.getSplus())
+            && !isSnegaInState(cRuleSubstituted.getSnega(),state)){
+          State newState = (State)dClone.deepClone(state);
+          newState.getFacts().addAll(cRuleSubstituted.getRF());
+          newState.getPositiveConditins().addAll(cRuleSubstituted.getRS());
+          for(Condition sp : cRuleSubstituted.getSplus()){
+            newState.getPositiveConditins().remove(sp);
+          }
+          newStates.add(newState);
         }
-      }   
-    } 
+      }
+    }  
     return newStates;
   }
+  
  
   /**
    *
@@ -460,27 +240,20 @@ public class StateTransition {
    * @param rules    concrete AIF rules, rule name as key
    * @param attackTraces   list of rule names represent the attack traces 
    * @param concreteTypeInfo  e.g. {Agent=[a, i, s], Honest=[a], User=[a, i], Server=[s], Dishon=[i]}
-   * @param dbSet             e.g. [ring(User), db_valid(User,Server), db_revoked(User,Server)]
    * @return  all states that can be explore by the current state according to the attack traces
    */
-  public Node stateTransition(Node state, HashMap<String, ConcreteRule> rules,List<String> attackTraces,
-                                     HashMap<String,List<Term>> concreteTypeInfo,List<Term> dbSet){
-   // Node<State> newState = new Node<>(state.getState());
-    //ArrayList<String> concreteAttackTreces = new ArrayList<>(); 
+  public Node stateTransition(Node state, HashMap<String, ConcreteRule> rules,List<String> attackTraces,HashMap<String,List<Term>> concreteTypeInfo){ 
     String applyRuleName;
     List<String> attackTracesCopy = new ArrayList<>();
     attackTracesCopy.addAll(attackTraces);
     if(!attackTraces.isEmpty()){
       applyRuleName = attackTraces.get(0);
       attackTracesCopy.remove(0);
-      //System.out.println(attackTracesCopy);
-      List<State> childrenState = ruleApply(state.getState(), rules.get(applyRuleName), concreteTypeInfo, dbSet);
-      //System.out.println(applyRuleName + ":");
+      List<State> childrenState = cRuleApply(state.getState(), rules.get(applyRuleName), concreteTypeInfo);
       for(State child : childrenState){
-        //System.out.println("  " + child);
         Node childState = new Node(child);
         childState.setRuleName(applyRuleName);
-        stateTransition(childState,rules,attackTracesCopy,concreteTypeInfo,dbSet);
+        stateTransition(childState,rules,attackTracesCopy,concreteTypeInfo);
         state.addChild(childState);        
       }
     }
@@ -554,5 +327,58 @@ public class StateTransition {
        absStae.addFacts(AbsTermConversion(fact,state,contreteUsers,position));   
     }
     return absStae;
+  }
+  
+  /**
+   * Returns list of variables. 
+   * @param  term e.g. iknows(sign(inv(PK),pair(A,NPK)))
+   * @return e.g. [PK, A, NPK]
+   */
+  public List<Variable> getVars(Term term){    
+    List<Variable> var = new ArrayList<>();
+    if(term instanceof Variable){
+      var.add(((Variable)term));
+      return var;
+    }else if(term instanceof Composed){
+      for(int i=0; i < term.getArguments().size(); i++){
+        if(term.getArguments().get(i) instanceof Variable){
+          var.add(((Variable)term.getArguments().get(i)));
+        }else if(term.getArguments().get(i) instanceof Composed){
+          var.addAll(getVars(term.getArguments().get(i)));
+        }
+      }
+      return var;
+    }   
+    return var;
+  }
+  
+  /**
+   * Returns a substituted term. 
+   * only substitute the variables if it occurs in the map subs
+   * @param  t    e.g. iknows(sign(inv(PK),pair(A,NPK)))
+   * @param  subs e.g. {PK=pk, A=a}
+   * @return e.g. iknows(sign(inv(pk),pair(a,NPK)))
+   */
+  public Term termSubs(Term t, HashMap<String,Term> subs){
+    Term t_copy = (Term)dClone.deepClone(t);
+    if(!getVars(t).isEmpty()){
+      if(t instanceof Variable){
+        if(subs.containsKey(((Variable)t).getVarName())){
+          return subs.get(((Variable)t).getVarName());    
+        }
+      }else{
+        for(int i=0; i < t.getArguments().size(); i++){
+          if(t.getArguments().get(i) instanceof Variable){
+            String var = ((Variable)(t.getArguments().get(i))).getVarName();
+            if(subs.containsKey(var)){
+              t_copy.getArguments().set(i, subs.get(var));
+            }
+          }else{
+            t_copy.getArguments().set(i, termSubs(t_copy.getArguments().get(i),subs));
+          }
+        }
+      }
+    }
+    return t_copy;
   }
 }

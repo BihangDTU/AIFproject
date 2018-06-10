@@ -115,6 +115,7 @@ public class AttackTrace {
       attackInfo.setAttackTraces(attackTraces);
       //System.out.print(attackInfo.getLaTaxCMD() + "\n"); 
       //System.out.print(attackInfo.getAttackTraces() + "\n");
+      attackInfo.setAttackReachable(true);
     }else{
       System.out.println("RESULT goal unreachable: attack.");
     }
