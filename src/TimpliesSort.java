@@ -196,7 +196,8 @@ public class TimpliesSort {
         for(Map.Entry<String, String> entity : t.getvType().entrySet()){
           ran_t.add(entity.getValue());
         }
-        if(ran_vType.containsAll(ran_t) && ran_vType.size() == ran_t.size()){
+        //if(ran_vType.containsAll(ran_t) && ran_vType.size() == ran_t.size()){
+        if(ran_vType.containsAll(ran_t)){
           timpliesClassified.add(t);
           remainTimplies.remove(t);
         }
@@ -266,15 +267,22 @@ public class TimpliesSort {
       Collections.sort(t, new SortbyListSize());
     }
 
+    List<FactWithType> timplieCopy = new ArrayList<>(timplies);
     //List<FactWithType> timpliesOrdered = new ArrayList<>();
-    for(List<ArrayList<FactWithType>> ts : classifiedTimpliesSorted){
-      for(ArrayList<FactWithType> t : ts){
-        Term firstVal = t.get(0).getTerm().getArguments().get(0);
-        for(FactWithType timplie : timplies){
-          if(firstVal.equals(timplie.getTerm().getArguments().get(0))){
-            //timpliesOrdered.add(timplie);
-            System.out.println(timplie.getTerm().getArguments().get(0) + " -->> " + timplie.getTerm().getArguments().get(1));
-          } 
+    for(List<ArrayList<FactWithType>> tss : classifiedTimpliesSorted){
+      for(ArrayList<FactWithType> ts : tss){     
+        for(FactWithType t : ts){
+          Term firstVal = t.getTerm().getArguments().get(0);
+          Term secondVal = t.getTerm().getArguments().get(1);
+          for(FactWithType timplie : timplies){
+            if(firstVal.equals(timplie.getTerm().getArguments().get(0)) && secondVal.equals(timplie.getTerm().getArguments().get(1))){
+              //timpliesOrdered.add(timplie);
+              System.out.println(timplie.getTerm().getArguments().get(0) + " -->> " + timplie.getTerm().getArguments().get(1));
+              timplieCopy.remove(timplie);
+            } 
+          }
+          timplies.clear();
+          timplies.addAll(timplieCopy);
         }
       }
     }

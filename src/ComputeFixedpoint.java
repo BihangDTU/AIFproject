@@ -30,16 +30,6 @@ public class ComputeFixedpoint {
     
     System.out.println("---------------------------------------------");
     
-    //ConcreteRule crule = concreteRules.get("serverUpdateKey");
-    AbstractRule absrule = vf.concreteRuleToAbsRuleConversion(aifAST,concreteRules,"keyReg");
-    //System.out.println(crule);
-    System.out.println();
-    //System.out.println(absrule);
-    System.out.println();
-    
-    //AbstractRule contextClause = getContextClause(absrule);
-    //System.out.println(contextClause);
-    
 
     for(String rName : ruleNames){
       AbstractRule absRule = vf.concreteRuleToAbsRuleConversion(aifAST,concreteRules,rName);
@@ -62,41 +52,61 @@ public class ComputeFixedpoint {
     System.out.println(dd);
     */   
     List<String> membershipName = vf.getSetMembershipName(aifAST);
-/*    List<FactWithType> emptyList = new ArrayList<>();
-    List<FactWithType> f1 = getNewFacts(hornClauses,emptyList,UserDefType,membershipName);
-    List<FactWithType> f2 = getNewFacts(hornClauses,f1,UserDefType,membershipName);
-    List<FactWithType> f3 = getNewFacts(hornClauses,f2,UserDefType,membershipName);
-    List<FactWithType> f4 = getNewFacts(hornClauses,f3,UserDefType,membershipName);
-    List<FactWithType> f5 = getNewFacts(hornClauses,f4,UserDefType,membershipName);
-    for(FactWithType fact : f5){
-      System.out.println(fact);
-    }
-    
- */   
+        
     fixedpointCompute(hornClauses,UserDefType,membershipName);
     return hornClauses;
   }
   
   public void fixedpointCompute(List<AbstractRule> hornClauses,HashMap<String,List<String>> UserDefType, List<String> membershipName){
     List<OutFact> fixedpoint = new ArrayList<>();
-
     while(true){
-      List<OutFact> newGenerateFacts = getNewFacts(hornClauses,fixedpoint,UserDefType,membershipName);
+      List<OutFact> newGenerateFact = getNewFacts(hornClauses,fixedpoint,UserDefType,membershipName);
+      System.out.println("----------------------------");
+      System.out.println("New generate: " + newGenerateFact.size());
+      System.out.println();
+      for(OutFact oo : newGenerateFact){
+        System.out.println(oo);
+      }
+      System.out.println("----------------------------");
+      List<OutFact> reducednewGenerateFacts = reduceDuplicateFacts(newGenerateFact, UserDefType);
+      System.out.println("----------------------------");
+      System.out.println("reduced new generate facts: " + reducednewGenerateFacts.size());
+      System.out.println();
+      for(OutFact oo : reducednewGenerateFacts){
+        System.out.println(oo);
+      }
+      System.out.println("----------------------------");
       List<OutFact> fixedpointCopy = new ArrayList<>(fixedpoint);
-      List<OutFact> newGenerateFactsCopy = new ArrayList<>(newGenerateFacts);
+      List<OutFact> newGenerateFactsCopy1 = new ArrayList<>(reducednewGenerateFacts);
+      List<OutFact> newGenerateFactsCopy2 = new ArrayList<>(reducednewGenerateFacts);
+      
       for(OutFact factF : fixedpointCopy){
-        for(OutFact factN : newGenerateFactsCopy){
+        for(OutFact factN : newGenerateFactsCopy1){
           if(mgu.isT1GreaterOrEqualT2(factF.getfact(), factN.getfact(), UserDefType, new RenamingInfo())){
-            newGenerateFacts.remove(factN);
+            newGenerateFactsCopy2.remove(factN);
           }else if(mgu.isT1GreaterOrEqualT2(factN.getfact(), factF.getfact(), UserDefType, new RenamingInfo())){
             fixedpoint.remove(factF);
           }
         }
       }
-      if(newGenerateFacts.isEmpty()){
+      System.out.println("----------------------------");
+      System.out.println("New facts add to fixedpoint: " + newGenerateFactsCopy2.size());
+      System.out.println();
+      for(OutFact oo : newGenerateFactsCopy2){
+        System.out.println(oo);
+      }
+      System.out.println("----------------------------");
+      if(newGenerateFactsCopy2.isEmpty()){
         break;
       }else{
-        fixedpoint.addAll(newGenerateFacts);
+        fixedpoint.addAll(newGenerateFactsCopy2);
+        System.out.println("----------------------------");
+        System.out.println("Facts in fixedpoint: " + fixedpoint.size());
+        System.out.println();
+        for(OutFact oo : fixedpoint){
+          System.out.println(oo);
+        }
+        System.out.println("----------------------------");
       }
     }
     for(OutFact f : fixedpoint){
@@ -185,6 +195,7 @@ public class ComputeFixedpoint {
         for(OutFact fact : facts){
           Substitution subs = new Substitution();
           RenamingInfo renameInfo = new RenamingInfo();
+          //subs.setUnifierState(true);
           if(mgu.unifyTwoFactsPKDB(lfWithType,fact.getfact(),subs,renameInfo,UserDefType,membershipName)){
             isUnifySuccess = true;
             varsType.putAll(renameInfo.getvType());
@@ -204,6 +215,7 @@ public class ComputeFixedpoint {
           FactWithType lfWithTypeSubs = new FactWithType(varsType ,mgu.termSubstituted(lf, sub.getSubs()));
           for(OutFact fact : facts){
             RenamingInfo renameInfo = new RenamingInfo();
+            subsCopy.getSubs().setUnifierState(true);
             if(mgu.unifyTwoFactsPKDB(lfWithTypeSubs,fact.getfact(),subsCopy.getSubs(),renameInfo,UserDefType,membershipName)){
               isUnifySuccess = true;
               varsType.putAll(renameInfo.getvType());
@@ -244,10 +256,10 @@ public class ComputeFixedpoint {
           if(fv.contains(entity.getKey())){
             vTypes.put(entity.getKey(), entity.getValue());
           }
-        }       
+        }
+        id.increaseCounter();
         FactWithType rfFactWithTypes = new FactWithType(vTypes,rfFact); 
         OutFact outputfact = new OutFact(id.getCounter(),rfFactWithTypes,substitution.getTrace(),absRule.getRulesName());
-        id.increaseCounter();
         newGenerateFacts.add(outputfact);
       }
 
@@ -261,8 +273,8 @@ public class ComputeFixedpoint {
           }
         }  
         FactWithType timplieWithTypes = new FactWithType(vTypes,tim); 
-        OutFact outputfact = new OutFact(id.getCounter(),timplieWithTypes,substitution.getTrace(),absRule.getRulesName());
         id.increaseCounter();
+        OutFact outputfact = new OutFact(id.getCounter(),timplieWithTypes,substitution.getTrace(),absRule.getRulesName());
         newGenerateFacts.add(outputfact);
       }
       
@@ -271,6 +283,31 @@ public class ComputeFixedpoint {
     //List<FactWithType>  reducedFacts =  fs.reduceDuplicateFactsNew(newGenerateFacts,extendedTimplies,UserDefType);
     
     return newGenerateFacts;
+  }
+  
+  public List<OutFact> reduceDuplicateFacts(List<OutFact> facts, HashMap<String,List<String>> UserDefType){
+    List<OutFact> reducedFacts = new ArrayList<>(facts);
+    List<OutFact> factsCopy = new ArrayList<>(facts);
+    if(reducedFacts.size() == 1){
+      return reducedFacts;
+    }else{     
+      OutFact flag = new OutFact(0,new FactWithType(new HashMap<String,String>(), new Variable("Falg")), new ArrayList<Integer>(),"Flag");
+      factsCopy.add(flag);
+      while(true){
+        if(factsCopy.get(0).equals(flag)) break;
+        OutFact firstFact = factsCopy.get(0);  
+        for(OutFact f : reducedFacts){
+          if(mgu.isT1GreaterOrEqualT2(firstFact.getfact(), f.getfact(), UserDefType, new RenamingInfo())){
+            factsCopy.remove(f);
+          }
+        }
+        factsCopy.add(firstFact);
+        reducedFacts.clear();
+        reducedFacts.addAll(factsCopy);    
+      }   
+      reducedFacts.remove(flag);
+    }
+    return reducedFacts; 
   }
 
 }

@@ -39,6 +39,26 @@ public class VerifyFixedpoint {
     List<FactWithTypeRuleName> reducedFacts = fs.getReductedFixedpointWithRuleName(facts);
     List<ArrayList<FactWithTypeRuleName>> factsSorted = fs.sortFacts(reducedFacts);
     List<FactWithType> extendedTimplies = fp.getExtendedTimplies(fpAST,UserDefType);
+    /*for(ArrayList<FactWithTypeRuleName> hhhh : factsSorted){
+      for(FactWithTypeRuleName hh : hhhh){
+       System.out.println(hh); 
+      }
+      System.out.println();
+    }
+    System.out.println();
+    System.out.println();
+    
+    List<ArrayList<FactWithTypeRuleName>> refactsSorted = fs.reduceDuplicateFacts(factsSorted,extendedTimplies, UserDefType);
+    
+    for(ArrayList<FactWithTypeRuleName> hhhh : refactsSorted){
+      for(FactWithTypeRuleName hh : hhhh){
+       System.out.println(hh); 
+      }
+      System.out.println();
+    }
+    System.out.println();
+    System.out.println();
+    */
     List<FactWithType> timplies = fp.getTimplies(fpAST);
     List<List<FactWithType>> classifiedExtendedTimplies = fp.classifyTimpliesInTypes(extendedTimplies);
     List<ArrayList<FactWithType>> reductedfacts = fs.fixedpointsWithoutDuplicateRuleName(factsSorted);
@@ -52,6 +72,7 @@ public class VerifyFixedpoint {
     fp.printKeyLifeCycle(classifiedExtendedTimplies,timplies);
     System.out.println();
     System.out.println();
+    System.out.println("-------");
     System.out.println("Reducted facts from Fixedpoint:");
     fs.printReductedFacts(futherReductedfacts,ruleNames);
     System.out.println();
@@ -63,6 +84,7 @@ public class VerifyFixedpoint {
     
     HashMap<String, ConcreteRule> concreteRulesMap = getAllConcreteRules(aifAST);
     for(String ruleName : ruleNames){
+      System.out.println("-------");
       ConcreteRule conRule = concreteRulesMap.get(ruleName);
       AbstractRule absrule = concreteRuleToAbsRuleConversion(aifAST,concreteRulesMap,ruleName);
       applyRule(conRule,absrule,reductedfactsList,extendedTimplies,UserDefType,membershipName);
@@ -234,11 +256,13 @@ public class VerifyFixedpoint {
 
   
   public List<FactWithType> applyRule(ConcreteRule conRule,AbstractRule absRule, List<FactWithType> facts,List<FactWithType> extendedTimplies,HashMap<String,List<String>> UserDefType,List<String> membershipName){
+    List<FactWithType> newGenerateFacts = new ArrayList<>();
     List<Substitution> stisfySubtitutions = new ArrayList<>(); 
     List<HashMap<String,FactWithType>> stisfiedKeys = new ArrayList<>();  
     HashMap<String,String> varsType = new HashMap<>(absRule.getVarsTypes());
     int counter = 0;
     for(Term lf : absRule.getLF()){
+      boolean isUnifySuccess = false;
       counter++;
       FactWithType lfWithType = new FactWithType(varsType ,lf);
       if(stisfySubtitutions.isEmpty()){
@@ -246,6 +270,7 @@ public class VerifyFixedpoint {
           Substitution subs = new Substitution();
           RenamingInfo renameInfo = new RenamingInfo();
           if(mgu.unifyTwoFactsPKDB(lfWithType,fact,subs,renameInfo,UserDefType,membershipName)){
+            isUnifySuccess = true;
             varsType.putAll(renameInfo.getvType());
             stisfySubtitutions.add(subs);
             /* only for display satisfied keys for the user*/
@@ -254,6 +279,9 @@ public class VerifyFixedpoint {
             stisfiedKeys.add(getKeyMap(conRule.getLF().get(counter-1), lfsubstitutedWithType));
           }
         }
+        if(!isUnifySuccess){
+          return newGenerateFacts;
+        }
       }else{
         List<Substitution> stisfySubtitutionsCopy = (List<Substitution>)dClone.deepClone(stisfySubtitutions);
         for(Substitution sub : stisfySubtitutionsCopy){
@@ -261,7 +289,9 @@ public class VerifyFixedpoint {
           FactWithType lfWithTypeSubs = new FactWithType(varsType ,mgu.termSubstituted(lf, sub));
           for(FactWithType fact : facts){
             RenamingInfo renameInfo = new RenamingInfo();
+            subsCopy.setUnifierState(true);
             if(mgu.unifyTwoFactsPKDB(lfWithTypeSubs,fact,subsCopy,renameInfo,UserDefType,membershipName)){
+              isUnifySuccess = true;
               varsType.putAll(renameInfo.getvType());
               stisfySubtitutions.add(subsCopy);
               /* only for display satisfied keys for the user*/
@@ -271,6 +301,9 @@ public class VerifyFixedpoint {
             }
           }
           stisfySubtitutions.remove(sub);
+          if(!isUnifySuccess){
+            return newGenerateFacts;
+          }
         }
         // need test here
         int mapSize=0;
@@ -299,8 +332,7 @@ public class VerifyFixedpoint {
       System.out.println();
     }
     System.out.println();
-    
-    List<FactWithType> newGenerateFacts = new ArrayList<>();
+ 
     if(absRule.getLF().isEmpty()){
       for(Term rf : absRule.getRF()){
         HashMap<String,String> vTypes = new HashMap<>();

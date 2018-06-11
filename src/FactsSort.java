@@ -285,7 +285,8 @@ public class FactsSort {
   public List<FactWithTypeRuleName> getReductedFixedpointWithRuleName(List<FactWithTypeRuleName> facts){
     List<FactWithTypeRuleName> FixedpointWithTimplies = new ArrayList<>();
     for(FactWithTypeRuleName fact : facts){
-      if(!fact.getRuleName().equals("timplies") && !fact.getTerm().getFactName().equals("timplies") && !fact.getTerm().getFactName().equals("occurs")){
+      //if(!fact.getRuleName().equals("timplies") && !fact.getTerm().getFactName().equals("timplies") && !fact.getTerm().getFactName().equals("occurs")){
+      if(!fact.getTerm().getFactName().equals("timplies") && !fact.getTerm().getFactName().equals("occurs")){
         FixedpointWithTimplies.add(fact);
       }
     }
