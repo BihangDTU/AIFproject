@@ -37,7 +37,7 @@ public class FactWithType extends AST implements Serializable{
     for (Map.Entry<String, String> var : vType.entrySet()) {
       s += var.getKey() + ":" + var.getValue() + ".";
     }
-    s += term.toString() + ";";
+    s += term.toString();
     return s;
   }
   @Override

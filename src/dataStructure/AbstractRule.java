@@ -17,11 +17,12 @@ public class AbstractRule extends AST implements Serializable{
   private List<Term> LF = new ArrayList<>();
   private HashMap<String,Term> freshVars;
   private List<Term> RF = new ArrayList<>();
-  private HashMap<String,Timplies> timplies = new HashMap<>();
+  private List<Term> timplies = new ArrayList<>();
+ // private HashMap<String,Timplies> timplies = new HashMap<>();
   
   public AbstractRule(){}
 	public AbstractRule(String rulesName, HashMap<String, String> varsTypes,
-			List<Term> lF, List<Term> rF,HashMap<String,Term> freshVars, HashMap<String,Timplies> timplies) {
+			List<Term> lF, List<Term> rF,HashMap<String,Term> freshVars, List<Term> timplies) {
 		super();
 		this.rulesName = rulesName;
 		this.varsTypes = varsTypes;
@@ -61,10 +62,10 @@ public class AbstractRule extends AST implements Serializable{
 		RF = rF;
 	}
   
-	public HashMap<String,Timplies> getTimplies() {
+	public List<Term> getTimplies() {
 		return timplies;
 	}
-	public void setTimplies(HashMap<String,Timplies> timplies) {
+	public void setTimplies(List<Term> timplies) {
 		this.timplies = timplies;
 	}
 	
@@ -109,10 +110,8 @@ public class AbstractRule extends AST implements Serializable{
       	abstractRule += "." + RF.get(i);
       } 
     }
-  	for(Map.Entry<String, Timplies> tMap : timplies.entrySet()){
-  	  if(tMap.getValue().isTimplies()){
-  	    abstractRule += "." + tMap.getValue().toString();
-  	  }
+  	for(Term tMap : timplies){
+      abstractRule += "." + tMap.toString();
   	}
     return abstractRule + ";";
   }

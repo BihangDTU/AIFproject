@@ -16,7 +16,9 @@ import dataStructure.ConcreteRule;
 import dataStructure.Condition;
 import dataStructure.FactWithType;
 import dataStructure.FactWithTypeRuleName;
+import dataStructure.FixedpointData;
 import dataStructure.RenamingInfo;
+import dataStructure.Substitution;
 import dataStructure.Term;
 import dataStructure.Timplies;
 import dataStructure.Variable;
@@ -57,34 +59,33 @@ public class VerifyFixedpoint {
       reductedfactsList.addAll(f);
     }
     
+    List<String> membershipName = getSetMembershipName(aifAST);
+    
+    HashMap<String, ConcreteRule> concreteRulesMap = getAllConcreteRules(aifAST);
     for(String ruleName : ruleNames){
-      ConcreteRule conRule = getConcreteRuleByRuleName(aifAST,ruleName);
-      AbstractRule absrule = concreteRuleToAbsRuleConversion(aifAST,ruleName);
-      applyRule(conRule,absrule,reductedfactsList,extendedTimplies,UserDefType);
+      ConcreteRule conRule = concreteRulesMap.get(ruleName);
+      AbstractRule absrule = concreteRuleToAbsRuleConversion(aifAST,concreteRulesMap,ruleName);
+      applyRule(conRule,absrule,reductedfactsList,extendedTimplies,UserDefType,membershipName);
     }
   }
   
-  public ConcreteRule getConcreteRuleByRuleName(AST aifAST,String conRuleName){
-    ConcreteRule conRule = null;
-    for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
-      if(cr.getRulesName().equals(conRuleName)){
-        conRule = cr;
-        break;
-      }
+  public List<String> getSetMembershipName(AST aifAST){
+    List<String> membershipName = new ArrayList<>();
+    for(Term set :((AIFdata)aifAST).getSets()){
+      membershipName.add(set.getFactName());
     }
-    if(conRule == null){
-      System.err.println("Rule name not exsit.\n");
-      System.exit(-1);
-    }
-    return conRule;
+    return membershipName;
   }
   
-  
-  public AbstractRule concreteRuleToAbsRuleConversion(AST aifAST, String conRuleName){
-    HashMap<String, ConcreteRule> concreteRules = new HashMap<>(); 
+  public HashMap<String, ConcreteRule> getAllConcreteRules(AST aifAST){
+    HashMap<String, ConcreteRule> concreteRules = new HashMap<>();
     for(ConcreteRule cr: ((AIFdata)aifAST).getRules()){
       concreteRules.put(cr.getRulesName(), cr);
     }
+    return concreteRules;
+  }
+  
+  public AbstractRule concreteRuleToAbsRuleConversion(AST aifAST,HashMap<String, ConcreteRule> concreteRules, String conRuleName){
     if(!concreteRules.containsKey(conRuleName)){
       System.err.println("Rule name not exsit.\n");
       System.exit(-1);
@@ -143,16 +144,20 @@ public class VerifyFixedpoint {
       RF.add(absRF);
     }
     absRule.setRF(RF);
-    HashMap<String,Timplies> timplies = new HashMap<>();
+    //HashMap<String,Timplies> timplies = new HashMap<>();
+    List<Term> timplies = new ArrayList<>();
     for(Map.Entry<String, Term> sub : subsCopy.getSubstitution().entrySet()){
       Composed t = new Composed("timplies");
       t.setArguments(sub.getValue());
       t.setArguments(subs.getSubstitution().get(sub.getKey()));
 
-      Timplies timplie = new Timplies(t); 
-      timplies.put(sub.getKey(), timplie);
+     //Timplies timplie = new Timplies(t); 
+     //timplies.put(sub.getKey(), timplie);
+      if(!sub.getValue().equals(subs.getSubstitution().get(sub.getKey()))){
+        timplies.add(t);
+      }
     }
-    absRule.setTimplies(timplies);
+    //absRule.setTimplies(timplies);
     HashSet<String> fv = new HashSet<>();
     for(Term lf : absRule.getLF()){
       fv.addAll(mgu.vars(lf));
@@ -166,8 +171,16 @@ public class VerifyFixedpoint {
         absVarsType.put(entity.getKey(), entity.getValue());
       }
     }
+    for(String var : fv){
+      if(var.matches(".*PKDB.*")){
+        absVarsType.put(var, "membership");
+      }
+    }
     absRule.setVarsTypes(absVarsType);
-     
+    if(!conRule.getVarsTypes().values().contains("membership")){
+      absRule.setTimplies(timplies);
+    }
+
     return absRule;
   }
   
@@ -183,7 +196,7 @@ public class VerifyFixedpoint {
   
   public Term cFactToAbsFact(Term term,HashMap<String, String> varsTypes, List<Condition> conditions,HashMap<String, Integer> setPosition){
     if(term instanceof Variable){
-      if(varsTypes.get(term.getVarName()).equals("value")){
+      if(varsTypes.get(term.getVarName()).equals("value") || varsTypes.get(term.getVarName()).equals("membership")){
         Composed val = new Composed("val");
         Composed zero = new Composed("0");
         for(int j=0;j<setPosition.size();j++){ 
@@ -220,7 +233,7 @@ public class VerifyFixedpoint {
   }
 
   
-  public List<FactWithType> applyRule(ConcreteRule conRule,AbstractRule absRule, List<FactWithType> facts,List<FactWithType> extendedTimplies,HashMap<String,List<String>> UserDefType){
+  public List<FactWithType> applyRule(ConcreteRule conRule,AbstractRule absRule, List<FactWithType> facts,List<FactWithType> extendedTimplies,HashMap<String,List<String>> UserDefType,List<String> membershipName){
     List<Substitution> stisfySubtitutions = new ArrayList<>(); 
     List<HashMap<String,FactWithType>> stisfiedKeys = new ArrayList<>();  
     HashMap<String,String> varsType = new HashMap<>(absRule.getVarsTypes());
@@ -232,7 +245,7 @@ public class VerifyFixedpoint {
         for(FactWithType fact : facts){
           Substitution subs = new Substitution();
           RenamingInfo renameInfo = new RenamingInfo();
-          if(mgu.unifyTwoFactsPKDB(lfWithType,fact,subs,renameInfo,UserDefType)){
+          if(mgu.unifyTwoFactsPKDB(lfWithType,fact,subs,renameInfo,UserDefType,membershipName)){
             varsType.putAll(renameInfo.getvType());
             stisfySubtitutions.add(subs);
             /* only for display satisfied keys for the user*/
@@ -248,7 +261,7 @@ public class VerifyFixedpoint {
           FactWithType lfWithTypeSubs = new FactWithType(varsType ,mgu.termSubstituted(lf, sub));
           for(FactWithType fact : facts){
             RenamingInfo renameInfo = new RenamingInfo();
-            if(mgu.unifyTwoFactsPKDB(lfWithTypeSubs,fact,subsCopy,renameInfo,UserDefType)){
+            if(mgu.unifyTwoFactsPKDB(lfWithTypeSubs,fact,subsCopy,renameInfo,UserDefType,membershipName)){
               varsType.putAll(renameInfo.getvType());
               stisfySubtitutions.add(subsCopy);
               /* only for display satisfied keys for the user*/

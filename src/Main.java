@@ -95,7 +95,7 @@ public class Main {
     
     
     System.out.println("-----------------------------------------------------------");
-    HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();
+   /* HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();
     StateTransition ST = new StateTransition();
     ST.setBuildInTypes(buildInTypes);
     State state = new State();
@@ -121,7 +121,10 @@ public class Main {
     if(!attackInfo.isAttackReachable()){
       VerifyFixedpoint vf = new VerifyFixedpoint(); 
       vf.verifyFixedpoint(aifAST,fpAST,UserDefType);
-    }  
+    }*/
+    
+   // ComputeFixedpoint cp = new ComputeFixedpoint();
+   // cp.generateHornClause(aifAST,UserDefType);
   };
   
 }

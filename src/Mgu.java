@@ -322,13 +322,13 @@ public class Mgu {
     }   
   }
   
-  public void mguWithTypesPKDB(List<TermPairWithTypes> termPairs,HashMap<String,List<String>> UserDefType ,Substitution subs) throws UnificationFailedException{
+  public void mguWithTypesPKDB(List<TermPairWithTypes> termPairs,HashMap<String,List<String>> UserDefType ,Substitution subs,List<String> membershipName) throws UnificationFailedException{
     if(!termPairs.isEmpty()){
       FactWithType s = termPairs.get(0).gets();
       FactWithType t = termPairs.get(0).gett();     
       if(s.getTerm().equals(t.getTerm())){
         termPairs.remove(0);
-        mguWithTypesPKDB(termPairs,UserDefType,subs);
+        mguWithTypesPKDB(termPairs,UserDefType,subs,membershipName);
       }else if(s.getTerm() instanceof Variable){
         if(!(t.getTerm() instanceof Variable)){
           if(vars(t.getTerm()).contains(((Variable)s.getTerm()).getVarName())){
@@ -336,9 +336,15 @@ public class Mgu {
             throw new UnificationFailedException();
           }else{ // may need update here
             if(((Variable)s.getTerm()).getVarName().matches(".*PKDB.*")){
-              termPairs.remove(0);
-              subs.getSubstitution().put(s.getTerm().getVarName(), t.getTerm());
-              mguWithTypesPKDB(termPairs,UserDefType,subs);
+              String tName = t.getTerm().getFactName();
+              if(tName.equals("val")|| tName.endsWith("0") || membershipName.contains(tName)){
+                termPairs.remove(0);
+                subs.getSubstitution().put(s.getTerm().getVarName(), t.getTerm());
+                mguWithTypesPKDB(termPairs,UserDefType,subs,membershipName);
+              }else{
+                subs.setUnifierState(false);
+                throw new UnificationFailedException();
+              }   
             }else{
               subs.setUnifierState(false);
               throw new UnificationFailedException();
@@ -388,7 +394,7 @@ public class Mgu {
             termPairsSubstituted.add(tpsubstituted);           
           }
           //subs.addSubstitution(((Variable)s.getTerm()).getVarName(), t.getTerm());    
-          mguWithTypesPKDB(termPairsSubstituted,UserDefType,subs);
+          mguWithTypesPKDB(termPairsSubstituted,UserDefType,subs,membershipName);
         }   
       }else if(t.getTerm() instanceof Variable){
         if(!(s.getTerm() instanceof Variable)){
@@ -397,9 +403,15 @@ public class Mgu {
             throw new UnificationFailedException();
           }else{ // may need update here
             if(((Variable)t.getTerm()).getVarName().matches(".*PKDB.*")){
-              termPairs.remove(0);
-              subs.getSubstitution().put(t.getTerm().getVarName(), s.getTerm());
-              mguWithTypesPKDB(termPairs,UserDefType,subs);
+              String sName = s.getTerm().getFactName();
+              if(sName.equals("val") || sName.equals("0") || membershipName.contains(sName)){
+                termPairs.remove(0);
+                subs.getSubstitution().put(t.getTerm().getVarName(), s.getTerm());
+                mguWithTypesPKDB(termPairs,UserDefType,subs,membershipName);
+              }else{
+                subs.setUnifierState(false);
+                throw new UnificationFailedException();
+              }
             }else{
               subs.setUnifierState(false);
               throw new UnificationFailedException();
@@ -448,7 +460,7 @@ public class Mgu {
             termPairsSubstituted.add(tpsubstituted);           
           }
           //subs.addSubstitution(((Variable)t.getTerm()).getVarName(), s.getTerm());    
-          mguWithTypesPKDB(termPairsSubstituted,UserDefType,subs);
+          mguWithTypesPKDB(termPairsSubstituted,UserDefType,subs,membershipName);
         }
       }else{
         if(!((Composed)s.getTerm()).getFactName().equals(((Composed)t.getTerm()).getFactName())){
@@ -462,7 +474,7 @@ public class Mgu {
             TermPairWithTypes newTermPairWithTypes = new TermPairWithTypes(s1WithTypes,t1WithTypes);
             termPairs.add(newTermPairWithTypes);
           }
-          mguWithTypesPKDB(termPairs,UserDefType,subs);
+          mguWithTypesPKDB(termPairs,UserDefType,subs,membershipName);
         }      
       }
     }   
@@ -508,7 +520,7 @@ public class Mgu {
     HashMap<String,String> subs = new HashMap<>();
     for(String var : vars){
       gc.increaseCounter();
-      String newVarName = var + gc.getCounter();
+      String newVarName = Character.toString(var.charAt(0)) + gc.getCounter();
       subs.put(var, newVarName);
       tcopy.getvType().put(newVarName, tcopy.getvType().get(var));
       tcopy.getvType().remove(var);
@@ -557,14 +569,14 @@ public class Mgu {
     return subs.getUnifierState();
   }
   
-  public boolean unifyTwoFactsPKDB(FactWithType t1, FactWithType t2, Substitution subs,RenamingInfo renameInfo, HashMap<String,List<String>> UserDefType){
+  public boolean unifyTwoFactsPKDB(FactWithType t1, FactWithType t2, Substitution subs,RenamingInfo renameInfo, HashMap<String,List<String>> UserDefType,List<String> membershipName){
     FactWithType t1copy = (FactWithType)dClone.deepClone(t1);
     FactWithType t2Renamed = renameTermVars(t2,renameInfo);
     TermPairWithTypes termPair = new TermPairWithTypes(t1copy,t2Renamed);
     List<TermPairWithTypes> termPairs = new ArrayList<>();
     termPairs.add(termPair);
     try{
-      mguWithTypesPKDB(termPairs,UserDefType,subs);
+      mguWithTypesPKDB(termPairs,UserDefType,subs,membershipName);
     }catch(UnificationFailedException e){
       return false;
     }   

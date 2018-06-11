@@ -1,4 +1,4 @@
-import dataStructure.*;
+package dataStructure;
 
 import java.io.Serializable;
 import java.util.HashMap;
