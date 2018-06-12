@@ -40,22 +40,12 @@ public class Mgu {
         }
       }else{
         for(int i=0; i < t_copy.getArguments().size(); i++){
-          if(t_copy.getArguments().get(i) instanceof Variable){
-            Variable var = (Variable)(t_copy.getArguments().get(i));
-            if(subs.getSubstitution().containsKey(var.getVarName())){
-              t_copy.getArguments().add(i, subs.getSubstitution().get(var.getVarName()));
-              t_copy.getArguments().remove(i+1);
-            }
-          }else{
-            t_copy.getArguments().add(i, termSubstituted(t_copy.getArguments().get(i),subs));
-            t_copy.getArguments().remove(i+1);
-          }
+          t_copy.getArguments().set(i, termSubstituted(t_copy.getArguments().get(i),subs));
         }
       }
     }
     return t_copy;
   }
-  
     
   public Term termSubs(Term t, HashMap<String,String> subs){   // need move to new calss
     Term t_copy = (Term)dClone.deepClone(t);
@@ -66,14 +56,7 @@ public class Mgu {
         }
       }else{
         for(int i=0; i < t.getArguments().size(); i++){
-          if(t.getArguments().get(i) instanceof Variable){
-            String var = ((Variable)(t.getArguments().get(i))).getVarName();
-            if(subs.containsKey(var)){
-              t_copy.getArguments().set(i, new Variable(subs.get(var)));
-            }
-          }else{
-            t_copy.getArguments().set(i, termSubs(t_copy.getArguments().get(i),subs));
-          }
+          t_copy.getArguments().set(i, termSubs(t_copy.getArguments().get(i),subs));
         }
       }
     }
@@ -97,16 +80,7 @@ public class Mgu {
         }
       }else{
         for(int i=0; i < t_copy.getArguments().size(); i++){
-          if(t_copy.getArguments().get(i) instanceof Variable){
-            Variable var = (Variable)(t_copy.getArguments().get(i));
-            if(subs.containsKey(var.getVarName())){
-              t_copy.getArguments().add(i, subs.get(var.getVarName()).getTerm());
-              t_copy.getArguments().remove(i+1);
-            }
-          }else{
-            t_copy.getArguments().add(i, termSubsWithType(t_copy.getArguments().get(i),subs));
-            t_copy.getArguments().remove(i+1);
-          }
+          t_copy.getArguments().set(i, termSubsWithType(t_copy.getArguments().get(i),subs));
         }
       }
     }

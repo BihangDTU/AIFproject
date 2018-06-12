@@ -36,6 +36,13 @@ public class VerifyFixedpoint {
   
   public void verifyFixedpoint(AST aifAST, AST fpAST,HashMap<String,List<String>> UserDefType){
     List<FactWithTypeRuleName> facts = fs.getAllFactsFromFixedPoint(fpAST);
+    
+   /* for(FactWithTypeRuleName f : facts){
+      System.out.println(mgu.termSubs(f.getTerm(), f.getvType()) + " " + f.getRuleName());
+    }*/
+    
+    
+    
     List<FactWithTypeRuleName> reducedFacts = fs.getReductedFixedpointWithRuleName(facts);
     List<ArrayList<FactWithTypeRuleName>> factsSorted = fs.sortFacts(reducedFacts);
     List<FactWithType> extendedTimplies = fp.getExtendedTimplies(fpAST,UserDefType);
@@ -218,7 +225,7 @@ public class VerifyFixedpoint {
   
   public Term cFactToAbsFact(Term term,HashMap<String, String> varsTypes, List<Condition> conditions,HashMap<String, Integer> setPosition){
     if(term instanceof Variable){
-      if(varsTypes.get(term.getVarName()).equals("value") || varsTypes.get(term.getVarName()).equals("membership")){
+      if(varsTypes.get(term.getVarName()).equals("value")){
         Composed val = new Composed("val");
         Composed zero = new Composed("0");
         for(int j=0;j<setPosition.size();j++){ 
@@ -238,6 +245,11 @@ public class VerifyFixedpoint {
           }
         }
         return val;
+      }else if(varsTypes.get(term.getVarName()).equals("membership")){
+        gcsm.increaseCounter();
+        String PKDB = "PKDB_" + gcsm.getCounter();
+        Variable PKDBvar = new Variable(PKDB);
+        return PKDBvar;
       }else{
         return term;
       }

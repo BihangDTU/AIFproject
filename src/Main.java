@@ -123,8 +123,10 @@ public class Main {
       vf.verifyFixedpoint(aifAST,fpAST,UserDefType);
    // }
     
-    ComputeFixedpoint cp = new ComputeFixedpoint();
+    ComputeFixedpoint cp = new ComputeFixedpoint(aifAST);
     //cp.generateHornClause(aifAST,UserDefType);
+   
+    
   };
   
 }

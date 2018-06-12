@@ -13,7 +13,10 @@ public class ComputeFixedpoint {
   DeepClone dClone = new DeepClone();
   IDcounter id = new IDcounter();
   GlobalCounterForSetMember gcsm = new GlobalCounterForSetMember();
-  public ComputeFixedpoint(){};
+  private static int maxVarsInSets;
+  public ComputeFixedpoint(AST aifAST){
+    maxVarsInSets = getMaxSizeSets(aifAST);
+  };
   
   
   public List<AbstractRule> generateHornClause(AST aifAST,HashMap<String,List<String>> UserDefType){
@@ -60,61 +63,48 @@ public class ComputeFixedpoint {
   public void fixedpointCompute(List<AbstractRule> hornClauses,HashMap<String,List<String>> UserDefType, List<String> membershipName){
     List<OutFact> fixedpoint = new ArrayList<>();
     while(true){
-      List<OutFact> newGenerateFact = getNewFacts(hornClauses,fixedpoint,UserDefType,membershipName);
+      /*System.out.println("----------------------------");
+      System.out.println("FixedPoint: " + fixedpoint.size());
+      System.out.println();
+      for(OutFact oo : fixedpoint){
+        System.out.println(oo);
+      }
       System.out.println("----------------------------");
+      System.out.println("Calculating!!!!!!!!!!");*/
+      //HashSet<OutFact> newGenerateFact = new HashSet<>(getNewFacts(hornClauses,fixedpoint,UserDefType,membershipName));
+      List<OutFact> newGenerateFact = getNewFacts(hornClauses,fixedpoint,UserDefType,membershipName);
+      /*System.out.println("----------------------------");
       System.out.println("New generate: " + newGenerateFact.size());
       System.out.println();
       for(OutFact oo : newGenerateFact){
         System.out.println(oo);
       }
-      System.out.println("----------------------------");
-      List<OutFact> reducednewGenerateFacts = reduceDuplicateFacts(newGenerateFact, UserDefType);
-      System.out.println("----------------------------");
-      System.out.println("reduced new generate facts: " + reducednewGenerateFacts.size());
-      System.out.println();
-      for(OutFact oo : reducednewGenerateFacts){
-        System.out.println(oo);
-      }
-      System.out.println("----------------------------");
+      System.out.println("----------------------------");*/
       List<OutFact> fixedpointCopy = new ArrayList<>(fixedpoint);
-      List<OutFact> newGenerateFactsCopy1 = new ArrayList<>(reducednewGenerateFacts);
-      List<OutFact> newGenerateFactsCopy2 = new ArrayList<>(reducednewGenerateFacts);
-      
-      for(OutFact factF : fixedpointCopy){
-        for(OutFact factN : newGenerateFactsCopy1){
-          if(mgu.isT1GreaterOrEqualT2(factF.getfact(), factN.getfact(), UserDefType, new RenamingInfo())){
-            newGenerateFactsCopy2.remove(factN);
-          }else if(mgu.isT1GreaterOrEqualT2(factN.getfact(), factF.getfact(), UserDefType, new RenamingInfo())){
-            fixedpoint.remove(factF);
-          }
-        }
-      }
-      System.out.println("----------------------------");
-      System.out.println("New facts add to fixedpoint: " + newGenerateFactsCopy2.size());
+      fixedpointCopy.addAll(newGenerateFact);
+     // System.out.println("reduceing!!!!!!!!!!!!!!!!!!!!");
+      List<OutFact> facts = reduceDuplicateFacts(fixedpointCopy, UserDefType);
+      /*System.out.println("----------------------------");
+      System.out.println("reduced new generate facts: " + facts.size());
       System.out.println();
-      for(OutFact oo : newGenerateFactsCopy2){
+      for(OutFact oo : facts){
         System.out.println(oo);
       }
-      System.out.println("----------------------------");
-      if(newGenerateFactsCopy2.isEmpty()){
+      System.out.println("----------------------------");*/
+      if(fixedpoint.equals(facts)){
         break;
       }else{
-        fixedpoint.addAll(newGenerateFactsCopy2);
-        System.out.println("----------------------------");
-        System.out.println("Facts in fixedpoint: " + fixedpoint.size());
-        System.out.println();
-        for(OutFact oo : fixedpoint){
-          System.out.println(oo);
-        }
-        System.out.println("----------------------------");
+        fixedpoint.clear();
+        fixedpoint.addAll(facts);
       }
     }
+    
+    System.out.println("Fixed-point:");
     for(OutFact f : fixedpoint){
       System.out.println(f);
     }
     
   }
-  
   
   public AbstractRule getContextClause(AbstractRule absRule){
     AbstractRule contextClause = new AbstractRule();
@@ -188,6 +178,7 @@ public class ComputeFixedpoint {
     List<OutFact> newGenerateFacts = new ArrayList<>();
     List<SubstitutionWithTrace> stisfySubtitutions = new ArrayList<>(); 
     HashMap<String,String> varsType = new HashMap<>(absRule.getVarsTypes());
+    
     for(Term lf : absRule.getLF()){
       boolean isUnifySuccess = false;
       FactWithType lfWithType = new FactWithType(varsType ,lf);
@@ -211,14 +202,15 @@ public class ComputeFixedpoint {
       }else{
         List<SubstitutionWithTrace> stisfySubtitutionsCopy = (List<SubstitutionWithTrace>)dClone.deepClone(stisfySubtitutions);
         for(SubstitutionWithTrace sub : stisfySubtitutionsCopy){
-          SubstitutionWithTrace subsCopy = (SubstitutionWithTrace)dClone.deepClone(sub);
           FactWithType lfWithTypeSubs = new FactWithType(varsType ,mgu.termSubstituted(lf, sub.getSubs()));
           for(OutFact fact : facts){
+            SubstitutionWithTrace subsCopy = (SubstitutionWithTrace)dClone.deepClone(sub);
             RenamingInfo renameInfo = new RenamingInfo();
             subsCopy.getSubs().setUnifierState(true);
             if(mgu.unifyTwoFactsPKDB(lfWithTypeSubs,fact.getfact(),subsCopy.getSubs(),renameInfo,UserDefType,membershipName)){
               isUnifySuccess = true;
               varsType.putAll(renameInfo.getvType());
+              subsCopy.getTrace().add(fact.getID());
               stisfySubtitutions.add(subsCopy);
             }
           }
@@ -248,6 +240,7 @@ public class ComputeFixedpoint {
       }
     }
     for(SubstitutionWithTrace substitution : stisfySubtitutions){
+      boolean areTypeConsistent = true;
       for(Term rf : absRule.getRF()){
         Term rfFact = mgu.termSubstituted(rf, substitution.getSubs());
         HashMap<String,String> vTypes = new HashMap<>();
@@ -260,7 +253,16 @@ public class ComputeFixedpoint {
         id.increaseCounter();
         FactWithType rfFactWithTypes = new FactWithType(vTypes,rfFact); 
         OutFact outputfact = new OutFact(id.getCounter(),rfFactWithTypes,substitution.getTrace(),absRule.getRulesName());
-        newGenerateFacts.add(outputfact);
+      
+        Term rfFactWithTypesSubs = mgu.termSubs(rfFact, vTypes);
+        List<HashSet<String>> valTypes = new ArrayList<>();
+        getValTypes(rfFactWithTypesSubs,valTypes);
+        if(getMaxSize(valTypes)>maxVarsInSets){   // 2 is temp use here, need to calculate the number of variables in val(...)
+          areTypeConsistent = false;
+        }
+        if(areTypeConsistent){
+          newGenerateFacts.add(outputfact);
+        }
       }
 
       for(Term timplie : absRule.getTimplies()){
@@ -275,7 +277,16 @@ public class ComputeFixedpoint {
         FactWithType timplieWithTypes = new FactWithType(vTypes,tim); 
         id.increaseCounter();
         OutFact outputfact = new OutFact(id.getCounter(),timplieWithTypes,substitution.getTrace(),absRule.getRulesName());
-        newGenerateFacts.add(outputfact);
+        
+        Term rfFactWithTypesSubs = mgu.termSubs(tim, vTypes);
+        List<HashSet<String>> valTypes = new ArrayList<>();
+        getValTypes(rfFactWithTypesSubs,valTypes);
+        if(getMaxSize(valTypes)> maxVarsInSets){   // 2 is temp use here, need to calculate the number of variables in val(...)
+          areTypeConsistent = false;
+        }
+        if(areTypeConsistent){
+          newGenerateFacts.add(outputfact);
+        }
       }
       
       
@@ -285,17 +296,57 @@ public class ComputeFixedpoint {
     return newGenerateFacts;
   }
   
+  public HashSet<String> getValTypes(Term t, List<HashSet<String>> valTypes){
+    HashSet<String> types = new HashSet<>();
+    if(t instanceof Variable){
+      return types;    
+    }else{
+      if(((Composed)t).getFactName().equals("val")){
+        valTypes.add(new HashSet<>(mgu.vars(t)));
+      }else{
+        for(int i=0; i < t.getArguments().size(); i++){
+          valTypes.add(getValTypes(t.getArguments().get(i),valTypes));
+        }
+      }
+    }
+    return types;
+  }
+  
+  public int getMaxSizeSets(AST aifAST){
+    List<Term> sets = ((AIFdata)aifAST).getSets();
+    List<HashSet<String>> dbTypes = new ArrayList<>();
+    for(Term db : sets){
+      dbTypes.add(new HashSet<>(mgu.vars(db)));
+    }
+    return getMaxSize(dbTypes);
+  }
+  
+  public int getMaxSize(List<HashSet<String>> valTypes){
+    int maxSize = 0;
+    for(HashSet<String> valT : valTypes){
+      if(maxSize < valT.size()){
+        maxSize = valT.size();
+      }
+    }
+    return maxSize;
+  }
+  
   public List<OutFact> reduceDuplicateFacts(List<OutFact> facts, HashMap<String,List<String>> UserDefType){
     List<OutFact> reducedFacts = new ArrayList<>(facts);
     List<OutFact> factsCopy = new ArrayList<>(facts);
-    if(reducedFacts.size() == 1){
-      return reducedFacts;
+    if(facts.size() == 1){
+      return facts;
     }else{     
-      OutFact flag = new OutFact(0,new FactWithType(new HashMap<String,String>(), new Variable("Falg")), new ArrayList<Integer>(),"Flag");
+      FactWithType EndFlag = new FactWithType(new HashMap<String,String>(), new Composed("_"));
+      OutFact flag = new OutFact(0,EndFlag, new ArrayList<Integer>(),"Flag");
       factsCopy.add(flag);
       while(true){
-        if(factsCopy.get(0).equals(flag)) break;
-        OutFact firstFact = factsCopy.get(0);  
+        if(factsCopy.get(0).equals(flag)){
+          //System.out.println("reduce done....");
+          break;
+        } 
+        OutFact firstFact = factsCopy.get(0); 
+        factsCopy.remove(0); 
         for(OutFact f : reducedFacts){
           if(mgu.isT1GreaterOrEqualT2(firstFact.getfact(), f.getfact(), UserDefType, new RenamingInfo())){
             factsCopy.remove(f);
