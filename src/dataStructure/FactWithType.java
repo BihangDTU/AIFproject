@@ -17,6 +17,7 @@ public class FactWithType extends AST implements Serializable{
     this.vType = vType;
     this.term = term;
   }
+  public FactWithType(){}
   public HashMap<String, String> getvType() {
     return vType;
   }

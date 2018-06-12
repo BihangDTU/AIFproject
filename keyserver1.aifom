@@ -1,0 +1,72 @@
+Problem: zebsKeyserver;
+
+Types:
+Honest = {...};
+Dishon = {...};
+Server = {...};
+User   = Honest ++ Dishon;
+Agent  = Honest ++ Server ++ Dishon;
+Sts    = {valid,revoked};
+
+Sets:
+ring(User), db__valid(Server,User), db__revoked(Server,User);
+
+Functions:
+sign/2, pair/2, inv/1;
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+
+iAgents(A: Agent)
+  => iknows(A);
+%iOpen(M1: untyped, M2: untyped)
+%  iknows(sign(M1,M2)) => iknows(M2);
+%iSign(M1: untyped, M2: untyped)
+%  iknows(M1).iknows(M2) => iknows(sign(M1,M2));
+%iProj(M1: untyped, M2: untyped)
+%  iknows(pair(M1,M2)) => iknows(M1).iknows(M2);
+%iPair(M1: untyped, M2: untyped)
+%  iknows(M1).iknows(M2) => iknows(pair(M1,M2));
+
+iOpen(PK:membership, NPK: membership,A:Agent) 
+  iknows(sign(inv(PK),pair(A,NPK))) => iknows(NPK);  
+  
+iSign(PK:membership, NPK: membership, A:Agent)
+  iknows(inv(PK)).iknows(A).iknows(NPK) => iknows(sign(inv(PK),pair(A,NPK)));
+  
+iProj(A:Agent, NPK: membership)
+  iknows(pair(A,NPK)) => iknows(A).iknows(NPK);
+  
+iPair(A: Agent, NPK: membership)
+  iknows(A).iknows(NPK) => iknows(pair(A,NPK));
+  
+keyReg(A:User, S:Server, PK:value)
+  =[PK]=>iknows(PK).PK in ring(A).PK in db__valid(S,A);
+
+dishonKey(A:Dishon, PK:value)
+  iknows(PK).PK in ring(A) => iknows(inv(PK)).PK in ring(A);
+
+userUpdateKey(A: Honest, S: Server, PK: value, NPK: value)
+  iknows(PK).PK in ring(A)
+    =[NPK]=> NPK in ring(A).iknows(sign(inv(PK),pair(A,NPK)));
+
+serverUpdateKey(A: User, S: Server, PK: value, NPK: value)
+  iknows(sign(inv(PK),pair(A,NPK))).PK in db__valid(S,A).
+ % NPK notin db__valid(_,_).NPK notin db__revoked(_,_)
+  NPK notin db__valid(S,A).NPK notin db__revoked(S,A)
+    => PK in db__revoked(S,A).NPK in db__valid(S,A).iknows(inv(PK));
+	
+%serverUpdateKey(A: User, S: Server, PK: value, NPK: value, PK1: value, NPK1: value)
+%  iknows(sign(inv(PK),pair(A,NPK))).iknows(sign(inv(PK1),pair(A,NPK1))).PK in db__valid(S,A).
+%  NPK notin db__valid(_,_).NPK notin db__revoked(_,_).PK1 in db__valid(S,A).
+%  NPK1 notin db__valid(_,_).NPK1 notin db__revoked(_,_)
+%    => PK in db__revoked(S,A).NPK in db__valid(S,A).iknows(inv(PK));
+	
+%userUpdatePrivateKey(A: User, S: Server, PK: value)
+%	iknows(inv(PK)).PK in db__revoked(S,A)
+%		=> iknows(inv(PK)).PK in db__valid(S,A);
+
+attackDef(S: Server, H: Honest, PK: value)
+  iknows(inv(PK)).PK in db__valid(S,H) => attack;

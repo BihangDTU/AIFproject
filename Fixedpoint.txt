@@ -1,0 +1,7 @@
+(1) Token1:TOKEN.iknows(h(val(0,wrap(Token1),decrypt(Token1),0))) <=  iik2;
+(2) Token1:TOKEN.iknows(h(val(extract(Token1),0,0,sensitive(Token1)))) <=  iik1;
+(5) T14:TOKEN.iknows(senc(val(extract(T14),0,0,sensitive(T14)),val(0,wrap(T14),decrypt(T14),0))) <= (2) + (1) wrap;
+(9) T57:TOKEN.iknows(val(extract(T57),0,0,sensitive(T57))) <= (1) + (5) decrypt1;
+(12) attack <= (9) attack1;
+(13) T86:TOKEN.timplies(val(extract(T86),0,0,sensitive(T86)),val(extract(T86),0,0,0)) <= (9) attack1;
+(21) T176:TOKEN.iknows(val(extract(T176),0,0,0)) <= (13) + (9) timplies;

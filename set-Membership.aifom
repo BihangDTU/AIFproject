@@ -1,0 +1,46 @@
+Problem: SET_MEMBERSHIP;
+
+Types: 
+Honest = {a,b};
+Dishon = {i};
+Server = {s};
+User   = Honest ++ Dishon ++ Server;
+Sts    = {valid,revoked};
+
+Sets: 
+ring(User), db(Server,User,Sts);
+
+Functions:
+public sign/2, tri/3;
+private inv/1;
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+% ======================keyRegister================
+keyReg(A:Dishon, S:Server, PK:value)
+  =[PK]=>iknows(PK).PK in ring(A).PK in db(S,A,valid).iknows(inv(PK));
+  
+keyReg(A:Honest, S:Server, PK:value)
+  =[PK]=>iknows(PK).PK in ring(A).PK in db(S,A,valid);
+ 
+% ======================userUpdateKey================
+userUpdateKey(A: Honest, S: Server, PK: value, NPK: value, new: value)
+  iknows(PK).PK in ring(A)
+    =[NPK]=> NPK in ring(A).iknows(sign(inv(PK),tri(new,A,NPK)));
+
+% ======================serverUpdateKey================	
+serverUpdateKey(A: User, S: Server, PK: value, NPK: value, new: value)
+  iknows(sign(inv(PK),tri(new,A,NPK))).PK in db(S,A,valid).
+  NPK notin db(S,A,valid)
+	%=> PK in db(S,A,revoked).NPK in db(S,A,valid);
+    => PK in db(S,A,revoked).NPK in db(S,A,valid).iknows(inv(PK));
+	
+% ======================attacks================	
+%attackDef(S: Server, H: Honest, PK: value)
+%  iknows(inv(PK)).PK in db(S,H,valid) => attack;
+  
+attackDef2(PK: value)
+  iknows(inv(PK)) => attack;
+  

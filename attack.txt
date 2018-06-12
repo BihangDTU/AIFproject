@@ -1,0 +1,41 @@
+(1) A:Agent.iknows(A) <=  iAgents;
+(2) A:User.S:Server.iknows(val(ring(A),db__valid(S,A),0)) <=  keyReg;
+(4) A:Honest.S26:Server.iknows(sign(inv(val(0,db__valid(S26,A),0)),pair(A,val(ring(A),0,0)))) <= (2) userUpdateKey;
+(5) A:Honest.S26:Server.timplies(val(ring(A),db__valid(S26,A),0),val(0,db__valid(S26,A),0)) <= (2) userUpdateKey;
+(7) A:Dishon.S35:Server.iknows(inv(val(ring(A),db__valid(S35,A),0))) <= (2) dishonKey;
+(8) A45:Agent.A49:User.S50:Server.iknows(pair(A45,val(ring(A49),db__valid(S50,A49),0))) <= (1) iPair;
+(10) S217:Server.S235:Server.A216:Dishon.A234:User.A221:Agent.iknows(sign(inv(val(ring(A216),db__valid(S217,A216),0)),pair(A221,val(ring(A234),db__valid(S235,A234),0)))) <= (7) iSign;
+(13) S307:Server.A298:Honest.iknows(val(0,db__valid(S307,A298),0)) <= (5) timplies;
+(18) S345:Server.A344:Honest.iknows(inv(val(0,0,db__revoked(S345,A344)))) <= (4) serverUpdateKey;
+(19) S345:Server.A344:Honest.timplies(val(ring(A344),0,0),val(ring(A344),db__valid(S345,A344),0)) <= (4) serverUpdateKey;
+(20) S345:Server.A344:Honest.timplies(val(0,db__valid(S345,A344),0),val(0,0,db__revoked(S345,A344))) <= (4) serverUpdateKey;
+(21) A392:Honest.iknows(val(ring(A392),0,0)) <= (4) iOpen;
+(23) S1084:Server.A1085:Honest.iknows(inv(val(0,db__valid(S1084,A1085),0))) <= (18) userUpdatePrivateKey;
+(24) S1084:Server.A1085:Honest.timplies(val(0,0,db__revoked(S1084,A1085)),val(0,db__valid(S1084,A1085),0)) <= (18) userUpdatePrivateKey;
+(26) A1150:Dishon.S1151:Server.A1169:Agent.A1246:Honest.iknows(sign(inv(val(ring(A1150),db__valid(S1151,A1150),0)),pair(A1169,val(ring(A1246),0,0)))) <= (7) iSign;
+(29) A1163:Honest.A1272:Honest.S1162:Server.A1195:Agent.iknows(sign(inv(val(0,0,db__revoked(S1162,A1163))),pair(A1195,val(ring(A1272),0,0)))) <= (18) iSign;
+(34) A1376:Honest.iknows(sign(inv(val(0,0,0)),pair(A1376,val(ring(A1376),0,0)))) <= (21) userUpdateKey;
+(35) A1376:Honest.timplies(val(ring(A1376),0,0),val(0,0,0)) <= (21) userUpdateKey;
+(38) S1472:Server.A1473:Honest.iknows(val(0,0,db__revoked(S1472,A1473))) <= (20) timplies;
+(48) A1715:Agent.A1766:Honest.iknows(pair(A1715,val(ring(A1766),0,0))) <= (1) iPair;
+(54) S3715:Server.S3923:Server.A3714:Dishon.A3924:Honest.A3751:Agent.iknows(sign(inv(val(ring(A3714),db__valid(S3715,A3714),0)),pair(A3751,val(0,0,db__revoked(S3923,A3924))))) <= (7) iSign;
+(58) A3727:Honest.S3726:Server.S3967:Server.A3968:Honest.A3795:Agent.iknows(sign(inv(val(0,0,db__revoked(S3726,A3727))),pair(A3795,val(0,0,db__revoked(S3967,A3968))))) <= (18) iSign;
+(62) A4012:Honest.S4011:Server.A3839:Agent.A3734:Honest.S3733:Server.iknows(sign(inv(val(0,db__valid(S3733,A3734),0)),pair(A3839,val(0,0,db__revoked(S4011,A4012))))) <= (23) iSign;
+(66) attack <= (23) attackDef;
+(67) S4041:Server.A4042:Honest.timplies(val(0,db__valid(S4041,A4042),0),val(0,0,0)) <= (23) attackDef;
+(76) iknows(val(0,0,0)) <= (35) timplies;
+(86) A4573:Dishon.S4574:Server.iknows(inv(val(ring(A4573),0,db__revoked(S4574,A4573)))) <= (26) serverUpdateKey;
+(87) A4573:Dishon.S4574:Server.A4576:Honest.timplies(val(ring(A4576),0,0),val(ring(A4576),db__valid(S4574,A4573),0)) <= (26) serverUpdateKey;
+(88) A4573:Dishon.S4574:Server.timplies(val(ring(A4573),db__valid(S4574,A4573),0),val(ring(A4573),0,db__revoked(S4574,A4573))) <= (26) serverUpdateKey;
+(94) A4939:Agent.A5024:Honest.S5023:Server.iknows(pair(A4939,val(0,0,db__revoked(S5023,A5024)))) <= (1) iPair;
+(101) A9246:Dishon.S9247:Server.timplies(val(ring(A9246),0,db__revoked(S9247,A9246)),val(ring(A9246),db__valid(S9247,A9246),0)) <= (86) userUpdatePrivateKey;
+(103) A9469:Agent.S9406:Server.A9405:Dishon.iknows(sign(inv(val(ring(A9405),db__valid(S9406,A9405),0)),pair(A9469,val(0,0,0)))) <= (7) iSign;
+(108) A9540:Agent.S9417:Server.A9418:Honest.iknows(sign(inv(val(0,0,db__revoked(S9417,A9418))),pair(A9540,val(0,0,0)))) <= (18) iSign;
+(113) A9611:Agent.A9425:Honest.S9424:Server.iknows(sign(inv(val(0,db__valid(S9424,A9425),0)),pair(A9611,val(0,0,0)))) <= (23) iSign;
+(118) S9460:Server.A9682:Agent.A9459:Dishon.iknows(sign(inv(val(ring(A9459),0,db__revoked(S9460,A9459))),pair(A9682,val(0,0,0)))) <= (86) iSign;
+(135) A10843:Honest.S10385:Server.A10384:Dishon.iknows(val(ring(A10843),db__valid(S10385,A10384),0)) <= (87) timplies;
+(136) S10891:Server.A10387:Dishon.iknows(val(ring(A10387),0,db__revoked(S10891,A10387))) <= (88) timplies;
+(159) A11954:Agent.iknows(pair(A11954,val(0,0,0))) <= (1) iPair;
+
+
+

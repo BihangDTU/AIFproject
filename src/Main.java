@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import org.antlr.v4.runtime.CharStreams;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -95,7 +96,7 @@ public class Main {
     
     
     System.out.println("-----------------------------------------------------------");
-    HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();
+    /*HashSet<String> buildInTypes = ((AIFdata)aifAST).getBuildInTypes();
     StateTransition ST = new StateTransition();
     ST.setBuildInTypes(buildInTypes);
     State state = new State();
@@ -123,8 +124,10 @@ public class Main {
       vf.verifyFixedpoint(aifAST,fpAST,UserDefType);
    // }
     
+    */
+    
     ComputeFixedpoint cp = new ComputeFixedpoint(aifAST);
-    //cp.generateHornClause(aifAST,UserDefType);
+   cp.generateHornClause(aifAST,UserDefType);
    
     
   };

@@ -1,3 +1,5 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +64,7 @@ public class ComputeFixedpoint {
   
   public void fixedpointCompute(List<AbstractRule> hornClauses,HashMap<String,List<String>> UserDefType, List<String> membershipName){
     List<OutFact> fixedpoint = new ArrayList<>();
+    //List<OutFact> allFacts = new ArrayList<>();
     while(true){
       /*System.out.println("----------------------------");
       System.out.println("FixedPoint: " + fixedpoint.size());
@@ -72,7 +75,10 @@ public class ComputeFixedpoint {
       System.out.println("----------------------------");
       System.out.println("Calculating!!!!!!!!!!");*/
       //HashSet<OutFact> newGenerateFact = new HashSet<>(getNewFacts(hornClauses,fixedpoint,UserDefType,membershipName));
+      //allFacts.clear();
+      //id.resetCounter();
       List<OutFact> newGenerateFact = getNewFacts(hornClauses,fixedpoint,UserDefType,membershipName);
+      //allFacts.addAll(newGenerateFact);
       /*System.out.println("----------------------------");
       System.out.println("New generate: " + newGenerateFact.size());
       System.out.println();
@@ -99,11 +105,29 @@ public class ComputeFixedpoint {
       }
     }
     
-    System.out.println("Fixed-point:");
-    for(OutFact f : fixedpoint){
-      System.out.println(f);
+    System.out.println("Fixed-point: " + fixedpoint.size());
+    System.out.println("Computation done!");
+    try {
+      FileWriter writer = new FileWriter("Fixedpoint.txt", true);
+      for(OutFact f : fixedpoint){
+        writer.write(f.toString() + "\n");
+      }
+      
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
     
+ /*   try {
+      FileWriter writer = new FileWriter("AllFacts.txt", true);
+      for(OutFact all : allFacts){
+        writer.write(all.toString() + "\n");
+      }
+      
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }*/
   }
   
   public AbstractRule getContextClause(AbstractRule absRule){
@@ -250,8 +274,21 @@ public class ComputeFixedpoint {
             vTypes.put(entity.getKey(), entity.getValue());
           }
         }
+        
+        FactWithType rfFactWithTypes = new FactWithType();
+        /*HashMap<String,String> varTypeMap = getVarsTypeSubstitutionMap(vTypes,UserDefType);
+        if(!varTypeMap.isEmpty()){
+          for(Map.Entry<String, String> entity : varTypeMap.entrySet()){
+            vTypes.remove(entity.getKey());
+          }
+          Term rfFactSubstituted = mgu.termSubs(rfFact, varTypeMap);
+          rfFactWithTypes.setvType(vTypes);
+          rfFactWithTypes.setTerm(rfFactSubstituted);
+        }else{*/
+          rfFactWithTypes.setvType(vTypes);
+          rfFactWithTypes.setTerm(rfFact);
+        //}
         id.increaseCounter();
-        FactWithType rfFactWithTypes = new FactWithType(vTypes,rfFact); 
         OutFact outputfact = new OutFact(id.getCounter(),rfFactWithTypes,substitution.getTrace(),absRule.getRulesName());
       
         Term rfFactWithTypesSubs = mgu.termSubs(rfFact, vTypes);
@@ -274,7 +311,20 @@ public class ComputeFixedpoint {
             vTypes.put(entity.getKey(), entity.getValue());
           }
         }  
-        FactWithType timplieWithTypes = new FactWithType(vTypes,tim); 
+  
+        FactWithType timplieWithTypes = new FactWithType();
+        /*HashMap<String,String> varTypeMap = getVarsTypeSubstitutionMap(vTypes,UserDefType);
+        if(!varTypeMap.isEmpty()){
+          for(Map.Entry<String, String> entity : varTypeMap.entrySet()){
+            vTypes.remove(entity.getKey());
+          }
+          Term timSubstituted = mgu.termSubs(tim, varTypeMap);
+          timplieWithTypes.setvType(vTypes);
+          timplieWithTypes.setTerm(timSubstituted);
+        }else{*/
+          timplieWithTypes.setvType(vTypes);
+          timplieWithTypes.setTerm(tim);
+        //}
         id.increaseCounter();
         OutFact outputfact = new OutFact(id.getCounter(),timplieWithTypes,substitution.getTrace(),absRule.getRulesName());
         
@@ -285,6 +335,7 @@ public class ComputeFixedpoint {
           areTypeConsistent = false;
         }
         if(areTypeConsistent){
+          
           newGenerateFacts.add(outputfact);
         }
       }
@@ -360,5 +411,28 @@ public class ComputeFixedpoint {
     }
     return reducedFacts; 
   }
+  
+  /*public HashMap<String,String> getVarsTypeSubstitutionMap(HashMap<String,String> varTypeMap,HashMap<String,List<String>> UserDefType){
+    HashMap<String,String> varTypeMapCopy = new HashMap<>(varTypeMap);
+    HashMap<String,String> substitutiondMap = new HashMap<>();
+    for(Map.Entry<String,String> entity : varTypeMap.entrySet()){
+      for(Map.Entry<String,String> entityCopy : varTypeMapCopy.entrySet()){
+        if(UserDefType.get(entity.getValue()).containsAll(UserDefType.get(entityCopy.getValue()))){
+          if(!UserDefType.get(entityCopy.getValue()).containsAll(UserDefType.get(entity.getValue()))){
+            if(!substitutiondMap.containsKey(entityCopy.getKey())){
+              substitutiondMap.put(entityCopy.getKey(), entity.getKey());
+            }else{
+              String var = varTypeMap.get(substitutiondMap.get(entityCopy.getKey()));
+              if(UserDefType.get(var).containsAll(UserDefType.get(entity.getValue()))){
+                substitutiondMap.remove(entityCopy.getKey());
+                substitutiondMap.put(entityCopy.getKey(), entity.getKey());
+              }
+            }
+          }
+        }
+      }
+    }
+    return substitutiondMap;
+  }*/
 
 }

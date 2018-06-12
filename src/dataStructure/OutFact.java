@@ -86,13 +86,13 @@ public class OutFact extends AST implements Serializable{
         return false;
       }
       OutFact of = (OutFact) o;   
-      return Objects.equals(fact, of.fact);
+      return Objects.equals(fact.getTerm(), of.fact.getTerm());
   }
   
   @Override
   public int hashCode() {
     int hash = 7;
-    hash = 19 * hash + Objects.hashCode(this.fact);
+    hash = 19 * hash + Objects.hashCode(this.fact.getTerm());
     return hash;
   }
 }

@@ -1,0 +1,37 @@
+Problem: KEY_SEPARATION;
+
+Types: 
+TOKEN ={token1};
+
+Sets: 
+extract(TOKEN), wrap(TOKEN), decrypt(TOKEN), sensitive(TOKEN);
+
+Functions:
+senc/2, h/1,inv/1; 
+
+Facts:
+iknows/1, attack/0;
+
+Rules:
+iik1(K1:value,Token1:TOKEN)
+=[K1]=>K1 in sensitive(Token1).K1 in extract(Token1).iknows(h(K1));
+
+iik2(K2:value,Token1:TOKEN)
+=[K2]=>K2 in wrap(Token1).K2 in decrypt(Token1).iknows(h(K2));
+
+% ======================wrap================
+wrap(K1:value, K2: value, Token1:TOKEN)
+iknows(h(K1)).K1 in extract(Token1).K2 in wrap(Token1).iknows(h(K2)) => iknows(senc(K1,K2)).K2 in wrap(Token1).K1 in extract(Token1);
+
+% ======================decrypt================
+decrypt1(K2:value, M:value, Token1:TOKEN)
+K2 in decrypt(Token1).iknows(h(K2)).iknows(senc(M,K2)) =>iknows(M).K2 in decrypt(Token1);
+
+decrypt2(K2:value, M:value)
+iknows(senc(M,K2)).iknows(K2)=>iknows(M);
+
+% ======================attacks================
+attack1(K1:value, Token1:TOKEN)
+K1 in sensitive(Token1).iknows(K1)
+=>
+attack;

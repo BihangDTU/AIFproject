@@ -118,7 +118,7 @@ public class Node {
           System.out.println("Empty state;");
         }
         System.out.println("   |");
-        System.out.println(attackTraceArr.get(i+1).getRuleName());
+        System.out.println("  "+attackTraceArr.get(i+1).getRuleName());
         System.out.println("   |");
         System.out.println("   v");
       }

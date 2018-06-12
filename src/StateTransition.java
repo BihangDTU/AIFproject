@@ -185,32 +185,34 @@ public class StateTransition {
       if(rule.getLF().isEmpty()){
         subList.add(new Substitution(cTypeSubstitution));
         substitutions.add(subList);
-      }
-      for(Term lf : rule.getLF()){
-        if(subList.isEmpty()){
-          Term lfSubstituted = mgu.termSubstituted(lf, new Substitution(cTypeSubstitution)); 
-          for(Term fact : state.getFacts()){
-            Substitution subs = new Substitution();
-            if(mgu.unifyTwoFacts(lfSubstituted,fact,subs)){
-              subs.getSubstitution().putAll(cTypeSubstitution);
-              subList.add(subs);
-            }
-          }
-        }else{
-          List<Substitution> subListCopy = (List<Substitution>)dClone.deepClone(subList);
-          for(Substitution subs : subListCopy){
-            Substitution subsCopy = (Substitution)dClone.deepClone(subs);
-            Term lfSubstituted = mgu.termSubstituted(lf, subs);
+      }else{
+        for(Term lf : rule.getLF()){
+          if(subList.isEmpty()){
+            Term lfSubstituted = mgu.termSubstituted(lf, new Substitution(cTypeSubstitution)); 
             for(Term fact : state.getFacts()){
-              if(mgu.unifyTwoFacts(lfSubstituted,fact,subsCopy)){
-                subList.add(subsCopy);
+              Substitution subs = new Substitution();
+              if(mgu.unifyTwoFacts(lfSubstituted,fact,subs)){
+                subs.getSubstitution().putAll(cTypeSubstitution);
+                subList.add(subs);
               }
             }
-            subList.remove(subs);
+          }else{
+            List<Substitution> subListCopy = (List<Substitution>)dClone.deepClone(subList);
+            for(Substitution subs : subListCopy){
+              Term lfSubstituted = mgu.termSubstituted(lf, subs);
+              for(Term fact : state.getFacts()){
+                Substitution subsCopy = (Substitution)dClone.deepClone(subs);
+                if(mgu.unifyTwoFacts(lfSubstituted,fact,subsCopy)){
+                  subList.add(subsCopy);
+                }
+              }
+              subList.remove(subs);
+            }
           }
-        } 
+        }
+        substitutions.add(subList);
       }
-      substitutions.add(subList);
+      
     }
     
     for(List<Substitution> subsList : substitutions){

@@ -130,12 +130,21 @@ public class VerifyFixedpoint {
     List<Condition> splus = new ArrayList<>(conRule.getSplus());
     List<Condition> conditions_left = new ArrayList<>(conRule.getSplus());
     conditions_left.addAll(conRule.getSnega());
-    
+    HashMap<String,String> absVarsType = new HashMap<>();
+    absVarsType.putAll(conRule.getVarsTypes());
     Substitution subs = new Substitution();
     for(Term lf : conRule.getLF()){
       Term termSubs = mgu.termSubstituted(lf, subs);
-      Term absLF = cFactToAbsFact(termSubs,conRule.getVarsTypes(),conditions_left,setPosition);
+      Term absLF = cFactToAbsFact(termSubs,absVarsType,conditions_left,setPosition);
       LF.add(absLF);  
+      
+      HashSet<String> fv = new HashSet<>();
+      fv.addAll(mgu.vars(absLF));
+      for(String var : fv){
+        if(var.matches(".*PKDB.*")){
+          absVarsType.put(var, "membership");
+        }
+      }
       mgu.unifyTwoFacts(lf,absLF,subs);
     }
     absRule.setLF(LF);
@@ -187,7 +196,7 @@ public class VerifyFixedpoint {
       }
     }
     //absRule.setTimplies(timplies);
-    HashSet<String> fv = new HashSet<>();
+    /*HashSet<String> fv = new HashSet<>();
     for(Term lf : absRule.getLF()){
       fv.addAll(mgu.vars(lf));
     }
@@ -204,7 +213,7 @@ public class VerifyFixedpoint {
       if(var.matches(".*PKDB.*")){
         absVarsType.put(var, "membership");
       }
-    }
+    }*/
     absRule.setVarsTypes(absVarsType);
     if(!conRule.getVarsTypes().values().contains("membership")){
       absRule.setTimplies(timplies);
